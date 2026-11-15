@@ -1,0 +1,50 @@
+name: portable core
+on: [push, pull_request]
+jobs:
+  virtual:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        shared: [ON, OFF]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure Windows with ClangCL C11 atomics
+        if: runner.os == 'Windows'
+        run: cmake -S . -B build -T ClangCL -DHA_BUILD_SHARED=${{ matrix.shared }}
+      - name: Configure POSIX toolchains
+        if: runner.os != 'Windows'
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DHA_BUILD_SHARED=${{ matrix.shared }}
+      - run: cmake --build build --config Debug --parallel
+      - run: ctest --test-dir build -C Debug --output-on-failure
+      - run: cmake --install build --config Debug --prefix "${{ github.workspace }}/installed"
+      - name: Add installed Windows DLL directory
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Add-Content -Path $env:GITHUB_PATH -Value "$env:GITHUB_WORKSPACE/installed/bin"
+      - name: Configure installed consumer
+        run: cmake -S tests/consumer -B consumer -DCMAKE_PREFIX_PATH="${{ github.workspace }}/installed"
+      - run: cmake --build consumer --config Debug --parallel
+      - run: ctest --test-dir consumer -C Debug --output-on-failure
+  sanitizers:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        sanitizer: [address, thread]
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DHA_SANITIZER=${{ matrix.sanitizer }}
+      - run: cmake --build build --parallel
+      - run: ctest --test-dir build --output-on-failure
+  freestanding:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build -DHA_FREESTANDING=ON -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build build --parallel
+      - run: ctest --test-dir build --output-on-failure
+      - run: python3 tools/check_contracts.py build/libhail.a
+      - run: cmake -S . -B minimal -DHA_FREESTANDING=ON -DHA_BACKEND_VIRTUAL=OFF -DHA_BUILD_TESTS=OFF -DHA_BUILD_EXAMPLES=OFF -DCMAKE_C_FLAGS=-ffreestanding
+      - run: cmake --build minimal --parallel
+      - run: python3 tools/check_contracts.py minimal/libhail.a --no-virtual

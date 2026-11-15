@@ -1,0 +1,10 @@
+prefix=${pcfiledir}/@HA_PC_PREFIX_FROM_PC@
+exec_prefix=${prefix}
+libdir=${prefix}/@HA_PC_LIBDIR@
+includedir=${prefix}/@HA_PC_INCLUDEDIR@
+
+Name: Hail
+Description: Portable bounded real-time PCM audio systems library
+Version: @PROJECT_VERSION@
+Libs: -L${libdir} -lhail
+Cflags: -I${includedir} @HA_PC_PRIVATE@
