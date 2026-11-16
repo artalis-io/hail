@@ -1,0 +1,32 @@
+name: CoreAudio virtual-device loopback
+on:
+  workflow_dispatch:
+jobs:
+  blackhole:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install independent virtual audio fixture
+        run: |
+          mkdir -p results
+          sw_vers | tee results/platform.txt
+          uname -m | tee -a results/platform.txt
+          brew install --cask blackhole-2ch
+          brew info --json=v2 --cask blackhole-2ch > results/fixture.json
+          sudo launchctl kickstart -kp system/com.apple.audio.coreaudiod
+      - name: Build and test static and shared native backends
+        run: |
+          set -euo pipefail
+          for linkage in OFF ON; do
+            cmake -S . -B "build-$linkage" -DCMAKE_BUILD_TYPE=Release -DHA_BUILD_SHARED="$linkage" -DHA_BUILD_NATIVE_TESTS=ON
+            cmake --build "build-$linkage" --parallel
+            codesign --force --sign - "build-$linkage/hail_coreaudio_loopback"
+            ctest --test-dir "build-$linkage" --verbose | tee "results/tests-$linkage.log"
+            ctest --test-dir "build-$linkage" -R coreaudio_loopback --repeat until-fail:3 --verbose | tee "results/repeat-$linkage.log"
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coreaudio-loopback-evidence
+          path: results

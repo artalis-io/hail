@@ -187,3 +187,29 @@ To reproduce the dependency leak investigation, build
 This compares otherwise identical client configurations with the RT module
 absent, present with default fallback, and present with RTKit/portal disabled.
 It reports failures rather than suppressing LeakSanitizer diagnostics.
+
+## CoreAudio virtual-device qualification
+
+The manual `CoreAudio virtual-device loopback` CI workflow installs BlackHole
+2ch on a disposable macOS runner and exercises native static/shared Hail builds.
+BlackHole is an independently installed test fixture, never a Hail build/runtime
+dependency or vendored source. Its upstream license and installation details are
+at https://github.com/ExistentialAudio/BlackHole.
+
+With that fixture installed on an isolated macOS host:
+
+```sh
+cmake -S . -B build-ca -DHA_BUILD_NATIVE_TESTS=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build-ca --parallel
+ctest --test-dir build-ca -R coreaudio_loopback --verbose
+```
+
+The test explicitly selects BlackHole 2ch, configures that fixture to 48 kHz,
+and sends only synthetic data through it. It does not change default endpoints
+or select a physical microphone/speaker. Run it only on a disposable fixture
+host: it changes the virtual device's nominal sample rate. The executable has
+an embedded microphone usage description and remains subject to normal macOS
+permissions. The workflow does not modify privacy databases or disable OS
+security. Missing devices, denied permission and failed sample checks are test
+failures, not successful skips. CI artifacts retain driver version, platform
+and verbose test logs; setting up the workflow alone is not qualification.

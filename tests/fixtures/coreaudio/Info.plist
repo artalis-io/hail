@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleIdentifier</key><string>io.artalis.hail.coreaudio-loopback</string>
+<key>CFBundleName</key><string>Hail CoreAudio loopback test</string>
+<key>NSMicrophoneUsageDescription</key><string>Verify synthetic PCM through the explicitly selected BlackHole virtual device. No physical microphone is selected.</string>
+</dict></plist>
