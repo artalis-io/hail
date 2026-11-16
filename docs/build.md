@@ -153,3 +153,37 @@ audit remains incomplete for unavailable Sail and Hull binary artifacts. Static
 archives may contain private `hail_*` helper definitions; only `ha_*` functions
 listed in the export manifest belong to the public interface. Shared builds
 hide all helpers. Source acquisition and builds make no network requests.
+
+## Isolated native loopback qualification
+
+`HA_BUILD_NATIVE_TESTS=ON` with PipeWire enabled builds `hail_pipewire_loopback`
+and registers a real-server integration test. It requires Python 3, `pipewire`,
+`pw-dump`, `pw-link` and `pw-cli` (Debian/Ubuntu: `pipewire`, `pipewire-bin`,
+`libspa-0.2-modules`). It creates a private runtime directory, starts a server
+with only a null sink/monitor and dummy clock, links Hail's native streams, and
+removes the fixture afterward. No session manager, ALSA device discovery,
+physical microphone/speaker, recording or user-server reconfiguration is used.
+
+```sh
+ctest --test-dir build-native -R pipewire_loopback --output-on-failure
+python3 tools/run_pipewire_loopback.py \
+  --test build-native/hail_pipewire_loopback --iterations 10 \
+  --output /tmp/hail-loopback.json
+```
+
+The test checks exact nonzero stereo PCM, ordering, capture continuity and epoch
+through native playback flush, stale writes, native endpoint disappearance,
+replacement identity and complete reclamation. It measures application write to
+capture-read time and observed flush acknowledgement, plus client CPU, process
+RSS high-water and Hail allocator counts. The fixture fixes graph rate/quantum;
+these are software-loopback measurements, not physical or hard-real-time latency.
+The isolated client omits the RT module and DBus fallback, so its leak-clean
+result must not be generalized to default desktop PipeWire configuration.
+
+To reproduce the dependency leak investigation, build
+`tools/probes/pipewire_context.c` with `-fsanitize=address` and the system
+`pkg-config --cflags --libs libpipewire-0.3` flags, then run
+`python3 tools/probes/pipewire_leaks.py --probe /path/to/probe --output /tmp/leaks.json`.
+This compares otherwise identical client configurations with the RT module
+absent, present with default fallback, and present with RTKit/portal disabled.
+It reports failures rather than suppressing LeakSanitizer diagnostics.

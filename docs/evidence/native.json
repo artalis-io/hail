@@ -2,7 +2,7 @@
   "date": "2026-11-15",
   "scope": "Gate D implementation; physical-platform qualification and Gate E measurements remain open",
   "base_commit": "5921c55644622cd6b24f54d503f28a699044c94e",
-  "source_state": "Uncommitted Gate D working tree; SHA256 below identifies inspected/tested source",
+  "source_state": "Historical Gate D source snapshot committed as recorded_commit; follow-up qualification evidence is separate.",
   "tools": {
     "linux": "x86-64 GCC 13.3.0 / Clang 18.1.3",
     "alsa": "1.2.11",
@@ -100,5 +100,6 @@
     "tests/conformance.c": "4029345dfc676f2972ac7a457cc5209f5ac707cf28020b26449bb5636217ef1e",
     "tests/native_handoff.c": "f5fc8a71fdddfea6453603f8203606fd1d4c6f826dd41e3f642ccb51b78e04cf",
     "tools/probes/pipewire_context.c": "ccfcc5f7e12a214b9a657f147d29dd1077982f4cb413439fe12359e4782b0d7a"
-  }
+  },
+  "recorded_commit": "7b7aed174e91f5e1659143e136a90f40b05e84d0"
 }

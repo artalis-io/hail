@@ -5,15 +5,16 @@ playback, and full-duplex operation. Public identifiers use `ha_` and `HA_`.
 
 **Status: Gate D native implementations, version 0.1.** CoreAudio, shared WASAPI,
 PipeWire and ALSA now accompany the portable core and deterministic virtual
-backend. Linux software-device duplex/interruption tests pass; macOS and Windows
-backends compile and link. Physical-device qualification and latency measurements
-remain outstanding. The ABI remains provisional.
+backend. Isolated native loopback tests and all eleven platform CI jobs pass.
+Software delivery/flush measurements are recorded; physical-device qualification
+and physical latency measurements remain outstanding. The ABI remains provisional.
 
 - [Repository and audio implementation audit](docs/audit.md)
 - [Architecture and contracts proposal](docs/architecture.md)
 - [Verification plan and engineering gates](docs/verification.md)
 - [Public API and ownership reference](docs/api.md)
 - [Build and integration guide](docs/build.md)
+- [Native software-loopback qualification](docs/loopback-qualification.md)
 - [Native backend contracts and limitations](docs/native-backends.md)
 - [Backend authoring boundary](docs/backend-authoring.md)
 - [Reproducible namespace evidence](docs/evidence/namespace.json)

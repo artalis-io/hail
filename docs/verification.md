@@ -6,7 +6,7 @@ implementation is complete; full physical-platform qualification remains open. T
 plan, not a claim
 that every planned case is covered. Current executed checks are recorded in the
 next section. Sibling namespace inspection remains in the [audit](audit.md) and
-[raw evidence](evidence/namespace.json). No latency result below is a measurement.
+[raw evidence](evidence/namespace.json). Physical latency remains unmeasured; software-loopback measurements below have a separate scope.
 
 Source hashes, tool versions and per-target results are recorded in
 [native evidence](evidence/native.json).
@@ -38,9 +38,11 @@ consumers also compile/link/run for both library kinds. A Clang libFuzzer
 ASan/UBSan run completed 30000 inputs with seed 73 and maximum length 96 without
 a finding. The fuzz target exercises configuration geometry and bounded virtual
 operation sequences, not malformed pointers or a native driver.
-Gate C commit 5921c55 passed macOS/Windows/Linux CI. The new native CI jobs have
-been configured but have not run remotely for this working tree. Physical audio
-and measured latency remain untested.
+Gate D commit 7b7aed1 passed all eleven macOS/Windows/Linux jobs in
+[CI run 43917043569](https://github.com/artalis-io/hail/actions/runs/43917043569).
+This includes native target builds, context creation/enumeration on macOS and
+Windows (headless snapshots may be empty), portable tests and installed consumers.
+These checks do not open native microphones or prove physical stream behavior.
 
 Gate D local checks add a native producer/control handoff stress test and an
 opt-in real libasound null-device duplex test (six tests total in native static
@@ -50,8 +52,16 @@ retirement retry, real null PCM start/stop/restart and capture-preserving native
 flush. Actual PipeWire 1.6.8 RT_PROCESS callbacks also ran duplex against the
 Dummy Output sink/monitor, including flush and continued capture, under Clang
 TSan without findings. No physical microphone was opened and no audible PCM was
-submitted. These short software-device exercises do not measure latency or
-prove long-duration scheduling stability.
+submitted. Those initial smoke exercises did not measure latency.
+
+Follow-up qualification adds a real, isolated PipeWire null-sink/monitor loopback:
+seven native static CTests now pass under ASan/UBSan/LSan and Clang TSan. The new
+test checks nonzero PCM exactly, generation order, capture-preserving native
+flush, stale writes, disappearance, replacement/reopen, deliberate capture
+starvation and playback underruns, and balanced destruction. Release software
+round-trip and flush acknowledgement measurements are recorded in
+[the loopback report](loopback-qualification.md); they do not establish physical
+latency, hard deadlines or long-duration stability.
 
 The separate PipeWire ASan exercise reports 3525 leaked bytes in 34 allocations
 from context module initialization. A [minimal reproducer](../tools/probes/pipewire_context.c)
@@ -64,8 +74,8 @@ Cross builds compiled and linked CoreAudio arm64 static and shared Mach-O with
 Clang 18 and the macOS 11.3 SDK, and shared/static WASAPI x86-64 PE with MinGW-w64. Both native C examples
 also cross-link against their static libraries. The cross-host Mach-O archive
 requires LLVM ranlib to generate its target index.
-These SDK-target builds are not executions on macOS/Windows and establish no
-physical-device correctness. ALSA 1.2.11/PipeWire 1.6.8 static/shared builds and
+The SDK cross builds establish no execution evidence; the CI run above adds
+actual target build/enumeration coverage, still without physical stream tests. ALSA 1.2.11/PipeWire 1.6.8 static/shared builds and
 installed C/C++ consumers are checked separately on Linux. Native callback
 allocation audits, failure/permission/hotplug qualification on each target and
 measured latency remain explicit D/E qualification work.
@@ -182,10 +192,10 @@ coverage. Run Clang static analysis and configuration/metadata fuzzing too.
 | Backend/target | Compile/link evidence | Execution evidence | Physical devices | Measured latency |
 | --- | --- | --- | --- | --- |
 | Portable core and virtual | Linux GCC/Clang static/shared, freestanding exclusion | Portable tests; ASan/UBSan and Clang TSan | Not applicable | Not measured |
-| Linux PipeWire | Static/shared, GCC/Clang | Dummy sink/monitor duplex and native flush; TSan clean; separate dependency LSan finding above | Not tested | Not measured |
+| Linux PipeWire | Static/shared, GCC/Clang | Isolated nonzero loopback, flush, loss/reopen, starvation; ASan/UBSan/LSan and TSan clean in fixture; default-config dependency finding remains | Not tested | Software only; see loopback report |
 | Linux ALSA | Static/shared, GCC/Clang | Null-device duplex, flush, stop/restart; ASan/UBSan/LSan and TSan clean | Not tested | Not measured |
-| macOS CoreAudio | arm64 static/shared cross compile/link | Not run on target | Not tested | Not measured |
-| Windows shared WASAPI | x86-64 MinGW shared cross compile/link | Not run on target | Not tested | Not measured |
+| macOS CoreAudio | arm64 cross compile/link and native CI static/shared | Native context/enumeration plus virtual suite in CI | Not tested | Not measured |
+| Windows shared WASAPI | MinGW cross static/shared and ClangCL native CI static/shared | Native context/enumeration plus virtual suite in CI | Not tested | Not measured |
 | Embedded/RTOS/UEFI | Extension design; freestanding core compiles | No adapter | No adapter | Not measured |
 
 Planned CI: GCC and Clang Linux, AppleClang macOS, MSVC and MinGW Windows; debug

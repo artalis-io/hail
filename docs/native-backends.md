@@ -72,8 +72,8 @@ submission. A native write can subsequently fail, or a reset can discard it.
 Flush advances the render epoch and playback generation; it preserves capture.
 Acknowledgement means the old Hail/native submission has unwound, not that a
 remote DAC has stopped audibly. Neither submitted downstream samples nor already
-audible samples can be retracted universally. No interruption latency has been
-measured. External AEC must account for missing/estimated timing and resets.
+audible samples can be retracted universally. Physical interruption latency has not been measured; software acknowledgement
+and loopback delivery measurements are in [qualification](loopback-qualification.md). External AEC must account for missing/estimated timing and resets.
 
 ## Memory, concurrency and retirement
 

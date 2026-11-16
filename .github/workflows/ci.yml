@@ -1,4 +1,4 @@
-name: portable core
+name: portable and native audio
 on: [push, pull_request]
 jobs:
   virtual:
@@ -61,7 +61,7 @@ jobs:
         shared: [ON, OFF]
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update && sudo apt-get install -y libasound2-dev libpipewire-0.3-dev
+      - run: sudo apt-get update && sudo apt-get install -y libasound2-dev libpipewire-0.3-dev pipewire pipewire-bin libspa-0.2-modules
       - run: cmake -S . -B build -DHA_BACKEND_ALSA=ON -DHA_BACKEND_PIPEWIRE=ON -DHA_BUILD_NATIVE_TESTS=ON -DHA_BUILD_SHARED=${{ matrix.shared }} -DCMAKE_BUILD_TYPE=Debug
       - run: cmake --build build --parallel
       - run: ctest --test-dir build --output-on-failure

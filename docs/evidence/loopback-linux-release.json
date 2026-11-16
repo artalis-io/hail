@@ -1,0 +1,415 @@
+{
+  "date_utc": "2026-11-16T17:32:15Z",
+  "source_commit": "7b7aed174e91f5e1659143e136a90f40b05e84d0",
+  "scope": "Private native PipeWire software loopback, no hardware; not physical latency or a hard RT guarantee",
+  "platform": {
+    "os": "Linux",
+    "kernel": "7.1.5-76070105-generic",
+    "machine": "x86_64",
+    "cpu": "AMD Ryzen Threadripper 9980X 64-Cores",
+    "pipewire": "pipewire\nCompiled with libpipewire 1.6.8\nLinked with libpipewire 1.6.8"
+  },
+  "configuration": {
+    "rate_hz": 48000,
+    "channels": 2,
+    "format": "F32",
+    "quantum_frames": 256,
+    "capture_slots": 16,
+    "playback_slots": 4,
+    "phase_seconds": 1,
+    "scheduling": "ordinary userspace; no RT module or session manager"
+  },
+  "runs": [
+    {
+      "compared_frames": 96000,
+      "capture_frames": 96256,
+      "capture_after_flush": 48128,
+      "zero_frames": 256,
+      "bad_samples": 0,
+      "sequence_gaps": 0,
+      "capture_epoch": 1,
+      "flush_ack_us": 694.053,
+      "producer_to_capture_us": {
+        "median": 26506.243,
+        "p95": 27030.767,
+        "p99": 27096.508,
+        "max": 27156.62
+      },
+      "elapsed_ms": 2001.631,
+      "cpu_ms": 15.288,
+      "peak_rss_kib": 17596,
+      "hail_peak_allocated_bytes": 297504,
+      "steady_hail_allocations": 0,
+      "underrun_frames": 0,
+      "injected_starvation": {
+        "capture_lost_frames": 5376,
+        "block_reported_loss": 5376,
+        "playback_underrun_frames": 13568
+      },
+      "lifecycle": "device loss, replacement incarnation, explicit reopen and teardown passed",
+      "transcript": [
+        "READY",
+        "{\"compared_frames\":96000,\"capture_frames\":96256,\"capture_after_flush\":48128,\"zero_frames\":256,\"bad_samples\":0,\"sequence_gaps\":0,\"capture_epoch\":1,\"flush_ack_us\":694.053,\"producer_to_capture_us\":{\"median\":26506.243,\"p95\":27030.767,\"p99\":27096.508,\"max\":27156.620},\"elapsed_ms\":2001.631,\"cpu_ms\":15.288,\"peak_rss_kib\":17596,\"hail_peak_allocated_bytes\":297504,\"steady_hail_allocations\":0,\"underrun_frames\":0}",
+        "REMOVE",
+        "REPLACE",
+        "REOPEN",
+        "XRUN {\"capture_lost_frames\":5376,\"block_reported_loss\":5376,\"playback_underrun_frames\":13568}",
+        "PASS sample accuracy, capture-preserving flush, stale writes, device loss/replacement, explicit reopen and teardown"
+      ]
+    },
+    {
+      "compared_frames": 95744,
+      "capture_frames": 96000,
+      "capture_after_flush": 47872,
+      "zero_frames": 256,
+      "bad_samples": 0,
+      "sequence_gaps": 0,
+      "capture_epoch": 1,
+      "flush_ack_us": 617.345,
+      "producer_to_capture_us": {
+        "median": 26503.769,
+        "p95": 27052.029,
+        "p99": 27080.884,
+        "max": 27090.939
+      },
+      "elapsed_ms": 2001.468,
+      "cpu_ms": 14.395,
+      "peak_rss_kib": 17596,
+      "hail_peak_allocated_bytes": 297504,
+      "steady_hail_allocations": 0,
+      "underrun_frames": 0,
+      "injected_starvation": {
+        "capture_lost_frames": 5376,
+        "block_reported_loss": 5376,
+        "playback_underrun_frames": 13568
+      },
+      "lifecycle": "device loss, replacement incarnation, explicit reopen and teardown passed",
+      "transcript": [
+        "READY",
+        "{\"compared_frames\":95744,\"capture_frames\":96000,\"capture_after_flush\":47872,\"zero_frames\":256,\"bad_samples\":0,\"sequence_gaps\":0,\"capture_epoch\":1,\"flush_ack_us\":617.345,\"producer_to_capture_us\":{\"median\":26503.769,\"p95\":27052.029,\"p99\":27080.884,\"max\":27090.939},\"elapsed_ms\":2001.468,\"cpu_ms\":14.395,\"peak_rss_kib\":17596,\"hail_peak_allocated_bytes\":297504,\"steady_hail_allocations\":0,\"underrun_frames\":0}",
+        "REMOVE",
+        "REPLACE",
+        "REOPEN",
+        "XRUN {\"capture_lost_frames\":5376,\"block_reported_loss\":5376,\"playback_underrun_frames\":13568}",
+        "PASS sample accuracy, capture-preserving flush, stale writes, device loss/replacement, explicit reopen and teardown"
+      ]
+    },
+    {
+      "compared_frames": 95744,
+      "capture_frames": 96000,
+      "capture_after_flush": 47872,
+      "zero_frames": 256,
+      "bad_samples": 0,
+      "sequence_gaps": 0,
+      "capture_epoch": 1,
+      "flush_ack_us": 620.751,
+      "producer_to_capture_us": {
+        "median": 26478.0,
+        "p95": 27053.872,
+        "p99": 27086.472,
+        "max": 27105.181
+      },
+      "elapsed_ms": 2000.796,
+      "cpu_ms": 15.214,
+      "peak_rss_kib": 17596,
+      "hail_peak_allocated_bytes": 297504,
+      "steady_hail_allocations": 0,
+      "underrun_frames": 0,
+      "injected_starvation": {
+        "capture_lost_frames": 5376,
+        "block_reported_loss": 5376,
+        "playback_underrun_frames": 13568
+      },
+      "lifecycle": "device loss, replacement incarnation, explicit reopen and teardown passed",
+      "transcript": [
+        "READY",
+        "{\"compared_frames\":95744,\"capture_frames\":96000,\"capture_after_flush\":47872,\"zero_frames\":256,\"bad_samples\":0,\"sequence_gaps\":0,\"capture_epoch\":1,\"flush_ack_us\":620.751,\"producer_to_capture_us\":{\"median\":26478.000,\"p95\":27053.872,\"p99\":27086.472,\"max\":27105.181},\"elapsed_ms\":2000.796,\"cpu_ms\":15.214,\"peak_rss_kib\":17596,\"hail_peak_allocated_bytes\":297504,\"steady_hail_allocations\":0,\"underrun_frames\":0}",
+        "REMOVE",
+        "REPLACE",
+        "REOPEN",
+        "XRUN {\"capture_lost_frames\":5376,\"block_reported_loss\":5376,\"playback_underrun_frames\":13568}",
+        "PASS sample accuracy, capture-preserving flush, stale writes, device loss/replacement, explicit reopen and teardown"
+      ]
+    },
+    {
+      "compared_frames": 95744,
+      "capture_frames": 96000,
+      "capture_after_flush": 47872,
+      "zero_frames": 256,
+      "bad_samples": 0,
+      "sequence_gaps": 0,
+      "capture_epoch": 1,
+      "flush_ack_us": 552.977,
+      "producer_to_capture_us": {
+        "median": 26502.027,
+        "p95": 27064.349,
+        "p99": 27083.588,
+        "max": 27087.665
+      },
+      "elapsed_ms": 2000.977,
+      "cpu_ms": 15.959,
+      "peak_rss_kib": 17596,
+      "hail_peak_allocated_bytes": 297504,
+      "steady_hail_allocations": 0,
+      "underrun_frames": 0,
+      "injected_starvation": {
+        "capture_lost_frames": 5632,
+        "block_reported_loss": 5632,
+        "playback_underrun_frames": 13824
+      },
+      "lifecycle": "device loss, replacement incarnation, explicit reopen and teardown passed",
+      "transcript": [
+        "READY",
+        "{\"compared_frames\":95744,\"capture_frames\":96000,\"capture_after_flush\":47872,\"zero_frames\":256,\"bad_samples\":0,\"sequence_gaps\":0,\"capture_epoch\":1,\"flush_ack_us\":552.977,\"producer_to_capture_us\":{\"median\":26502.027,\"p95\":27064.349,\"p99\":27083.588,\"max\":27087.665},\"elapsed_ms\":2000.977,\"cpu_ms\":15.959,\"peak_rss_kib\":17596,\"hail_peak_allocated_bytes\":297504,\"steady_hail_allocations\":0,\"underrun_frames\":0}",
+        "REMOVE",
+        "REPLACE",
+        "REOPEN",
+        "XRUN {\"capture_lost_frames\":5632,\"block_reported_loss\":5632,\"playback_underrun_frames\":13824}",
+        "PASS sample accuracy, capture-preserving flush, stale writes, device loss/replacement, explicit reopen and teardown"
+      ]
+    },
+    {
+      "compared_frames": 95744,
+      "capture_frames": 96000,
+      "capture_after_flush": 47872,
+      "zero_frames": 256,
+      "bad_samples": 0,
+      "sequence_gaps": 0,
+      "capture_epoch": 1,
+      "flush_ack_us": 531.824,
+      "producer_to_capture_us": {
+        "median": 26475.457,
+        "p95": 27059.571,
+        "p99": 27070.237,
+        "max": 27095.226
+      },
+      "elapsed_ms": 2001.18,
+      "cpu_ms": 15.133,
+      "peak_rss_kib": 17596,
+      "hail_peak_allocated_bytes": 297504,
+      "steady_hail_allocations": 0,
+      "underrun_frames": 0,
+      "injected_starvation": {
+        "capture_lost_frames": 5632,
+        "block_reported_loss": 5632,
+        "playback_underrun_frames": 13824
+      },
+      "lifecycle": "device loss, replacement incarnation, explicit reopen and teardown passed",
+      "transcript": [
+        "READY",
+        "{\"compared_frames\":95744,\"capture_frames\":96000,\"capture_after_flush\":47872,\"zero_frames\":256,\"bad_samples\":0,\"sequence_gaps\":0,\"capture_epoch\":1,\"flush_ack_us\":531.824,\"producer_to_capture_us\":{\"median\":26475.457,\"p95\":27059.571,\"p99\":27070.237,\"max\":27095.226},\"elapsed_ms\":2001.180,\"cpu_ms\":15.133,\"peak_rss_kib\":17596,\"hail_peak_allocated_bytes\":297504,\"steady_hail_allocations\":0,\"underrun_frames\":0}",
+        "REMOVE",
+        "REPLACE",
+        "REOPEN",
+        "XRUN {\"capture_lost_frames\":5632,\"block_reported_loss\":5632,\"playback_underrun_frames\":13824}",
+        "PASS sample accuracy, capture-preserving flush, stale writes, device loss/replacement, explicit reopen and teardown"
+      ]
+    },
+    {
+      "compared_frames": 95744,
+      "capture_frames": 96000,
+      "capture_after_flush": 47872,
+      "zero_frames": 256,
+      "bad_samples": 0,
+      "sequence_gaps": 0,
+      "capture_epoch": 1,
+      "flush_ack_us": 696.086,
+      "producer_to_capture_us": {
+        "median": 26503.64,
+        "p95": 27062.025,
+        "p99": 27089.227,
+        "max": 27106.142
+      },
+      "elapsed_ms": 2001.154,
+      "cpu_ms": 15.339,
+      "peak_rss_kib": 17596,
+      "hail_peak_allocated_bytes": 297504,
+      "steady_hail_allocations": 0,
+      "underrun_frames": 0,
+      "injected_starvation": {
+        "capture_lost_frames": 5632,
+        "block_reported_loss": 5632,
+        "playback_underrun_frames": 13824
+      },
+      "lifecycle": "device loss, replacement incarnation, explicit reopen and teardown passed",
+      "transcript": [
+        "READY",
+        "{\"compared_frames\":95744,\"capture_frames\":96000,\"capture_after_flush\":47872,\"zero_frames\":256,\"bad_samples\":0,\"sequence_gaps\":0,\"capture_epoch\":1,\"flush_ack_us\":696.086,\"producer_to_capture_us\":{\"median\":26503.640,\"p95\":27062.025,\"p99\":27089.227,\"max\":27106.142},\"elapsed_ms\":2001.154,\"cpu_ms\":15.339,\"peak_rss_kib\":17596,\"hail_peak_allocated_bytes\":297504,\"steady_hail_allocations\":0,\"underrun_frames\":0}",
+        "REMOVE",
+        "REPLACE",
+        "REOPEN",
+        "XRUN {\"capture_lost_frames\":5632,\"block_reported_loss\":5632,\"playback_underrun_frames\":13824}",
+        "PASS sample accuracy, capture-preserving flush, stale writes, device loss/replacement, explicit reopen and teardown"
+      ]
+    },
+    {
+      "compared_frames": 95744,
+      "capture_frames": 96000,
+      "capture_after_flush": 47872,
+      "zero_frames": 256,
+      "bad_samples": 0,
+      "sequence_gaps": 0,
+      "capture_epoch": 1,
+      "flush_ack_us": 539.727,
+      "producer_to_capture_us": {
+        "median": 26475.116,
+        "p95": 27062.095,
+        "p99": 27081.985,
+        "max": 27100.093
+      },
+      "elapsed_ms": 2000.998,
+      "cpu_ms": 14.904,
+      "peak_rss_kib": 17596,
+      "hail_peak_allocated_bytes": 297504,
+      "steady_hail_allocations": 0,
+      "underrun_frames": 0,
+      "injected_starvation": {
+        "capture_lost_frames": 5632,
+        "block_reported_loss": 5632,
+        "playback_underrun_frames": 13824
+      },
+      "lifecycle": "device loss, replacement incarnation, explicit reopen and teardown passed",
+      "transcript": [
+        "READY",
+        "{\"compared_frames\":95744,\"capture_frames\":96000,\"capture_after_flush\":47872,\"zero_frames\":256,\"bad_samples\":0,\"sequence_gaps\":0,\"capture_epoch\":1,\"flush_ack_us\":539.727,\"producer_to_capture_us\":{\"median\":26475.116,\"p95\":27062.095,\"p99\":27081.985,\"max\":27100.093},\"elapsed_ms\":2000.998,\"cpu_ms\":14.904,\"peak_rss_kib\":17596,\"hail_peak_allocated_bytes\":297504,\"steady_hail_allocations\":0,\"underrun_frames\":0}",
+        "REMOVE",
+        "REPLACE",
+        "REOPEN",
+        "XRUN {\"capture_lost_frames\":5632,\"block_reported_loss\":5632,\"playback_underrun_frames\":13824}",
+        "PASS sample accuracy, capture-preserving flush, stale writes, device loss/replacement, explicit reopen and teardown"
+      ]
+    },
+    {
+      "compared_frames": 95744,
+      "capture_frames": 96000,
+      "capture_after_flush": 47872,
+      "zero_frames": 256,
+      "bad_samples": 0,
+      "sequence_gaps": 0,
+      "capture_epoch": 1,
+      "flush_ack_us": 556.682,
+      "producer_to_capture_us": {
+        "median": 26494.596,
+        "p95": 27058.069,
+        "p99": 27063.026,
+        "max": 27066.131
+      },
+      "elapsed_ms": 2001.384,
+      "cpu_ms": 13.699,
+      "peak_rss_kib": 17596,
+      "hail_peak_allocated_bytes": 297504,
+      "steady_hail_allocations": 0,
+      "underrun_frames": 0,
+      "injected_starvation": {
+        "capture_lost_frames": 5376,
+        "block_reported_loss": 5376,
+        "playback_underrun_frames": 13568
+      },
+      "lifecycle": "device loss, replacement incarnation, explicit reopen and teardown passed",
+      "transcript": [
+        "READY",
+        "{\"compared_frames\":95744,\"capture_frames\":96000,\"capture_after_flush\":47872,\"zero_frames\":256,\"bad_samples\":0,\"sequence_gaps\":0,\"capture_epoch\":1,\"flush_ack_us\":556.682,\"producer_to_capture_us\":{\"median\":26494.596,\"p95\":27058.069,\"p99\":27063.026,\"max\":27066.131},\"elapsed_ms\":2001.384,\"cpu_ms\":13.699,\"peak_rss_kib\":17596,\"hail_peak_allocated_bytes\":297504,\"steady_hail_allocations\":0,\"underrun_frames\":0}",
+        "REMOVE",
+        "REPLACE",
+        "REOPEN",
+        "XRUN {\"capture_lost_frames\":5376,\"block_reported_loss\":5376,\"playback_underrun_frames\":13568}",
+        "PASS sample accuracy, capture-preserving flush, stale writes, device loss/replacement, explicit reopen and teardown"
+      ]
+    },
+    {
+      "compared_frames": 95744,
+      "capture_frames": 96000,
+      "capture_after_flush": 47872,
+      "zero_frames": 256,
+      "bad_samples": 0,
+      "sequence_gaps": 0,
+      "capture_epoch": 1,
+      "flush_ack_us": 523.482,
+      "producer_to_capture_us": {
+        "median": 26503.82,
+        "p95": 27026.401,
+        "p99": 27032.49,
+        "max": 27035.174
+      },
+      "elapsed_ms": 2001.17,
+      "cpu_ms": 15.739,
+      "peak_rss_kib": 17596,
+      "hail_peak_allocated_bytes": 297504,
+      "steady_hail_allocations": 0,
+      "underrun_frames": 0,
+      "injected_starvation": {
+        "capture_lost_frames": 5376,
+        "block_reported_loss": 5376,
+        "playback_underrun_frames": 13568
+      },
+      "lifecycle": "device loss, replacement incarnation, explicit reopen and teardown passed",
+      "transcript": [
+        "READY",
+        "{\"compared_frames\":95744,\"capture_frames\":96000,\"capture_after_flush\":47872,\"zero_frames\":256,\"bad_samples\":0,\"sequence_gaps\":0,\"capture_epoch\":1,\"flush_ack_us\":523.482,\"producer_to_capture_us\":{\"median\":26503.820,\"p95\":27026.401,\"p99\":27032.490,\"max\":27035.174},\"elapsed_ms\":2001.170,\"cpu_ms\":15.739,\"peak_rss_kib\":17596,\"hail_peak_allocated_bytes\":297504,\"steady_hail_allocations\":0,\"underrun_frames\":0}",
+        "REMOVE",
+        "REPLACE",
+        "REOPEN",
+        "XRUN {\"capture_lost_frames\":5376,\"block_reported_loss\":5376,\"playback_underrun_frames\":13568}",
+        "PASS sample accuracy, capture-preserving flush, stale writes, device loss/replacement, explicit reopen and teardown"
+      ]
+    },
+    {
+      "compared_frames": 95744,
+      "capture_frames": 96000,
+      "capture_after_flush": 47872,
+      "zero_frames": 256,
+      "bad_samples": 0,
+      "sequence_gaps": 0,
+      "capture_epoch": 1,
+      "flush_ack_us": 533.246,
+      "producer_to_capture_us": {
+        "median": 26500.595,
+        "p95": 27057.799,
+        "p99": 27073.092,
+        "max": 27079.872
+      },
+      "elapsed_ms": 2001.206,
+      "cpu_ms": 15.31,
+      "peak_rss_kib": 17596,
+      "hail_peak_allocated_bytes": 297504,
+      "steady_hail_allocations": 0,
+      "underrun_frames": 0,
+      "injected_starvation": {
+        "capture_lost_frames": 5632,
+        "block_reported_loss": 5632,
+        "playback_underrun_frames": 13824
+      },
+      "lifecycle": "device loss, replacement incarnation, explicit reopen and teardown passed",
+      "transcript": [
+        "READY",
+        "{\"compared_frames\":95744,\"capture_frames\":96000,\"capture_after_flush\":47872,\"zero_frames\":256,\"bad_samples\":0,\"sequence_gaps\":0,\"capture_epoch\":1,\"flush_ack_us\":533.246,\"producer_to_capture_us\":{\"median\":26500.595,\"p95\":27057.799,\"p99\":27073.092,\"max\":27079.872},\"elapsed_ms\":2001.206,\"cpu_ms\":15.310,\"peak_rss_kib\":17596,\"hail_peak_allocated_bytes\":297504,\"steady_hail_allocations\":0,\"underrun_frames\":0}",
+        "REMOVE",
+        "REPLACE",
+        "REOPEN",
+        "XRUN {\"capture_lost_frames\":5632,\"block_reported_loss\":5632,\"playback_underrun_frames\":13824}",
+        "PASS sample accuracy, capture-preserving flush, stale writes, device loss/replacement, explicit reopen and teardown"
+      ]
+    }
+  ],
+  "build": {
+    "type": "Release",
+    "shared": "ON",
+    "c_flags": "",
+    "configuration_flags": "-O3 -DNDEBUG",
+    "compiler": "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
+  },
+  "source_sha256": {
+    "CMakeLists.txt": "5577827dbc87a6135b4cc2b857b1a1000701c5f8af5208a182f700fc45efb2c5",
+    "include/hail.h": "d54b4ed757e801f702b33b1949c0809a9b9b79ae1983137b892d63ef86188a88",
+    "src/hail_internal.h": "7b73aebdaf4ce15f382a7d455b203213a53957a1d1ecbeb04fb934bef1b0f1b1",
+    "src/core.c": "4d2b9693c3ab811b38742ad29a1eefe132e134bc03759ee6e12845f62f2c218f",
+    "src/queue.c": "7acdd71a0bc3575b4f2f36bd73c5adb19cd69a5a5381239e59de76ba5fe04d22",
+    "src/native.c": "4d51a97b954b9d357ca8a27e38cf7d4ea65629f64218bd9be1f51d7cbf209202",
+    "src/backend_pipewire.c": "a06060f7c04cf027d33998afdc9d075dcecf1223f2fd7505e9593f69e137cb22",
+    "tests/pipewire_loopback.c": "895c0a3f99b410511c9660d50929c567b11d532052004b81a77842736b0b4fd5",
+    "tools/run_pipewire_loopback.py": "bfdf83b81ab1e76377c980305040aa135fcd862d7f816de745627b99ceb84e25",
+    "tests/fixtures/pipewire/server.conf": "154b114a669b9cba73969fc5f2e8cd651053c722519b45a3a3c9ac27d1f351ec",
+    "tests/fixtures/pipewire/client.conf": "e614cc49a2f57d6938cbce25ea237e0c42663e722b09bb3129056ec191f3728f"
+  },
+  "executable_sha256": "faa05bc0f842d28d3797333efe07338ca4e0dd862e3f135a64befbaafdf34263"
+}
