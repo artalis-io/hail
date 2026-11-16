@@ -29,6 +29,13 @@ static ha_stream_status status(void)
     if(s.state==HA_FAILED) fprintf(stderr,"stream failed: %s native=%lld\n",ha_result_string(s.terminal_result),(long long)s.diagnostic.native_code);
     CHECK(s.state!=HA_FAILED); return s;
 }
+static void reject_sample(const char *reason,const ha_block_info *block,uint32_t offset,float left,float right,uint32_t phase,uint32_t code)
+{
+    if(bad<8) fprintf(stderr,"PCM %s: logical=%llu offset=%u raw=%llu flags=%u epoch=%llu left=%.9g right=%.9g phase=%u code=%u previous_phase=%u expected_code=%u pending_gap=%u\n",
+        reason,(unsigned long long)block->first_frame,offset,(unsigned long long)block->device_position,block->flags,(unsigned long long)block->clock_epoch,
+        (double)left,(double)right,phase,code,last_phase,(last_code+1u)&65535u,pending_gap);
+    ++bad;
+}
 static void read_capture(void)
 {
     float pcm[Q*2u]; uint32_t n,i,attempt;
@@ -49,15 +56,15 @@ static void read_capture(void)
         for(i=0;i<n;++i) {
             float left=pcm[i*2u],right=pcm[i*2u+1u]; uint32_t value,phase,code;
             if(left==0 && right==0) { ++zero_frames; continue; }
-            if(!(left>=0.125f && left<0.8125f) || right!=-left) { ++bad; continue; }
+            if(!(left>=0.125f && left<0.8125f) || right!=-left) { reject_sample("value/channel",&block,i,left,right,0,0); continue; }
             value=(uint32_t)(left*1048576.0f); phase=value/262144u;
             if(phase==0 && value>=131072u && value<196608u) { phase=1; code=value-131072u; }
             else if(phase==2 && value<589824u) { phase=2; code=value-524288u; }
             else if(phase==3 && value<851968u) { phase=3; code=value-786432u; }
-            else { ++bad; continue; }
-            if((float)value/1048576.0f!=left || (seen && phase<last_phase)) ++bad;
+            else { reject_sample("encoding",&block,i,left,right,phase,0); continue; }
+            if((float)value/1048576.0f!=left || (seen && phase<last_phase)) reject_sample("precision/generation",&block,i,left,right,phase,code);
             if(seen && phase==last_phase && code!=((last_code+1u)&65535u)) {
-                if(instrumented && pending_gap) ++sample_gaps; else ++bad;
+                if(instrumented && pending_gap) ++sample_gaps; else reject_sample("sequence",&block,i,left,right,phase,code);
             }
             pending_gap=0; seen=1; last_phase=phase; last_code=code; ++verified[phase];
         }
@@ -81,6 +88,7 @@ static void phase(uint32_t marker,uint64_t generation)
 {
     uint32_t position=0; uint64_t deadline=now_ns()+1000000000u;
     while(now_ns()<deadline) { progress(); read_capture(); write_pattern(marker,&position,generation); pause_control(); }
+    if(bad || verified[marker]<=16000 || (!instrumented && frame_gaps)) fprintf(stderr,"phase=%u verified=%llu bad=%llu frame_gaps=%llu clock_gaps=%llu\n",marker,(unsigned long long)verified[marker],(unsigned long long)bad,(unsigned long long)frame_gaps,(unsigned long long)clock_gaps);
     CHECK(verified[marker]>16000 && !bad && (instrumented || !frame_gaps));
 }
 static void fixture_rate(const char *uid)
