@@ -25,7 +25,7 @@ assert public == expected, {'missing': sorted(expected - public), 'extra': sorte
 private = {s for s in symbols if s not in expected and s != 'HAIL_0'}
 assert not args.shared or not private, sorted(private)
 assert all(s.startswith('hail_') for s in private), sorted(private)
-for source in ('src/core.c', 'src/queue.c', 'src/hail_internal.h', 'include/hail.h'):
+for source in ('src/core.c', 'src/queue.c', 'src/native.c', 'src/hail_internal.h', 'include/hail.h'):
     text = (root / source).read_text()
     assert not re.search(r'#\s*include\s*[<"](?:pthread|windows|unistd|sys/|alsa|pipewire|hull|keel)', text), source
     assert not re.search(r'\b(?:malloc|calloc|realloc|free|printf|fprintf|sleep|dlopen)\s*\(', text), source

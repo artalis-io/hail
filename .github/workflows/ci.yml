@@ -18,6 +18,12 @@ jobs:
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DHA_BUILD_SHARED=${{ matrix.shared }}
       - run: cmake --build build --config Debug --parallel
       - run: ctest --test-dir build -C Debug --output-on-failure
+      - name: Enumerate CoreAudio without opening a microphone
+        if: runner.os == 'macOS'
+        run: ./build/hail_native_example 2
+      - name: Enumerate WASAPI without opening a microphone
+        if: runner.os == 'Windows'
+        run: ./build/Debug/hail_native_example.exe 3
       - run: cmake --install build --config Debug --prefix "${{ github.workspace }}/installed"
       - name: Add installed Windows DLL directory
         if: runner.os == 'Windows'
@@ -48,3 +54,18 @@ jobs:
       - run: cmake -S . -B minimal -DHA_FREESTANDING=ON -DHA_BACKEND_VIRTUAL=OFF -DHA_BUILD_TESTS=OFF -DHA_BUILD_EXAMPLES=OFF -DCMAKE_C_FLAGS=-ffreestanding
       - run: cmake --build minimal --parallel
       - run: python3 tools/check_contracts.py minimal/libhail.a --no-virtual
+  native-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shared: [ON, OFF]
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y libasound2-dev libpipewire-0.3-dev
+      - run: cmake -S . -B build -DHA_BACKEND_ALSA=ON -DHA_BACKEND_PIPEWIRE=ON -DHA_BUILD_NATIVE_TESTS=ON -DHA_BUILD_SHARED=${{ matrix.shared }} -DCMAKE_BUILD_TYPE=Debug
+      - run: cmake --build build --parallel
+      - run: ctest --test-dir build --output-on-failure
+      - run: cmake --install build --prefix "${{ github.workspace }}/installed"
+      - run: cmake -S tests/consumer -B consumer -DCMAKE_PREFIX_PATH="${{ github.workspace }}/installed"
+      - run: cmake --build consumer --parallel
+      - run: ctest --test-dir consumer --output-on-failure

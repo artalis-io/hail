@@ -80,10 +80,14 @@ typedef int32_t ha_result;
 #define HA_LAYOUT_MONO 1u
 #define HA_LAYOUT_STEREO 2u
 #define HA_INTERLEAVED 1u
+#define HA_PLANAR 2u
 #define HA_EXACT_END_TO_END 0u
 #define HA_EXACT_APPLICATION 1u
 #define HA_SELECT_DEFAULT 0u
 #define HA_SELECT_RUNTIME_ID 1u
+#define HA_SELECT_PERSISTENT_KEY 2u
+#define HA_IDENTITY_OS_SCOPED 1u
+#define HA_DEVICE_KEY_CAPACITY 512u
 #define HA_ROLE_DEFAULT 0u
 #define HA_ROLE_COMMUNICATIONS 1u
 #define HA_STOPPED 0u
@@ -96,11 +100,20 @@ typedef int32_t ha_result;
 #define HA_FEATURE_VIRTUAL 1u
 #define HA_FEATURE_RENDER_REFERENCE 2u
 #define HA_FEATURE_NATIVE_FLUSH 4u
+#define HA_FEATURE_COREAUDIO 8u
+#define HA_FEATURE_WASAPI 16u
+#define HA_FEATURE_PIPEWIRE 32u
+#define HA_FEATURE_ALSA 64u
 #define HA_CLOCK_INDEPENDENT 1u
 #define HA_CLOCK_SHARED 2u
 #define HA_CLOCK_UNKNOWN 0u
 #define HA_TIME_HOST_VALID 1u
 #define HA_TIME_DEVICE_VALID 2u
+#define HA_TIME_ESTIMATED 64u
+#define HA_CONVERSION_NONE 0u
+#define HA_CONVERSION_NATIVE 1u
+#define HA_CONVERSION_SERVER 2u
+#define HA_CONVERSION_UNKNOWN 3u
 #define HA_BLOCK_GAP 4u
 #define HA_BLOCK_DISCONTINUITY 8u
 #define HA_BLOCK_SILENCE 16u
@@ -132,6 +145,8 @@ typedef struct ha_device_selector {
     uint32_t struct_size, struct_version;
     uint32_t kind, role;
     uint64_t runtime_id;
+    uint32_t key_bytes, reserved;
+    char key[HA_DEVICE_KEY_CAPACITY];
 } ha_device_selector;
 
 /* The copied callbacks/user must outlive context destruction. Serialized control
@@ -169,6 +184,8 @@ typedef struct ha_device_info {
     uint32_t direction, backend, is_default, capabilities;
     uint32_t name_bytes, reserved;
     char name[64]; /* Copied UTF-8, NUL-terminated, no persistent ID promise. */
+    uint32_t persistent_key_bytes, identity_flags;
+    char persistent_key[HA_DEVICE_KEY_CAPACITY];
 } ha_device_info;
 
 typedef struct ha_stream_config {
@@ -196,6 +213,8 @@ typedef struct ha_probe_info {
     uint32_t struct_size, struct_version;
     ha_format application_format, device_format;
     uint32_t device_format_valid, conversion, capabilities, reserved;
+    ha_format backend_format;
+    uint32_t backend_format_valid, reserved2;
 } ha_probe_info;
 
 typedef struct ha_stream_info {
@@ -258,6 +277,9 @@ HA_API ha_result HA_CALL ha_context_enumerate(ha_context *, ha_device_info *,
 HA_API ha_result HA_CALL ha_context_poll(ha_context *, ha_event *,
                                         uint32_t capacity, uint32_t *count);
 HA_API ha_result HA_CALL ha_context_get_status(ha_context *, ha_context_status *out);
+/* With no live streams, unregisters native listeners and frees the context.
+ * PENDING retains the handle; retry destruction, with all other users quiescent.
+ * No new operations may start after pending context destruction. */
 HA_API ha_result HA_CALL ha_context_destroy(ha_context **);
 HA_API ha_result HA_CALL ha_device_probe(ha_context *, const ha_device_selector *,
                                         uint32_t direction, const ha_format *,

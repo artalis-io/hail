@@ -1,8 +1,9 @@
 # Hail architecture proposal
 
 Gate B architecture approved by the owner on 2026-11-15. Gate C implements the
-portable/virtual subset; [current API refinements](api.md) and
-[execution-adapter boundary](backend-authoring.md) specify its actual scope.
+portable/virtual core; Gate D now adds all four native adapters.
+[Current API refinements](api.md), [native contracts](native-backends.md) and the
+[execution-adapter boundary](backend-authoring.md) specify implemented scope.
 The [audit](audit.md) grounds ecosystem and backend choices; this document
 defines proposed Hail behavior. Numeric limits and signatures are reviewable
 design choices, not a frozen ABI or shipped support claim.
@@ -559,7 +560,7 @@ Portable results distinguish OK, PENDING, WOULD_BLOCK, BUSY, TOO_SMALL,
 INVALID_ARGUMENT, INVALID_STATE, UNSUPPORTED, FORMAT_UNSUPPORTED,
 PERMISSION_DENIED, DEVICE_UNAVAILABLE, DEVICE_LOST, BACKEND_INIT_FAILED,
 RESOURCE_EXHAUSTED, STREAM_FAILED, STALE_GENERATION, CANCELLED and OVERFLOW.
-Numeric assignments remain a Gate C ABI review item. Buffer overflow/underflow
+Numeric assignments are implemented in hail.h and remain provisional until ABI freeze. Buffer overflow/underflow
 and clock discontinuity are principally counters/block flags/events; a
 successful read does not discard valid PCM just because a preceding block was
 lost. State/capability failures have no partial data transfer unless explicitly

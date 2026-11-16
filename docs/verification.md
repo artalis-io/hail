@@ -1,14 +1,19 @@
 # Hail verification and implementation gates
 
 Status: architecture approved; Gate C portable core and virtual backend are
-implemented. The matrix below remains the full verification plan, not a claim
+implemented, and Gate D adds CoreAudio, shared WASAPI, PipeWire and ALSA. Native
+implementation is complete; full physical-platform qualification remains open. The matrix below remains the full verification
+plan, not a claim
 that every planned case is covered. Current executed checks are recorded in the
 next section. Sibling namespace inspection remains in the [audit](audit.md) and
 [raw evidence](evidence/namespace.json). No latency result below is a measurement.
 
+Source hashes, tool versions and per-target results are recorded in
+[native evidence](evidence/native.json).
+
 ## Current executed evidence
 
-On Linux x86-64 with GCC 13.3 and Clang 18.1.3, the current four CTest executables
+On Linux x86-64 with GCC 13.3 and Clang 18.1.3, the portable CTest executables
 cover C/C++ record boundaries, eight grouped deterministic conformance scenarios,
 concurrent capture reader/playback writer/reference reader with flush/close,
 and the fixed-arena duplex example. The conformance scenarios include format/rate
@@ -26,15 +31,44 @@ Clang's runtime passed after selecting the installed GCC 13 C++ libraries.
 No sanitizer finding was suppressed. Clang static analysis reported no findings.
 
 Linux symbol checks verified the exact 27 public functions and hidden shared
-helpers. A virtual-disabled freestanding compile exposes no backend and has
+helpers. PE exports and Mach-O public definitions match the same 27 functions. A virtual-disabled freestanding compile exposes no backend and has
 only memory helpers plus internal references as undefined symbols. Installed
 static/shared CMake consumers pass separately in C and C++; relocated pkg-config
 consumers also compile/link/run for both library kinds. A Clang libFuzzer
 ASan/UBSan run completed 30000 inputs with seed 73 and maximum length 96 without
 a finding. The fuzz target exercises configuration geometry and bounded virtual
 operation sequences, not malformed pointers or a native driver.
-No macOS/Windows CI job or physical audio test has been run here. Native
-callback retirement, event threading and measured latency remain Gate D/E work.
+Gate C commit 5921c55 passed macOS/Windows/Linux CI. The new native CI jobs have
+been configured but have not run remotely for this working tree. Physical audio
+and measured latency remain untested.
+
+Gate D local checks add a native producer/control handoff stress test and an
+opt-in real libasound null-device duplex test (six tests total in native static
+builds). All six pass under GCC ASan/UBSan/LSan and Clang TSan. These cover native
+gate/snapshot publication, clock reset, device removal during producers, context
+retirement retry, real null PCM start/stop/restart and capture-preserving native
+flush. Actual PipeWire 1.6.8 RT_PROCESS callbacks also ran duplex against the
+Dummy Output sink/monitor, including flush and continued capture, under Clang
+TSan without findings. No physical microphone was opened and no audible PCM was
+submitted. These short software-device exercises do not measure latency or
+prove long-duration scheduling stability.
+
+The separate PipeWire ASan exercise reports 3525 leaked bytes in 34 allocations
+from context module initialization. A [minimal reproducer](../tools/probes/pipewire_context.c)
+with no Hail code reproduces the same result after context destruction and
+pw_deinit. No leak suppression or disablement was used. This is an unresolved
+native dependency finding, not a passing leak qualification for PipeWire.
+Reproduce with the system PipeWire pkg-config flags and `-fsanitize=address`.
+
+Cross builds compiled and linked CoreAudio arm64 static and shared Mach-O with
+Clang 18 and the macOS 11.3 SDK, and shared/static WASAPI x86-64 PE with MinGW-w64. Both native C examples
+also cross-link against their static libraries. The cross-host Mach-O archive
+requires LLVM ranlib to generate its target index.
+These SDK-target builds are not executions on macOS/Windows and establish no
+physical-device correctness. ALSA 1.2.11/PipeWire 1.6.8 static/shared builds and
+installed C/C++ consumers are checked separately on Linux. Native callback
+allocation audits, failure/permission/hotplug qualification on each target and
+measured latency remain explicit D/E qualification work.
 
 ## Gate completion criteria
 
@@ -145,14 +179,14 @@ coverage. Run Clang static analysis and configuration/metadata fuzzing too.
 
 ## Platform support evidence
 
-| Backend/target | Compiled here | Virtual tests | Physical devices | Measured latency |
+| Backend/target | Compile/link evidence | Execution evidence | Physical devices | Measured latency |
 | --- | --- | --- | --- | --- |
-| Portable core and virtual | Linux GCC/Clang, static/shared and hosted-allocation exclusion | Four CTest executables pass on Linux, including ASan/UBSan and Clang TSan | Not applicable | Not measured |
-| Linux PipeWire | Not implemented | Pending common suite | Not tested | Not measured |
-| Linux ALSA | Not implemented | Pending common suite | Not tested | Not measured |
-| macOS CoreAudio | Not implemented | Pending common suite | Not tested | Not measured |
-| Windows shared WASAPI | Not implemented | Pending common suite | Not tested | Not measured |
-| Embedded/RTOS/UEFI | Extension design only | No adapter | No adapter | Not measured |
+| Portable core and virtual | Linux GCC/Clang static/shared, freestanding exclusion | Portable tests; ASan/UBSan and Clang TSan | Not applicable | Not measured |
+| Linux PipeWire | Static/shared, GCC/Clang | Dummy sink/monitor duplex and native flush; TSan clean; separate dependency LSan finding above | Not tested | Not measured |
+| Linux ALSA | Static/shared, GCC/Clang | Null-device duplex, flush, stop/restart; ASan/UBSan/LSan and TSan clean | Not tested | Not measured |
+| macOS CoreAudio | arm64 static/shared cross compile/link | Not run on target | Not tested | Not measured |
+| Windows shared WASAPI | x86-64 MinGW shared cross compile/link | Not run on target | Not tested | Not measured |
+| Embedded/RTOS/UEFI | Extension design; freestanding core compiles | No adapter | No adapter | Not measured |
 
 Planned CI: GCC and Clang Linux, AppleClang macOS, MSVC and MinGW Windows; debug
 and release; static/shared; C and C++ installed consumers; virtual-only and each
@@ -197,11 +231,10 @@ Determine product latency targets during review and publish actual results,
 including failures. Optimize only after correctness and retirement invariants
 pass.
 
-## Documentation and examples at Gate C
+## Documentation and examples
 
 Architecture sections already specify ownership, threading, real-time safety,
-states, clocks and ABI policy. Gate C must turn these into checked API comments
-and concise compilable C examples for enumeration, capture, PCM playback,
+states, clocks and ABI policy. The API reference and virtual/native C examples provide executable entry points for enumeration, capture, PCM playback,
 duplex, generation-based interruption, disconnection/reopen, and virtual driving.
 Examples must compile in CI against the installed header; signature sketches
 in the architecture are not presented as compilable examples.

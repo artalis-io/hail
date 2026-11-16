@@ -85,9 +85,10 @@ static ha_result virtual_retire(ha_stream *s)
 }
 
 const hail_backend_ops hail_virtual_backend = {
-    HA_BACKEND_VIRTUAL,
-    HA_FEATURE_VIRTUAL | HA_FEATURE_RENDER_REFERENCE | HA_FEATURE_NATIVE_FLUSH,
-    virtual_context_init, virtual_probe, virtual_open, virtual_start, virtual_stop, virtual_flush, virtual_retire
+    .id = HA_BACKEND_VIRTUAL,
+    .features = HA_FEATURE_VIRTUAL | HA_FEATURE_RENDER_REFERENCE | HA_FEATURE_NATIVE_FLUSH,
+    .context_init = virtual_context_init, .probe = virtual_probe, .open = virtual_open,
+    .start = virtual_start, .stop = virtual_stop, .flush = virtual_flush, .retire = virtual_retire
 };
 
 ha_result HA_CALL ha_virtual_configure(ha_stream *s, const ha_virtual_config *v)

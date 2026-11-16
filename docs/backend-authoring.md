@@ -1,9 +1,10 @@
 # Hail backend authoring boundary
 
 The private [backend contract](../src/hail_internal.h) versions with source; it
-is not an installed binary plugin ABI. Only the deterministic virtual driver is
-implemented. It provides a reference for bounded semantics, not a native-thread
-implementation to copy without adaptation.
+is not an installed binary plugin ABI. Virtual, CoreAudio, shared WASAPI,
+PipeWire and ALSA drivers implement it. The virtual driver serializes processing
+on the external control owner; native drivers use the handoff below. Neither
+model should be copied into the other without preserving ownership.
 
 The context owns a fixed-capacity neutral device registry, default endpoint IDs,
 events, allocator and stream table. Backend discovery supplies copied metadata
@@ -12,19 +13,23 @@ Probe validates a requested format against a selected endpoint. Open publishes
 all negotiated facts and must return failure only after retiring any unpublished
 native references. Context/stream plans account for every Hail allocation.
 
-The current driver serializes context control, lifecycle progress and audio
-processing on the external control owner. Capture/render queues can concurrently
-serve their dedicated application roles. In this model queue metadata, counters,
-clock construction and event publication belong to the driver owner; they are
-not independently safe for arbitrary OS callback threads to mutate.
+Native execution uses [native.c](../src/native.c) and per-leg admission gates.
+Audio owns its leg's queue producer/consumer, frame positions, clock tracker and
+current counters while admitted. Control closes that gate before reset, flush
+or retirement and accesses final counters only after ownership is acquired.
+Two-slot SPSC snapshots transfer cumulative counters and event bits with
+release/acquire indices. Full snapshots never stall audio; final collection
+preserves totals. An atomic error claim publishes the native payload before a
+release error result; control ignores an in-progress sentinel. Notification
+threads never mutate control state or call hail_event. Registry changes are
+copied to control or staged in bounded mailboxes.
 
-Before introducing a native RT callback/worker, extend the private seam with
-the command/acknowledgement mailboxes and per-leg snapshot transfer described
-in the approved architecture. Do not call the current `hail_event`, modify
-control status or use plain shared 64-bit clock/generation values from such a
-thread. Core public API/ownership semantics stay intact, but this private
-execution adapter is a required Gate D task. TSan conformance must cover the
-actual native topology, not merely the externally driven virtual topology.
+The public data roles remain one reader/writer per queue. The private native
+producer is separate from these roles. Native listeners must publish retirement
+through their SDK barrier and an acquire observation before storage reclamation.
+Tests exercise concurrent producer threads, final collection, flush, removal,
+close and context-destruction retry under TSan. Native callbacks must not take
+control locks; backend control methods may use SDK locks/roundtrips and block.
 
 Each leg has exactly one queue producer and consumer. Producer writes PCM plus
 metadata before release-publishing its index; consumer acquire-loads before
@@ -58,5 +63,5 @@ unknown. No DSP implementation type enters portable headers.
 Native platform work must also provide permission, enumeration/default-change,
 loss/replacement, format, partial-start rollback and callback retirement tests,
 using the same portable failure/state contracts. Hardware, driver versions,
-native periods and test skips belong in the support evidence. Gate C does not
-assert that a virtual-only conformance result validates native audio.
+native periods and test skips belong in the support evidence. A virtual-only conformance result does not validate native audio. Current
+platform evidence and open qualification items are in [verification](verification.md).

@@ -3,16 +3,18 @@
 Hail is a standalone C library for bounded, timestamped audio capture,
 playback, and full-duplex operation. Public identifiers use `ha_` and `HA_`.
 
-**Status: Gate C portable implementation, version 0.1.** The approved architecture
-has a working C core and deterministic virtual backend. Native CoreAudio, WASAPI,
-PipeWire and ALSA backends remain Gate D work; physical audio support and latency
-are not claimed. The ABI remains provisional.
+**Status: Gate D native implementations, version 0.1.** CoreAudio, shared WASAPI,
+PipeWire and ALSA now accompany the portable core and deterministic virtual
+backend. Linux software-device duplex/interruption tests pass; macOS and Windows
+backends compile and link. Physical-device qualification and latency measurements
+remain outstanding. The ABI remains provisional.
 
 - [Repository and audio implementation audit](docs/audit.md)
 - [Architecture and contracts proposal](docs/architecture.md)
 - [Verification plan and engineering gates](docs/verification.md)
 - [Public API and ownership reference](docs/api.md)
 - [Build and integration guide](docs/build.md)
+- [Native backend contracts and limitations](docs/native-backends.md)
 - [Backend authoring boundary](docs/backend-authoring.md)
 - [Reproducible namespace evidence](docs/evidence/namespace.json)
 

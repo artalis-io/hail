@@ -2,10 +2,8 @@
 
 static uint32_t features(void)
 {
-    uint32_t f = HA_FEATURE_RENDER_REFERENCE;
-#if HA_ENABLE_VIRTUAL
-    f |= HA_FEATURE_VIRTUAL | HA_FEATURE_NATIVE_FLUSH;
-#endif
+    uint32_t f = 0, i;
+    for (i = 0; hail_backends[i]; ++i) f |= hail_backends[i]->features;
     return f;
 }
 
@@ -86,7 +84,8 @@ static ha_result context_config(const ha_context_config *cfg, ha_context_config 
         !hail_mul(v->max_streams, sizeof(ha_stream *), &array) ||
         !hail_add(bytes, hail_align(array)) ||
         !hail_mul(v->event_capacity, sizeof(ha_event), &array) ||
-        !hail_add(bytes, hail_align(array))) return HA_OVERFLOW;
+        !hail_add(bytes, hail_align(array)) ||
+        !hail_add(bytes, hail_backend_context_bytes(v->backend))) return HA_OVERFLOW;
     if ((uint64_t)*bytes > v->memory_limit) return HA_RESOURCE_EXHAUSTED;
     return HA_OK;
 }
@@ -115,9 +114,7 @@ ha_result HA_CALL ha_context_create(const ha_context_config *cfg, ha_context **o
     *out = NULL;
     r = context_config(cfg, &v, &bytes);
     if (r != HA_OK) return r;
-#if HA_ENABLE_VIRTUAL
-    if (v.backend == HA_BACKEND_VIRTUAL) backend = &hail_virtual_backend;
-#endif
+    backend = hail_backend_select(v.backend, 0);
     if (!backend) return diagnostic(v.diagnostic, v.backend, 1, HA_UNSUPPORTED);
     c = v.allocator.allocate(v.allocator.user, bytes, HAIL_ALIGNMENT);
     if (!c) return diagnostic(v.diagnostic, v.backend, 1, HA_RESOURCE_EXHAUSTED);
@@ -136,7 +133,27 @@ ha_result HA_CALL ha_context_create(const ha_context_config *cfg, ha_context **o
     c->events = (ha_event *)(void *)((unsigned char *)c->streams +
                                     hail_align(v.max_streams * sizeof(ha_stream *)));
     c->next_id = 1;
-    r = backend->context_init(c);
+    atomic_init(&c->registry_dirty, 0);
+    c->backend_state = (unsigned char *)c->events + hail_align(v.event_capacity * sizeof(ha_event));
+    {
+        uint32_t attempt = 0;
+        for (;;) {
+            c->backend = backend;
+            r = backend->context_init(c);
+            if (r == HA_OK) break;
+            if (backend->context_free && backend->context_free(c) != HA_OK) {
+                /* Failed-init adapters must retire their unpublished users.
+                 * If a broken native API cannot prove that, quarantine this
+                 * bounded allocation rather than freeing callback storage. */
+                return diagnostic(v.diagnostic, v.backend, 1, HA_BACKEND_INIT_FAILED);
+            }
+            if (v.backend != HA_BACKEND_AUTO || (r != HA_BACKEND_INIT_FAILED && r != HA_UNSUPPORTED)) break;
+            backend = hail_backend_select(v.backend, ++attempt);
+            if (!backend) break;
+            c->device_count = 0; c->default_id[0] = 0; c->default_id[1] = 0; c->next_id = 1;
+            memset(c->backend_state, 0, hail_backend_context_bytes(v.backend));
+        }
+    }
     if (r != HA_OK) {
         v.allocator.deallocate(v.allocator.user, c, bytes, HAIL_ALIGNMENT);
         return diagnostic(v.diagnostic, v.backend, 1, r);
@@ -147,7 +164,12 @@ ha_result HA_CALL ha_context_create(const ha_context_config *cfg, ha_context **o
 
 ha_result HA_CALL ha_context_refresh(ha_context *c)
 {
+    ha_result r;
     if (!c) return HA_INVALID_ARGUMENT;
+    if (c->closing) return HA_INVALID_STATE;
+    if (c->backend->context_poll) c->backend->context_poll(c);
+    r = c->backend->refresh ? c->backend->refresh(c) : HA_OK;
+    if (r != HA_OK) return r;
     c->flags &= ~HA_EVENT_RESCAN_REQUIRED;
     return HA_OK; /* Driver publishes authoritative registry changes on control. */
 }
@@ -167,6 +189,7 @@ ha_result HA_CALL ha_context_enumerate(ha_context *c, ha_device_info *items,
 {
     uint32_t needed, i, n = 0;
     if (!c || !count || (capacity && !items)) return HA_INVALID_ARGUMENT;
+    if (c->closing) return HA_INVALID_STATE;
     needed = c->device_count;
     *count = needed;
     if (capacity < needed) return HA_TOO_SMALL;
@@ -192,6 +215,20 @@ static ha_result select_device(ha_context *c, const ha_device_selector *d,
     hail_device *device;
     if (!HAIL_HEADER(d)) return HA_INVALID_ARGUMENT;
     if (d->role != HA_ROLE_DEFAULT) return HA_UNSUPPORTED;
+    if (d->reserved) return HA_INVALID_ARGUMENT;
+    if (d->kind == HA_SELECT_PERSISTENT_KEY) {
+        uint32_t i;
+        if (!d->key_bytes || d->key_bytes >= HA_DEVICE_KEY_CAPACITY || d->key[d->key_bytes] || memchr(d->key, 0, d->key_bytes)) return HA_INVALID_ARGUMENT;
+        for (i = 0; i < c->device_count; ++i) {
+            const ha_device_info *info = &c->devices[i].info;
+            if (info->direction == (leg ? HA_PLAYBACK : HA_CAPTURE) && info->identity_flags &&
+                info->persistent_key_bytes == d->key_bytes && !memcmp(info->persistent_key, d->key, d->key_bytes)) {
+                if (!c->devices[i].permitted) return HA_PERMISSION_DENIED;
+                *id = info->runtime_id; return HA_OK;
+            }
+        }
+        return HA_DEVICE_UNAVAILABLE;
+    }
     if (d->kind != HA_SELECT_DEFAULT && d->kind != HA_SELECT_RUNTIME_ID)
         return HA_UNSUPPORTED;
     *id = d->kind == HA_SELECT_DEFAULT ? c->default_id[leg] : d->runtime_id;
@@ -211,6 +248,7 @@ ha_result HA_CALL ha_device_probe(ha_context *c, const ha_device_selector *d,
     ha_result r;
     if (!c || !HAIL_HEADER(out) || (direction != HA_CAPTURE && direction != HA_PLAYBACK))
         return HA_INVALID_ARGUMENT;
+    if (c->closing) return HA_INVALID_STATE;
     r = select_device(c, d, direction == HA_CAPTURE ? 0u : 1u, &id);
     if (r != HA_OK) return r;
     r = hail_format(f, &bpf);
@@ -229,6 +267,7 @@ static ha_result stream_config(ha_context *c, const ha_stream_config *cfg,
     size_t ring_bytes, stride;
     ha_result r;
     if (!c || !HAIL_HEADER(cfg)) return HA_INVALID_ARGUMENT;
+    if (c->closing) return HA_INVALID_STATE;
     if (cfg->diagnostic && !HAIL_HEADER(cfg->diagnostic)) return HA_INVALID_ARGUMENT;
     if (!cfg->directions || (cfg->directions & ~(HA_CAPTURE | HA_PLAYBACK)) ||
         cfg->negotiation > HA_EXACT_APPLICATION) return HA_INVALID_ARGUMENT;
@@ -262,6 +301,9 @@ static ha_result stream_config(ha_context *c, const ha_stream_config *cfg,
         if (i) info->playback_format = *f; else info->capture_format = *f;
     }
     info->features = c->backend->features;
+    info->conversion = info->capture_slots ? info->capture_negotiated.conversion : info->playback_negotiated.conversion;
+    if (info->capture_slots && info->playback_slots && info->capture_negotiated.conversion != info->playback_negotiated.conversion)
+        info->conversion = HA_CONVERSION_UNKNOWN;
     info->clock_relationship = HA_CLOCK_UNKNOWN;
     *bytes = hail_align(sizeof(ha_stream));
     for (i = 0; i < 3; ++i) {
@@ -275,6 +317,7 @@ static ha_result stream_config(ha_context *c, const ha_stream_config *cfg,
         if (!hail_mul(info->quantum_frames, bpf[0], &ring_bytes) ||
             !hail_add(bytes, hail_align(ring_bytes))) return HA_OVERFLOW;
     }
+    if (!hail_add(bytes, hail_align(c->backend->stream_bytes))) return HA_OVERFLOW;
     info->allocated_bytes = *bytes;
     return HA_OK;
 }
@@ -329,6 +372,8 @@ ha_result HA_CALL ha_stream_open(ha_context *c, const ha_stream_config *cfg, ha_
     memset(s, 0, bytes);
     s->context = c; s->info = info; s->allocation_bytes = bytes;
     s->id = c->next_id++; s->generation = 1;
+    s->render_generation = 1; s->native = c->backend->id != HA_BACKEND_VIRTUAL;
+    s->negotiation = cfg->negotiation;
     s->info.capture_clock_domain = info.capture_slots ? c->next_id++ : 0;
     s->info.playback_clock_domain = info.playback_slots ? c->next_id++ : 0;
     s->status.struct_size = sizeof(s->status); s->status.struct_version = HA_STRUCT_VERSION;
@@ -339,6 +384,7 @@ ha_result HA_CALL ha_stream_open(ha_context *c, const ha_stream_config *cfg, ha_
     atomic_init(&s->read_gate, HAIL_GATE_IDLE);
     atomic_init(&s->write_gate, HAIL_GATE_IDLE);
     atomic_init(&s->reference_gate, HAIL_GATE_IDLE);
+    hail_rt_init(s);
     if (info.capture_slots) (void)hail_format(&info.capture_format, &bpf_c);
     if (info.playback_slots) (void)hail_format(&info.playback_format, &bpf_p);
     storage = (unsigned char *)s + hail_align(sizeof(*s));
@@ -346,6 +392,7 @@ ha_result HA_CALL ha_stream_open(ha_context *c, const ha_stream_config *cfg, ha_
     ring_init(&s->playback, &storage, info.playback_slots, info.quantum_frames, bpf_p);
     ring_init(&s->reference, &storage, info.reference_slots, info.quantum_frames, bpf_p);
     s->scratch = storage;
+    s->backend_state = storage + (info.capture_slots ? hail_align((size_t)info.quantum_frames * bpf_c) : 0);
     r = c->backend->open(s);
     if (r != HA_OK) {
         c->allocator.deallocate(c->allocator.user, s, bytes, HAIL_ALIGNMENT);
@@ -398,10 +445,11 @@ ha_result HA_CALL ha_stream_get_status(ha_stream *s, ha_stream_status *out)
 {
     ha_stream_status v;
     if (!s) return HA_INVALID_ARGUMENT;
+    hail_rt_collect(s);
     v = s->status;
     v.state = atomic_load_explicit(&s->state, memory_order_acquire);
     v.playback_generation = s->generation;
-    v.capture_epoch = s->capture_epoch; v.playback_epoch = s->playback_epoch;
+    if (!s->native) { v.capture_epoch = s->capture_epoch; v.playback_epoch = s->playback_epoch; }
     return HAIL_RECORD(out, v);
 }
 
@@ -410,9 +458,15 @@ ha_result HA_CALL ha_stream_start(ha_stream *s)
     if (!s) return HA_INVALID_ARGUMENT;
     if (atomic_load_explicit(&s->state, memory_order_acquire) != HA_STOPPED) return HA_INVALID_STATE;
     if (s->flush_pending) return HA_BUSY;
+    hail_rt_collect(s);
+    if (atomic_load_explicit(&s->state, memory_order_acquire) != HA_STOPPED) return HA_INVALID_STATE;
     if (s->capture_epoch == UINT64_MAX || s->playback_epoch == UINT64_MAX) return HA_OVERFLOW;
     ++s->capture_epoch; ++s->playback_epoch;
     s->capture_position = 0; s->playback_position = 0;
+    s->render_generation = s->generation;
+    s->rt[0].host_valid = 0; s->rt[0].device_valid = 0;
+    s->rt[1].host_valid = 0; s->rt[1].device_valid = 0;
+    s->status.capture_epoch = s->capture_epoch; s->status.playback_epoch = s->playback_epoch;
     s->capture_flags |= HA_BLOCK_DISCONTINUITY;
     s->playback_flags |= HA_BLOCK_DISCONTINUITY;
     s->control_ticks = 0;
@@ -425,6 +479,7 @@ static void cancel_flush(ha_stream *s)
     if (s->flush_pending) {
         s->status.flush_completed_generation = s->generation;
         s->status.flush_result = HA_CANCELLED; s->flush_pending = 0;
+        atomic_store_explicit(&s->flush_requested, 0, memory_order_release);
         hail_event(s->context, HA_EVENT_FLUSH, s, 0, HA_CANCELLED);
     }
 }
@@ -469,18 +524,26 @@ static int close_gates(ha_stream *s)
 static void progress(ha_stream *s)
 {
     ha_result r;
-    uint32_t state = atomic_load_explicit(&s->state, memory_order_acquire);
+    uint32_t state;
+    hail_rt_collect(s);
+    state = atomic_load_explicit(&s->state, memory_order_acquire);
     if (state == HA_STARTING) {
         r = s->context->backend->start(s);
         if (r == HA_PENDING) return;
         if (r != HA_OK) { hail_fail(s, r); return; }
         atomic_store_explicit(&s->state, HA_RUNNING, memory_order_release);
+        if (s->native) { hail_rt_open(s, 0); hail_rt_open(s, 1); }
         hail_event(s->context, HA_EVENT_STATE, s, 0, HA_OK);
     } else if (state == HA_STOPPING) {
+        if (s->native) { int a = hail_rt_close(s, 0), b = hail_rt_close(s, 1); if (!a || !b) return; }
+        hail_rt_collect(s);
+        if (atomic_load_explicit(&s->state, memory_order_acquire) != HA_STOPPING) return;
         r = s->context->backend->stop(s);
         if (r == HA_PENDING) return;
         if (r != HA_OK) { hail_fail(s, r); return; }
         if (!close_gates(s)) return;
+        hail_rt_final(s);
+        if (atomic_load_explicit(&s->state, memory_order_acquire) != HA_STOPPING) return;
         if (s->generation == UINT64_MAX) { hail_fail(s, HA_OVERFLOW); return; }
         ++s->generation;
         hail_ring_reset(&s->capture); hail_ring_reset(&s->playback); hail_ring_reset(&s->reference);
@@ -488,18 +551,38 @@ static void progress(ha_stream *s)
         hail_gate_leave(&s->read_gate); hail_gate_leave(&s->write_gate); hail_gate_leave(&s->reference_gate);
         hail_event(s->context, HA_EVENT_STATE, s, 0, HA_OK);
     } else if (state == HA_CLOSING) {
+        if (s->native) { int a = hail_rt_close(s, 0), b = hail_rt_close(s, 1); if (!a || !b) return; }
         r = s->context->backend->retire(s);
-        if (r == HA_OK && close_gates(s)) s->retire_ready = 1;
+        if (r == HA_OK && close_gates(s)) { hail_rt_final(s); s->retire_ready = 1; }
     } else if (state == HA_FAILED) {
         /* An error revokes admission; retirement still requires explicit proof. */
-        (void)s->context->backend->retire(s);
+        if (!s->native || (hail_rt_close(s, 0) && hail_rt_close(s, 1))) (void)s->context->backend->retire(s);
     }
     if (s->flush_pending) {
+        if (s->native && !hail_rt_close(s, 1)) return;
+        hail_rt_collect(s);
+        if (!s->flush_pending) return;
         r = s->context->backend->flush(s);
         if (r == HA_PENDING) return;
         s->status.flush_completed_generation = s->generation;
         s->status.flush_result = r; s->flush_pending = 0;
         if (r != HA_OK) { hail_fail(s, r); return; }
+        if (s->native) {
+            s->playback.offset = 0;
+            atomic_store_explicit(&s->playback.read_index, s->flush_cutoff, memory_order_release);
+            s->render_generation = s->generation;
+            atomic_store_explicit(&s->flush_requested, 0, memory_order_release);
+            {
+                /* Native render servicing pauses/reset during flush. Even a
+                 * best-effort flush starts a new render-selection epoch; the
+                 * capture producer and clock epoch are independent. */
+                if (s->playback_epoch == UINT64_MAX) { hail_fail(s, HA_OVERFLOW); return; }
+                ++s->playback_epoch; s->playback_position = 0; s->playback_flags |= HA_BLOCK_DISCONTINUITY;
+                s->status.playback_epoch = s->playback_epoch;
+                s->rt[1].host_valid = 0; s->rt[1].device_valid = 0;
+            }
+            if (state == HA_RUNNING) hail_rt_open(s, 1);
+        }
         hail_gate_leave(&s->write_gate);
         hail_event(s->context, HA_EVENT_FLUSH, s, 0, HA_OK);
     }
@@ -510,8 +593,14 @@ ha_result HA_CALL ha_context_poll(ha_context *c, ha_event *events,
 {
     uint32_t i, n;
     if (!c || !count || (capacity && !events) || capacity > HA_MAX_EVENTS) return HA_INVALID_ARGUMENT;
+    if (c->closing) return HA_INVALID_STATE;
     *count = 0;
     for (i = 0; i < capacity; ++i) if (!HAIL_HEADER(&events[i])) return HA_INVALID_ARGUMENT;
+    if (c->backend->context_poll) c->backend->context_poll(c);
+    if (atomic_exchange_explicit(&c->registry_dirty, 0, memory_order_acquire)) {
+        c->flags |= HA_EVENT_RESCAN_REQUIRED;
+        hail_event(c, HA_EVENT_DEVICE, NULL, 0, HA_OK);
+    }
     for (i = 0; i < c->max_streams; ++i) if (c->streams[i]) progress(c->streams[i]);
     n = c->event_count < capacity ? c->event_count : capacity;
     for (i = 0; i < n; ++i) {
@@ -534,6 +623,7 @@ ha_result HA_CALL ha_stream_close_finish(ha_stream **ptr)
     c = s->context;
     for (i = 0; i < c->max_streams; ++i) if (c->streams[i] == s) { c->streams[i] = NULL; break; }
     c->allocated -= s->allocation_bytes; --c->stream_count;
+    if (c->backend->stream_free) c->backend->stream_free(s);
     c->allocator.deallocate(c->allocator.user, s, s->allocation_bytes, HAIL_ALIGNMENT);
     *ptr = NULL;
     return HA_OK;
@@ -546,6 +636,11 @@ ha_result HA_CALL ha_context_destroy(ha_context **ptr)
     if (!ptr) return HA_INVALID_ARGUMENT;
     c = *ptr; if (!c) return HA_OK;
     if (c->stream_count) return HA_BUSY;
+    c->closing = 1;
+    if (c->backend->context_free) {
+        ha_result r = c->backend->context_free(c);
+        if (r != HA_OK) return r;
+    }
     a = c->allocator;
     a.deallocate(a.user, c, c->allocation_bytes, HAIL_ALIGNMENT);
     *ptr = NULL;
@@ -622,6 +717,7 @@ ha_result HA_CALL ha_stream_flush_playback(ha_stream *s, uint32_t flags, uint64_
     ++s->generation;
     s->flush_cutoff = atomic_load_explicit(&s->playback.write_index, memory_order_acquire);
     s->flush_pending = 1; s->flush_flags = flags; s->control_ticks = 0;
+    atomic_store_explicit(&s->flush_requested, 1, memory_order_release);
     s->status.flush_result = HA_PENDING;
     *generation = s->generation;
     return HA_PENDING;

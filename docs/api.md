@@ -31,7 +31,8 @@ capacity in the relevant negotiated format. A frame is one sample per channel.
 
 The context owns streams and registry resources, but context destruction does
 not recursively destroy streams. `ha_context_destroy` returns BUSY while any
-stream exists. Stream destruction uses close_begin, control progress, application
+stream exists. With no streams, native notification retirement may return PENDING;
+retain the pointer/allocator and retry only destruction until success. Stream destruction uses close_begin, control progress, application
 quiescence and close_finish. A successful destroy NULLs the caller's pointer
 slot; destroying that same NULL slot again succeeds. Never use another stale
 alias. No library can diagnose arbitrary calls through freed opaque pointers.
@@ -45,8 +46,8 @@ unload. It is never freed or mutated. No global last-error state exists.
 | --- | --- |
 | `ha_get_version` | Copies linked version, unstable ABI zero and compiled feature bits. |
 | `ha_context_plan` | Validates limits/allocator and returns exact Hail allocation bytes/alignment for context plus registry, stream table and events. Does not allocate or guarantee backend availability. |
-| `ha_context_create` | One allocation with explicit backend selection. Only VIRTUAL is implemented; AUTO/native selectors return UNSUPPORTED. Publishes no handle on failure. |
-| `ha_context_refresh` | Acknowledges rescan-required state; the virtual driver's registry is already authoritative. It neither opens a device nor grants permission. |
+| `ha_context_create` | One allocation with explicit backend selection. Selects a compiled native or virtual backend; AUTO tries native availability only, never virtual. Publishes no handle on failure. |
+| `ha_context_refresh` | Refreshes the bounded native registry and defaults; virtual registry is already authoritative. It does not grant permission. |
 | `ha_context_enumerate` | Copies all current device records into initialized caller records. Insufficient capacity returns TOO_SMALL and required count without partial output. |
 | `ha_context_get_status` | Copies allocated bytes, budget, live stream count, backend/features and cumulative lost events. |
 | `ha_context_poll` | Performs at most one control progress operation per live stream, then copies up to event capacity. Zero output capacity progresses operations without consuming events. Capacity is at most HA_MAX_EVENTS. |
@@ -63,7 +64,7 @@ unload. It is never freed or mutated. No global last-error state exists.
 | `ha_stream_flush_playback` | Attempts write admission revocation, then advances generation and returns PENDING. BUSY makes no generation change. Completion is sticky in status and does not depend on receiving an event. |
 | `ha_stream_close_begin` | Revokes new I/O and requests backend retirement; repeated calls while CLOSING remain PENDING. Already admitted calls may finish. |
 | `ha_stream_close_finish` | Requires application quiescence and prior close_begin. PENDING retains all storage until backend retirement and role gates are closed. Success frees once and NULLs the caller's slot. |
-| `ha_context_destroy` | Requires no live streams and no concurrent API users; success frees all context storage and NULLs the caller's slot. |
+| `ha_context_destroy` | Requires no live streams and no concurrent API users; native listener retirement may return PENDING, retaining all storage; success frees storage and NULLs the caller's slot. |
 
 Audio transfers accept at most HA_MAX_QUANTUM frames per call, regardless of
 queue capacity. Larger requests must be chunked. `quantum_frames` bounds each
@@ -75,12 +76,20 @@ and record headers remain required. A revoking lifecycle operation can leave
 gates closed, so BUSY is also possible during/after revocation; inspect control
 status rather than indefinitely retrying a failed/closing stream.
 
+Runtime device IDs are context-scoped incarnations. A persistent-key selector
+copies the OS-scoped key from enumeration; keys may be absent and do not promise
+cross-host physical identity. Default endpoints are pinned at open. A device
+notification requests explicit refresh; active lost streams require close/reopen.
+
 ## Formats and memory
 
 Supported application formats are native-endian S16 and IEEE F32, interleaved
 mono or front-left/front-right stereo, with integer rates 8000..192000 Hz.
-Virtual endpoints support every such request exactly. No resampling, numerical
-conversion, mixing, clipping or dither occurs. Applications provide finite
+Virtual endpoints support every such request exactly. The portable core performs
+no resampling, numerical conversion, mixing, clipping or dither. Native/backend
+conversion requires explicit exact-application policy and is reported; strict
+end-to-end requests fail when they cannot be verified. Backend/engine and physical
+formats have independent validity fields; planar storage is reporting-only. Applications provide finite
 F32 values in [-1,1]. Exact application and exact end-to-end negotiation have
 identical outcomes on the virtual backend because it performs no conversion.
 Unimplemented storage/channel layouts and formats fail explicitly.
@@ -94,10 +103,11 @@ endpoints; a registry capacity of one returns RESOURCE_EXHAUSTED.
 
 Resource plans expose exact requested bytes/alignment, with one context and
 one allocation per stream. The budget includes alignment padding, registry,
-queue metadata and synthetic-capture scratch. Allocator-private overhead and
+queue metadata and preallocated native/synthetic scratch. Allocator-private overhead and
 native/server/OS memory are excluded. All Hail allocation/free occurs on
 construction/destruction control paths; stepping, reading, writing, flushing,
-starting, stopping and event processing allocate nothing. The example uses a
+starting, stopping and event processing make no Hail allocations. Native SDK
+control calls may allocate internally. The example uses a
 caller-owned arena and also runs with the hosted allocator excluded.
 
 Capture drops newest incoming data when full. The acquisition position advances
@@ -128,8 +138,9 @@ audible hardware tail. Physical interruption latency is not measured.
 
 Render reference is a selection/submission reference, not proof of DAC
 presentation. Software flush cannot retract samples already submitted to real
-native/hardware queues, and audible samples cannot be retracted at all. These
-native contracts remain to be implemented and tested in Gate D.
+native/hardware queues, and audible samples cannot be retracted at all. Native reset discards what the backend can retract, advances the render epoch,
+and completes only after old native submission has unwound. See the
+[native contracts](native-backends.md) for platform differences and test limits.
 
 ## Threads and execution contexts
 
@@ -139,7 +150,10 @@ driver shares this role: step and poll must never overlap. It may concurrently
 serve one application capture reader, one application playback writer, and one
 application reference reader per stream. Role migration requires quiescence.
 Multiple callers of one role need external serialization. Independent contexts
-can have independent control owners. No user audio callback is invoked.
+can have independent control owners. Native audio execution has one independent producer per leg and never calls
+user code. Native counters/errors transfer through bounded release/acquire
+snapshots; only control mutates lifecycle/status/events. No user audio callback
+is invoked. Control operations may block inside native SDK calls.
 
 Ring indices publish complete data/metadata with release/acquire ordering.
 Producer and consumer alone advance their own indices; a producer never moves

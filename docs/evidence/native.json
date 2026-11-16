@@ -1,0 +1,104 @@
+{
+  "date": "2026-11-15",
+  "scope": "Gate D implementation; physical-platform qualification and Gate E measurements remain open",
+  "base_commit": "5921c55644622cd6b24f54d503f28a699044c94e",
+  "source_state": "Uncommitted Gate D working tree; SHA256 below identifies inspected/tested source",
+  "tools": {
+    "linux": "x86-64 GCC 13.3.0 / Clang 18.1.3",
+    "alsa": "1.2.11",
+    "pipewire": "1.6.8",
+    "windows": "MinGW-w64 GCC 13.0.0, x86-64",
+    "macos": "Clang 18.1.3, macOS 11.3 SDK, arm64, LLVM ar/ranlib and ld64.lld"
+  },
+  "checks": [
+    {
+      "build": "build-native-asan",
+      "result": "6/6 CTests pass, ASan/UBSan/LSan; ALSA null duplex example passes"
+    },
+    {
+      "build": "build-native-tsan",
+      "result": "6/6 CTests pass; PipeWire RT_PROCESS Dummy Output/monitor duplex example passes TSan"
+    },
+    {
+      "build": "build-native-shared",
+      "result": "5/5 CTests pass; exact 27 exports, helpers hidden"
+    },
+    {
+      "build": "build-minimal",
+      "result": "Freestanding with no backends builds; 22 base symbols and portable boundary check pass"
+    },
+    {
+      "build": "build-macos-static-verified",
+      "result": "Static arm64 archive and both C example executables compile/link; not executed"
+    },
+    {
+      "build": "build-macos-shared",
+      "result": "arm64 dylib compile/link; 27 public definitions; not executed"
+    },
+    {
+      "build": "build-windows-static",
+      "result": "Static archive and both C example executables compile/link; not executed"
+    },
+    {
+      "build": "build-windows",
+      "result": "x86-64 DLL compile/link; 27 PE exports; not executed"
+    },
+    {
+      "build": "build-consumer-native-static, build-consumer-native-shared",
+      "result": "Installed C/C++ tests 2/2 each; pkg-config C consumers link/run for both"
+    },
+    {
+      "build": "build-fuzz",
+      "result": "30000 bounded config/virtual-sequence inputs, seed 73, max_len 96, ASan/UBSan; no finding"
+    },
+    {
+      "build": "Clang --analyze",
+      "result": "Portable and Linux native C sources: no findings"
+    }
+  ],
+  "native_software_exercise": {
+    "format": "48000 Hz, stereo F32",
+    "quantum_frames": 256,
+    "duration": "Short smoke exercise, not a benchmark",
+    "capture_after_flush": "Observed nonzero frames; capture epoch unchanged",
+    "alsa": "null PCM only",
+    "pipewire": "Dummy Output sink/monitor only"
+  },
+  "unresolved_findings": [
+    {
+      "dependency": "PipeWire context modules on this host",
+      "tool": "LeakSanitizer",
+      "leaked_bytes": 3525,
+      "allocations": 34,
+      "reproducer": "tools/probes/pipewire_context.c",
+      "reproduction": "Same leak with no Hail code, including pw_deinit; no suppression used"
+    }
+  ],
+  "not_validated": [
+    "macOS or Windows native execution for this working tree",
+    "Physical microphone/speaker or hardware hotplug/permissions",
+    "Long-duration stress, callback deadlines and physical latency",
+    "MSan with fully instrumented native dependencies",
+    "Final sibling namespace acceptance (see audit.md)"
+  ],
+  "sha256": {
+    "CMakeLists.txt": "bbf3770a6237e31d5ff9bd070c6caf94af470b36e9a7a5202a4782a526f21594",
+    "examples/native.c": "4523c9bc0216612adc3938cfb8040fa93f283e4c4af4ac5dfdf11e1b1f20a49e",
+    "include/hail/virtual.h": "f18c176831a5f11fc71f6e7846db824f8fdad6c9b2c9483c43c21e8ff10d7b25",
+    "include/hail.h": "d54b4ed757e801f702b33b1949c0809a9b9b79ae1983137b892d63ef86188a88",
+    "src/backend_alsa.c": "d7b7ab96d269dfc56ec0182d1cadd1d8a563391ff31e361604f6ddf2d33ca2fc",
+    "src/backend_coreaudio.c": "1139ce146ffc0387fb0bc89a8fc0f2b74cc5bca98f11df1d440af7d165e05baf",
+    "src/backend_pipewire.c": "a06060f7c04cf027d33998afdc9d075dcecf1223f2fd7505e9593f69e137cb22",
+    "src/backend_wasapi.c": "16f2b188dcc4d6d50566c63083d10ee53a09451e284a71e87a2bbada4eb15c46",
+    "src/core.c": "4d2b9693c3ab811b38742ad29a1eefe132e134bc03759ee6e12845f62f2c218f",
+    "src/hail_internal.h": "7b73aebdaf4ce15f382a7d455b203213a53957a1d1ecbeb04fb934bef1b0f1b1",
+    "src/hosted.c": "0920c557a6a478c26b630c0585f8b2931813d6a6e046f0f81ce51988dea0561a",
+    "src/native.c": "4d51a97b954b9d357ca8a27e38cf7d4ea65629f64218bd9be1f51d7cbf209202",
+    "src/queue.c": "7acdd71a0bc3575b4f2f36bd73c5adb19cd69a5a5381239e59de76ba5fe04d22",
+    "src/virtual.c": "076d684b86e8fdf49541f1a306ac994e68f58702b1e235f7e73f0c9de845c214",
+    "tests/alsa_null.c": "56d28c989ad8e1d6e240085b9135a6de37975ea6548e8e403641966b3ec0bf69",
+    "tests/conformance.c": "4029345dfc676f2972ac7a457cc5209f5ac707cf28020b26449bb5636217ef1e",
+    "tests/native_handoff.c": "f5fc8a71fdddfea6453603f8203606fd1d4c6f826dd41e3f642ccb51b78e04cf",
+    "tools/probes/pipewire_context.c": "ccfcc5f7e12a214b9a657f147d29dd1077982f4cb413439fe12359e4782b0d7a"
+  }
+}

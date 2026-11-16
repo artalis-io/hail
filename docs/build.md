@@ -3,8 +3,8 @@
 The portable core and virtual backend have no external dependencies. CMake 3.16
 and a C11 compiler with always-lock-free 32-bit atomics are required. Tests also
 need a C++11 compiler and thread library. Neither is required for the library
-when `HA_BUILD_TESTS=OFF`. Native audio backends are not implemented yet; enabling
-their options fails configuration explicitly.
+when `HA_BUILD_TESTS=OFF`. Native adapters add only their selected OS dependencies.
+CoreAudio and WASAPI default on for their OS; Linux backends are opt-in.
 
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
@@ -16,8 +16,9 @@ ctest --test-dir build --output-on-failure
 The example enumerates devices, primes PCM playback, captures and renders
 simultaneously, interrupts playback while capture continues, rejects stale
 playback, and handles disconnection. It uses a fixed arena, no audio hardware
-and no wall clock. Physical microphone/speaker examples will be added with
-functioning Gate D backends rather than claiming virtual data is microphone I/O.
+and no wall clock. The native example enumerates by default; explicit endpoint IDs enable capture
+and silent playback. It prints counters, interrupts playback while capturing,
+and keeps no recording. See native commands below.
 
 ```sh
 cmake -S . -B build-release -DCMAKE_BUILD_TYPE=Release -DHA_BUILD_SHARED=ON
@@ -77,6 +78,42 @@ archiver and system SDK versions, feature flags and source/dependency hashes.
 Use a fixed build path or compiler prefix-map flags for debug path reproducibility,
 and a deterministic archiver. No byte-identical cross-toolchain claim has been
 validated. There is no network dependency resolution in CMake.
+
+## Native builds and examples
+
+On Linux install the development packages for the adapters selected (for example
+`libasound2-dev` and `libpipewire-0.3-dev` on Debian/Ubuntu), plus pkg-config and
+pthreads. PipeWire 0.3.65 or later is required. CMake never downloads dependencies.
+
+```sh
+cmake -S . -B build-native -DHA_BACKEND_ALSA=ON -DHA_BACKEND_PIPEWIRE=ON \
+  -DHA_BUILD_NATIVE_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
+cmake --build build-native --parallel
+ctest --test-dir build-native --output-on-failure
+./build-native/hail_native_example 4
+./build-native/hail_native_example 5
+```
+
+Backend numbers are CoreAudio 2, WASAPI 3, PipeWire 4 and ALSA 5. Enumeration-only
+commands open no audio stream. Add `CAPTURE_ID PLAYBACK_ID` to explicitly run a
+short in-memory capture/silent-playback test; zero disables that direction. Use
+the IDs printed by that invocation's enumeration, never saved indices. The test
+reports capture after flush and epochs. For example, use an ALSA null pair or a
+PipeWire dummy sink/monitor pair for testing without microphone access. Native
+CTest integration opens only ALSA null; it skips explicitly if unavailable.
+Tests never silently choose real input hardware.
+
+On macOS use the ordinary build command; CoreAudio/AudioUnit/CoreFoundation/
+AudioToolbox are linked from the SDK. Host applications supply microphone usage
+description and authorization. On Windows use a C11 atomics-capable toolchain,
+for example `cmake -S . -B build -T ClangCL`; WASAPI links ole32/uuid. MinGW-w64
+is also compile/link tested. Disable native defaults explicitly for virtual-only
+builds with `-DHA_BACKEND_COREAUDIO=OFF -DHA_BACKEND_WASAPI=OFF`.
+
+Static installed CMake targets discover selected private dependencies; pkg-config
+`--static --libs hail` carries native libraries. Shared consumers need the runtime
+library and its OS dependencies. See [native contracts](native-backends.md) for
+conversion, permissions, global PipeWire initialization, and retirement semantics.
 
 ## Freestanding and feature exclusion
 

@@ -35,7 +35,7 @@ int main(void)
     int result = 1;
 #define REQUIRE(call, expected) do { ha_result r_ = (call); if (r_ != (expected)) { \
     fprintf(stderr, "%s: %s\n", #call, ha_result_string(r_)); goto cleanup; } } while (0)
-    cc.backend = HA_BACKEND_VIRTUAL; cc.max_streams = 1; cc.event_capacity = 8;
+    cc.backend = HA_BACKEND_VIRTUAL; cc.max_devices = 2; cc.max_streams = 1; cc.event_capacity = 8;
     cc.allocator.struct_size = sizeof(ha_allocator); cc.allocator.struct_version = 1;
     cc.allocator.allocate = arena_allocate; cc.allocator.deallocate = arena_free; cc.allocator.user = &memory;
     REQUIRE(ha_context_create(&cc, &context), HA_OK);

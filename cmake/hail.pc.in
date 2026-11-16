@@ -7,4 +7,5 @@ Name: Hail
 Description: Portable bounded real-time PCM audio systems library
 Version: @PROJECT_VERSION@
 Libs: -L${libdir} -lhail
+Libs.private: @HA_NATIVE_LINKS@
 Cflags: -I${includedir} @HA_PC_PRIVATE@
