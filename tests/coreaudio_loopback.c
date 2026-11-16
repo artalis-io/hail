@@ -51,7 +51,7 @@ static void read_capture(void)
             CHECK(instrumented && block.clock_epoch>epoch && (block.flags & HA_BLOCK_DISCONTINUITY));
             ++clock_gaps; pending_gap=1; epoch=block.clock_epoch;
         }
-        if(instrumented && marked) pending_gap=1;
+        if(instrumented && captured && (block.flags & HA_BLOCK_GAP)) pending_gap=1;
         captured+=n; last_frame=block.first_frame+n;
         for(i=0;i<n;++i) {
             float left=pcm[i*2u],right=pcm[i*2u+1u]; uint32_t value,phase,code;
@@ -64,9 +64,16 @@ static void read_capture(void)
             else { reject_sample("encoding",&block,i,left,right,phase,0); continue; }
             if((float)value/1048576.0f!=left || (seen && phase<last_phase)) reject_sample("precision/generation",&block,i,left,right,phase,code);
             if(seen && phase==last_phase && code!=((last_code+1u)&65535u)) {
-                if(instrumented && pending_gap) ++sample_gaps; else reject_sample("sequence",&block,i,left,right,phase,code);
+                uint32_t skipped=(code-((last_code+1u)&65535u))&65535u;
+                /* A clock gap can precede its audible/data gap through the
+                 * driver pipeline. Consume its credit only at that forward
+                 * sample jump, never merely because an intact sample arrived. */
+                if(instrumented && pending_gap && skipped<32768u) {
+                    ++sample_gaps; pending_gap=0;
+                    fprintf(stderr,"reported forward sample gap: skipped=%u logical=%llu offset=%u\n",skipped,(unsigned long long)block.first_frame,i);
+                } else reject_sample("sequence",&block,i,left,right,phase,code);
             }
-            pending_gap=0; seen=1; last_phase=phase; last_code=code; ++verified[phase];
+            seen=1; last_phase=phase; last_code=code; ++verified[phase];
         }
     }
 }
