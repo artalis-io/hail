@@ -25,6 +25,13 @@ jobs:
             ctest --test-dir "build-$linkage" --verbose | tee "results/tests-$linkage.log"
             ctest --test-dir "build-$linkage" -R coreaudio_loopback --repeat until-fail:3 --verbose | tee "results/repeat-$linkage.log"
           done
+      - name: Check native callback lifetime with ASan and UBSan
+        run: |
+          set -euo pipefail
+          cmake -S . -B build-asan -DCMAKE_BUILD_TYPE=Debug -DHA_BUILD_NATIVE_TESTS=ON -DHA_SANITIZER=address
+          cmake --build build-asan --parallel
+          codesign --force --sign - build-asan/hail_coreaudio_loopback
+          ctest --test-dir build-asan -R coreaudio_loopback --repeat until-fail:3 --verbose | tee results/asan.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
