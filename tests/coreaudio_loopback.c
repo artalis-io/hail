@@ -12,7 +12,8 @@
 static ha_context *context;
 static ha_stream *stream;
 static uint64_t allocations, frees, bytes, peak;
-static uint64_t captured, verified[4], zero_frames, bad, frame_gaps, last_frame, epoch;
+static uint64_t captured, verified[4], zero_frames, bad, frame_gaps, last_frame, epoch, clock_gaps, sample_gaps;
+static uint32_t instrumented, pending_gap;
 static uint32_t last_code, last_phase, seen;
 static void *HA_CALL allocate(void *user,size_t n,size_t alignment)
 { void *p=NULL; (void)user; if(posix_memalign(&p,alignment,n)) return NULL; ++allocations; bytes+=n; if(bytes>peak) peak=bytes; return p; }
@@ -35,10 +36,15 @@ static void read_capture(void)
         ha_block_info block=HA_INIT(ha_block_info); ha_result r=ha_stream_read(stream,pcm,Q,&n,&block);
         if(r==HA_WOULD_BLOCK || r==HA_BUSY) break;
         CHECK(r==HA_OK);
-        if(captured && block.first_frame!=last_frame) ++frame_gaps;
+        uint32_t marked=block.flags & (HA_BLOCK_GAP|HA_BLOCK_DISCONTINUITY|HA_BLOCK_UNKNOWN_GAP);
+        if(captured && block.first_frame!=last_frame) { ++frame_gaps; CHECK(instrumented && marked); pending_gap=1; }
         if(!epoch) epoch=block.clock_epoch;
-        if(block.clock_epoch!=epoch) fprintf(stderr,"capture epoch changed %llu -> %llu flags=%u\n",(unsigned long long)epoch,(unsigned long long)block.clock_epoch,block.flags);
-        CHECK(block.clock_epoch==epoch);
+        if(block.clock_epoch!=epoch) {
+            fprintf(stderr,"capture epoch changed %llu -> %llu flags=%u logical=%llu raw=%llu\n",(unsigned long long)epoch,(unsigned long long)block.clock_epoch,block.flags,(unsigned long long)block.first_frame,(unsigned long long)block.device_position);
+            CHECK(instrumented && block.clock_epoch>epoch && (block.flags & HA_BLOCK_DISCONTINUITY));
+            ++clock_gaps; pending_gap=1; epoch=block.clock_epoch;
+        }
+        if(instrumented && marked) pending_gap=1;
         captured+=n; last_frame=block.first_frame+n;
         for(i=0;i<n;++i) {
             float left=pcm[i*2u],right=pcm[i*2u+1u]; uint32_t value,phase,code;
@@ -50,8 +56,10 @@ static void read_capture(void)
             else if(phase==3 && value<851968u) { phase=3; code=value-786432u; }
             else { ++bad; continue; }
             if((float)value/1048576.0f!=left || (seen && phase<last_phase)) ++bad;
-            if(seen && phase==last_phase && code!=((last_code+1u)&65535u)) ++bad;
-            seen=1; last_phase=phase; last_code=code; ++verified[phase];
+            if(seen && phase==last_phase && code!=((last_code+1u)&65535u)) {
+                if(instrumented && pending_gap) ++sample_gaps; else ++bad;
+            }
+            pending_gap=0; seen=1; last_phase=phase; last_code=code; ++verified[phase];
         }
     }
 }
@@ -73,7 +81,7 @@ static void phase(uint32_t marker,uint64_t generation)
 {
     uint32_t position=0; uint64_t deadline=now_ns()+1000000000u;
     while(now_ns()<deadline) { progress(); read_capture(); write_pattern(marker,&position,generation); pause_control(); }
-    CHECK(verified[marker]>16000 && !bad && !frame_gaps);
+    CHECK(verified[marker]>16000 && !bad && (instrumented || !frame_gaps));
 }
 static void fixture_rate(const char *uid)
 {
@@ -105,6 +113,8 @@ int main(void)
     ha_stream_status s; uint32_t i,n; uint64_t input=0,output=0,generation=1,steady,deadline,before,flush_begin,flush_ack;
     const char *uid=NULL; float stale[2]={0}; ha_result result;
     CHECK(getenv("HA_TEST_COREAUDIO_LOOPBACK") && !strcmp(getenv("HA_TEST_COREAUDIO_LOOPBACK"),"1"));
+    instrumented=getenv("HA_TEST_COREAUDIO_INSTRUMENTED") && !strcmp(getenv("HA_TEST_COREAUDIO_INSTRUMENTED"),"1");
+    printf("profile=%s\n",instrumented?"instrumented-reported-gaps":"strict-continuity");
     allocator.allocate=allocate; allocator.deallocate=deallocate; cc.allocator=allocator; cc.backend=HA_BACKEND_COREAUDIO;
     result=ha_context_create(&cc,&context); if(result!=HA_OK) fprintf(stderr,"context: %s\n",ha_result_string(result)); CHECK(result==HA_OK);
     deadline=now_ns()+15000000000u;
@@ -132,15 +142,16 @@ int main(void)
     do { progress(); read_capture(); s=status(); CHECK(now_ns()<deadline); if(s.flush_completed_generation==generation) break; pause_control(); } while(1);
     flush_ack=now_ns(); CHECK(s.flush_result==HA_OK);
     CHECK(ha_stream_write(stream,stale,1,generation-1u,&n)==HA_STALE_GENERATION);
-    phase(2,generation); CHECK(captured>before && !s.capture_lost_frames && allocations==steady);
+    phase(2,generation); CHECK(captured>before && (instrumented || !s.capture_lost_frames) && allocations==steady);
     CHECK(ha_stream_stop(stream)==HA_PENDING); deadline=now_ns()+5000000000u;
     do { progress(); s=status(); if(s.state==HA_STOPPED) break; CHECK(now_ns()<deadline); pause_control(); } while(1);
     CHECK(ha_stream_write(stream,stale,1,generation,&n)==HA_STALE_GENERATION);
     generation=s.playback_generation; captured=0; epoch=0; last_frame=0; seen=0;
-    start(); phase(3,generation); s=status(); CHECK(!s.capture_lost_frames && allocations==steady);
+    start(); phase(3,generation); s=status(); CHECK((instrumented || !s.capture_lost_frames) && allocations==steady);
     printf("{\"verified_frames\":[%llu,%llu,%llu],\"bad_samples_or_order\":%llu,\"capture_frame_gaps\":%llu,\"zero_frames\":%llu,\"flush_ack_us\":%.3f,\"capture_lost_frames\":%llu,\"underrun_frames\":%llu,\"hail_peak_bytes\":%llu,\"steady_hail_allocations\":0}\n",
       (unsigned long long)verified[1],(unsigned long long)verified[2],(unsigned long long)verified[3],(unsigned long long)bad,(unsigned long long)frame_gaps,
       (unsigned long long)zero_frames,(double)(flush_ack-flush_begin)/1000.0,(unsigned long long)s.capture_lost_frames,(unsigned long long)s.playback_underrun_frames,(unsigned long long)peak);
+    printf("reported_clock_discontinuities=%llu reported_sample_gaps=%llu profile=%s\n",(unsigned long long)clock_gaps,(unsigned long long)sample_gaps,instrumented?"instrumented-reported-gaps":"strict-continuity");
     CHECK(ha_stream_close_begin(stream)==HA_PENDING); deadline=now_ns()+5000000000u;
     while(stream) { progress(); if(ha_stream_close_finish(&stream)==HA_OK) break; CHECK(now_ns()<deadline); pause_control(); }
     deadline=now_ns()+5000000000u;
