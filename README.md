@@ -14,6 +14,8 @@ and physical latency measurements remain outstanding. The ABI remains provisiona
 - [Verification plan and engineering gates](docs/verification.md)
 - [Public API and ownership reference](docs/api.md)
 - [Build and integration guide](docs/build.md)
+- [CoreAudio virtual-device qualification](docs/coreaudio-qualification.md)
+- [WASAPI paired-endpoint test design](docs/wasapi-loopback-design.md)
 - [Native software-loopback qualification](docs/loopback-qualification.md)
 - [Native backend contracts and limitations](docs/native-backends.md)
 - [Backend authoring boundary](docs/backend-authoring.md)

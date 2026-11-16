@@ -4,7 +4,9 @@ Gate D implements four independent adapters behind the private operation table.
 The portable core still includes no OS headers, native clocks, threads or device
 manager. No third-party audio wrapper or DSP engine is included. Version 0.1 is
 provisional: implementation is complete, platform qualification is not.
-See [verification](verification.md) for the exact evidence and remaining tests.
+See [verification](verification.md), [CoreAudio loopback results](coreaudio-qualification.md)
+and the [WASAPI qualification design](wasapi-loopback-design.md) for exact evidence
+and remaining tests.
 
 ## Selection and discovery
 

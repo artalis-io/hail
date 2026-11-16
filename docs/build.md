@@ -213,3 +213,10 @@ permissions. The workflow does not modify privacy databases or disable OS
 security. Missing devices, denied permission and failed sample checks are test
 failures, not successful skips. CI artifacts retain driver version, platform
 and verbose test logs; setting up the workflow alone is not qualification.
+
+The workflow additionally runs ASan/UBSan with an explicitly instrumented profile
+that records reported transport discontinuities. Strict Release continuity is
+checked separately. See [CoreAudio results](coreaudio-qualification.md), including
+the retained earlier failures. The corresponding Windows plan is in
+[WASAPI paired-endpoint design](wasapi-loopback-design.md); it has not yet been
+executed on a provisioned Windows audio fixture.

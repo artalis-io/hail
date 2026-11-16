@@ -86,6 +86,12 @@ installed C/C++ consumers are checked separately on Linux. Native callback
 allocation audits, failure/permission/hotplug qualification on each target and
 measured latency remain explicit D/E qualification work.
 
+CoreAudio now has native BlackHole static/shared loopback execution and a separate
+instrumented ASan/UBSan profile, with earlier timing-sensitive failures retained.
+See [CoreAudio qualification](coreaudio-qualification.md). Windows WASAPI remains
+build/context/enumeration verified; a signed paired-endpoint fixture runner is
+required for the [designed native loopback suite](wasapi-loopback-design.md).
+
 ## Gate completion criteria
 
 | Gate | Deliverable | Required evidence before completion |
@@ -200,8 +206,8 @@ coverage. Run Clang static analysis and configuration/metadata fuzzing too.
 | Portable core and virtual | Linux GCC/Clang static/shared, freestanding exclusion | Portable tests; ASan/UBSan and Clang TSan | Not applicable | Not measured |
 | Linux PipeWire | Static/shared, GCC/Clang | Isolated nonzero loopback, flush, loss/reopen, starvation; ASan/UBSan/LSan and TSan clean in fixture; default-config dependency finding remains | Not tested | Software only; see loopback report |
 | Linux ALSA | Static/shared, GCC/Clang | Null-device duplex, flush, stop/restart; ASan/UBSan/LSan and TSan clean | Not tested | Not measured |
-| macOS CoreAudio | arm64 cross compile/link and native CI static/shared | Native context/enumeration plus virtual suite in CI | Not tested | Not measured |
-| Windows shared WASAPI | MinGW cross static/shared and ClangCL native CI static/shared | Native context/enumeration plus virtual suite in CI | Not tested | Not measured |
+| macOS CoreAudio | arm64 cross compile/link and native CI static/shared | BlackHole nonzero duplex, flush/capture continuity, restart/teardown; separate ASan/UBSan profile; [results](coreaudio-qualification.md) | Not tested | Software flush acknowledgement only |
+| Windows shared WASAPI | MinGW cross static/shared and ClangCL native CI static/shared | Native context/empty enumeration plus virtual suite in CI; [loopback designed](wasapi-loopback-design.md), streaming not yet verified | Not tested | Not measured |
 | Embedded/RTOS/UEFI | Extension design; freestanding core compiles | No adapter | No adapter | Not measured |
 
 Planned CI: GCC and Clang Linux, AppleClang macOS, MSVC and MinGW Windows; debug

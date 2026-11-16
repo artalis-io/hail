@@ -1,0 +1,1041 @@
+{
+  "scope": "Native CoreAudio through independently installed BlackHole virtual device; no physical audio path",
+  "cases": [
+    {
+      "ci": {
+        "conclusion": "success",
+        "headSha": "de66d3d38253a0a6281fcc343fb080e3cd7588e6",
+        "status": "completed",
+        "url": "https://github.com/artalis-io/hail/actions/runs/43973710506"
+      },
+      "platform": "ProductName:\t\tmacOS\nProductVersion:\t\t26.7.2\nBuildVersion:\t\t25G332\narm64\n",
+      "fixture": {
+        "token": "blackhole-2ch",
+        "version": "0.7.1",
+        "sha256": "57b540f27a3e29c37e310e01bee0fdfab76733087e47f997ef9dccf851400dcf",
+        "url": "https://existential.audio/downloads/BlackHole2ch-0.7.1.pkg"
+      },
+      "logs": [
+        {
+          "name": "repeat-OFF.log",
+          "sha256": "b20f510d83865d39995efcc70be559f818b147d73467ddccd49b9518840672f4",
+          "successful_processes": 3,
+          "measurements": [
+            {
+              "verified_frames": [
+                47360,
+                46848,
+                46848
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 4864,
+              "flush_ack_us": 30600.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 1280,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                47872,
+                46848,
+                47104
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 7168,
+              "flush_ack_us": 95996.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 512,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                47872,
+                47104,
+                47104
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 7424,
+              "flush_ack_us": 101701.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 256,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": []
+        },
+        {
+          "name": "repeat-ON.log",
+          "sha256": "4b982b5a7ad8ef2f6c4b53d54f8a3d3d1984826fcb8285e4f53f97f077d9d274",
+          "successful_processes": 3,
+          "measurements": [
+            {
+              "verified_frames": [
+                48384,
+                46592,
+                46848
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 4096,
+              "flush_ack_us": 33807.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 512,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                48128,
+                46848,
+                46848
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 7680,
+              "flush_ack_us": 100701.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 1024,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                47872,
+                46848,
+                46592
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 6656,
+              "flush_ack_us": 78140.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 1024,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": []
+        },
+        {
+          "name": "tests-OFF.log",
+          "sha256": "5def484497f3943bfb375530a670c741b6addc1566008e3b06142da049212523",
+          "successful_processes": 1,
+          "measurements": [
+            {
+              "verified_frames": [
+                47360,
+                46848,
+                46336
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 6400,
+              "flush_ack_us": 63870.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 1280,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": []
+        },
+        {
+          "name": "tests-ON.log",
+          "sha256": "986dc2129cb9bb6fd1696bd3261fad0b14a378d46234d7ab9216a7ec182780ea",
+          "successful_processes": 1,
+          "measurements": [
+            {
+              "verified_frames": [
+                47104,
+                44800,
+                46592
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 10496,
+              "flush_ack_us": 99898.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 3328,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": []
+        }
+      ]
+    },
+    {
+      "ci": {
+        "conclusion": "failure",
+        "headSha": "9d675be6ce6045cd325c9a499e4138604dfb7c59",
+        "status": "completed",
+        "url": "https://github.com/artalis-io/hail/actions/runs/43974228269"
+      },
+      "platform": "ProductName:\t\tmacOS\nProductVersion:\t\t26.7.2\nBuildVersion:\t\t25G332\narm64\n",
+      "fixture": {
+        "token": "blackhole-2ch",
+        "version": "0.7.1",
+        "sha256": "57b540f27a3e29c37e310e01bee0fdfab76733087e47f997ef9dccf851400dcf",
+        "url": "https://existential.audio/downloads/BlackHole2ch-0.7.1.pkg"
+      },
+      "logs": [
+        {
+          "name": "asan.log",
+          "sha256": "9a3edae93ad312cbab00e227ec3207dfe49c5862cd2a74a72464a2d341e025cc",
+          "successful_processes": 2,
+          "measurements": [
+            {
+              "verified_frames": [
+                48128,
+                44544,
+                41728
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 14592,
+              "flush_ack_us": 98883.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 7936,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                47616,
+                42752,
+                41984
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 16640,
+              "flush_ack_us": 94860.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 9984,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": [
+            "2: capture epoch changed 1 -> 2 flags=43",
+            "2: /Users/runner/work/hail/hail/tests/coreaudio_loopback.c:41: block.clock_epoch==epoch"
+          ]
+        },
+        {
+          "name": "repeat-OFF.log",
+          "sha256": "1916f41db7365d0145232dd879884f13e7c2e6eec69ebb5dd08d327f7cb8f551",
+          "successful_processes": 3,
+          "measurements": [
+            {
+              "verified_frames": [
+                48384,
+                46848,
+                46848
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 5376,
+              "flush_ack_us": 57912.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 768,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                47872,
+                46848,
+                46848
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 7936,
+              "flush_ack_us": 103169.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 768,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                47872,
+                46592,
+                46848
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 7168,
+              "flush_ack_us": 89334.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 512,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": []
+        },
+        {
+          "name": "repeat-ON.log",
+          "sha256": "1046888ca7484c54ddf9245a931ac77374e9557f0ab16519ebcfcba989937fd3",
+          "successful_processes": 3,
+          "measurements": [
+            {
+              "verified_frames": [
+                47872,
+                46592,
+                46848
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 7680,
+              "flush_ack_us": 101287.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 512,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                47616,
+                46592,
+                46592
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 5120,
+              "flush_ack_us": 34736.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 1024,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                47872,
+                43264,
+                44032
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 12800,
+              "flush_ack_us": 75005.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 7168,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": []
+        },
+        {
+          "name": "tests-OFF.log",
+          "sha256": "9f78d55e72c423c233296ca05c1a7caa3db7459bf81e188bbbbb3e15d85e760e",
+          "successful_processes": 1,
+          "measurements": [
+            {
+              "verified_frames": [
+                46336,
+                46080,
+                46336
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 9728,
+              "flush_ack_us": 73611.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 4096,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": []
+        },
+        {
+          "name": "tests-ON.log",
+          "sha256": "02dfa617feb4390072e7e86a5fcf736e11594ac94148f665a19956c6fd3f8063",
+          "successful_processes": 1,
+          "measurements": [
+            {
+              "verified_frames": [
+                48128,
+                46848,
+                46848
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 7168,
+              "flush_ack_us": 90883.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 1024,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": []
+        }
+      ]
+    },
+    {
+      "ci": {
+        "conclusion": "failure",
+        "headSha": "a2dc3a1778f63dbe409bee7e91511d1baf017ba4",
+        "status": "completed",
+        "url": "https://github.com/artalis-io/hail/actions/runs/43975044120"
+      },
+      "platform": "ProductName:\t\tmacOS\nProductVersion:\t\t26.7.2\nBuildVersion:\t\t25G332\narm64\n",
+      "fixture": {
+        "token": "blackhole-2ch",
+        "version": "0.7.1",
+        "sha256": "57b540f27a3e29c37e310e01bee0fdfab76733087e47f997ef9dccf851400dcf",
+        "url": "https://existential.audio/downloads/BlackHole2ch-0.7.1.pkg"
+      },
+      "logs": [
+        {
+          "name": "asan.log",
+          "sha256": "d51ac28d9413a20ca0cca8679bcadf180c1ae484767e2d2c93a58048ba934c65",
+          "successful_processes": 1,
+          "measurements": [
+            {
+              "verified_frames": [
+                47360,
+                45824,
+                42752
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 13568,
+              "flush_ack_us": 101907.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 6400,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": [
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=instrumented-reported-gaps",
+            "2: capture epoch changed 1 -> 2 flags=43 logical=70144 raw=70896",
+            "2: /Users/runner/work/hail/hail/tests/coreaudio_loopback.c:84: verified[marker]>16000 && !bad && (instrumented || !frame_gaps)"
+          ]
+        },
+        {
+          "name": "repeat-OFF.log",
+          "sha256": "424e80a3da9799f9c3d2e60929feed6a488da04a17be4b6d445c60e7e23616c0",
+          "successful_processes": 3,
+          "measurements": [
+            {
+              "verified_frames": [
+                47872,
+                46592,
+                46592
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 6400,
+              "flush_ack_us": 77273.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 256,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                48128,
+                46592,
+                47104
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 4608,
+              "flush_ack_us": 54237.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 0,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                47872,
+                46592,
+                46848
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 7168,
+              "flush_ack_us": 90089.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 512,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": [
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+          ]
+        },
+        {
+          "name": "repeat-ON.log",
+          "sha256": "85ee8ec72a9633b54540a80fba843d44324f73b00ad1d5e7b9e197084ec4632c",
+          "successful_processes": 3,
+          "measurements": [
+            {
+              "verified_frames": [
+                47872,
+                46592,
+                46080
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 7936,
+              "flush_ack_us": 99277.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 768,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                47872,
+                46592,
+                45568
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 5376,
+              "flush_ack_us": 36059.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 1280,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                46336,
+                45056,
+                43776
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 13824,
+              "flush_ack_us": 104898.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 6912,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": [
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+          ]
+        },
+        {
+          "name": "tests-OFF.log",
+          "sha256": "9054e62d50c9e9b234b0965db5e913d0acfb5f62099c85e22a1f82c4c7e929d0",
+          "successful_processes": 1,
+          "measurements": [
+            {
+              "verified_frames": [
+                46592,
+                46592,
+                46848
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 8448,
+              "flush_ack_us": 81672.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 2304,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": [
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+          ]
+        },
+        {
+          "name": "tests-ON.log",
+          "sha256": "c89046979b92a6dd790d52c2d7e99a7fbfc895bcb7761c50037d207226cf5a44",
+          "successful_processes": 1,
+          "measurements": [
+            {
+              "verified_frames": [
+                47616,
+                46336,
+                46848
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 8192,
+              "flush_ack_us": 96561.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 1024,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": [
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+          ]
+        }
+      ]
+    },
+    {
+      "ci": {
+        "conclusion": "failure",
+        "headSha": "2a85d0a9de3a4509b11a40372aee63a92b8df1fb",
+        "status": "completed",
+        "url": "https://github.com/artalis-io/hail/actions/runs/43975495031"
+      },
+      "platform": "ProductName:\t\tmacOS\nProductVersion:\t\t26.7.2\nBuildVersion:\t\t25G332\narm64\n",
+      "fixture": {
+        "token": "blackhole-2ch",
+        "version": "0.7.1",
+        "sha256": "57b540f27a3e29c37e310e01bee0fdfab76733087e47f997ef9dccf851400dcf",
+        "url": "https://existential.audio/downloads/BlackHole2ch-0.7.1.pkg"
+      },
+      "logs": [
+        {
+          "name": "asan.log",
+          "sha256": "e73a5920ba67d80d4557b3c2f845f755a622f1b8e0bcb01ed7def253cae3b1be",
+          "successful_processes": 0,
+          "measurements": [],
+          "diagnostics": [
+            "2: capture epoch changed 1 -> 2 flags=43 logical=39424 raw=40512",
+            "2: PCM sequence: logical=40448 offset=0 raw=41536 flags=3 epoch=2 left=0.158203125 right=-0.158203125 phase=1 code=34816 previous_phase=1 expected_code=22592 pending_gap=0",
+            "2: phase=1 verified=40448 bad=1 frame_gaps=0 clock_gaps=1",
+            "2: /Users/runner/work/hail/hail/tests/coreaudio_loopback.c:92: verified[marker]>16000 && !bad && (instrumented || !frame_gaps)"
+          ]
+        },
+        {
+          "name": "repeat-OFF.log",
+          "sha256": "fecb8c434e8a0c805a7b53ba8160b5c8f46297ec6e0bb17b06569ce4f8ed1263",
+          "successful_processes": 3,
+          "measurements": [
+            {
+              "verified_frames": [
+                47872,
+                46336,
+                46592
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 7680,
+              "flush_ack_us": 103670.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 512,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                47872,
+                46592,
+                46848
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 5632,
+              "flush_ack_us": 57094.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 512,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                47872,
+                46592,
+                47104
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 7424,
+              "flush_ack_us": 99435.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 256,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": [
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+          ]
+        },
+        {
+          "name": "repeat-ON.log",
+          "sha256": "46d924c844c5336b4aa58508540d14a53ae2c13e799839024a3c7b19423b4422",
+          "successful_processes": 3,
+          "measurements": [
+            {
+              "verified_frames": [
+                47872,
+                46848,
+                46592
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 7680,
+              "flush_ack_us": 100186.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 1024,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                46080,
+                46080,
+                46848
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 9984,
+              "flush_ack_us": 102756.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 2816,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                47872,
+                46848,
+                46080
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 8704,
+              "flush_ack_us": 102269.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 1536,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": [
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+          ]
+        },
+        {
+          "name": "tests-OFF.log",
+          "sha256": "8ff3a1ad507b80f5e8757dd4e93379f341bc03e8d44998bc149f66e4fe96591a",
+          "successful_processes": 1,
+          "measurements": [
+            {
+              "verified_frames": [
+                46848,
+                46592,
+                46080
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 8448,
+              "flush_ack_us": 78148.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 2304,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": [
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+          ]
+        },
+        {
+          "name": "tests-ON.log",
+          "sha256": "520df28ee8ccbf87f383d788f4d7f7e66164539a7b5fdd23b4d92e9aa9f3e47c",
+          "successful_processes": 1,
+          "measurements": [
+            {
+              "verified_frames": [
+                48128,
+                46336,
+                46336
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 5120,
+              "flush_ack_us": 33336.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 1536,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": [
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+          ]
+        }
+      ]
+    },
+    {
+      "ci": {
+        "conclusion": "success",
+        "headSha": "795335ac757c41a20316f11712b7b72c9e2498a4",
+        "status": "completed",
+        "url": "https://github.com/artalis-io/hail/actions/runs/43976411781"
+      },
+      "platform": "ProductName:\t\tmacOS\nProductVersion:\t\t26.7.2\nBuildVersion:\t\t25G332\narm64\n",
+      "fixture": {
+        "token": "blackhole-2ch",
+        "version": "0.7.1",
+        "sha256": "57b540f27a3e29c37e310e01bee0fdfab76733087e47f997ef9dccf851400dcf",
+        "url": "https://existential.audio/downloads/BlackHole2ch-0.7.1.pkg"
+      },
+      "logs": [
+        {
+          "name": "asan.log",
+          "sha256": "5280be100c387ceaba90a192008311fff9e603f9ed9fc640229aedd98e62e92c",
+          "successful_processes": 3,
+          "measurements": [
+            {
+              "verified_frames": [
+                46592,
+                44544,
+                46336
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 11520,
+              "flush_ack_us": 97059.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 5120,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                48128,
+                43264,
+                43520
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 11008,
+              "flush_ack_us": 32691.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 7424,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                47872,
+                42240,
+                46336
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 12544,
+              "flush_ack_us": 93654.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 6656,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": [
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=instrumented-reported-gaps",
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=instrumented-reported-gaps",
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=instrumented-reported-gaps"
+          ]
+        },
+        {
+          "name": "repeat-OFF.log",
+          "sha256": "fd501c5f17de19b0a6b59ff897e56743794f5e759564856d8e1189f0d4398f14",
+          "successful_processes": 3,
+          "measurements": [
+            {
+              "verified_frames": [
+                47872,
+                46592,
+                46848
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 4608,
+              "flush_ack_us": 34420.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 512,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                48128,
+                46848,
+                46848
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 4608,
+              "flush_ack_us": 43728.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 512,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                47360,
+                47104,
+                46848
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 5632,
+              "flush_ack_us": 46632.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 1024,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": [
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+          ]
+        },
+        {
+          "name": "repeat-ON.log",
+          "sha256": "91d7e2233e20cbdd2684fe6b92883817b7548b158c947cef82f6e09832f5f793",
+          "successful_processes": 3,
+          "measurements": [
+            {
+              "verified_frames": [
+                47872,
+                46592,
+                46848
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 5120,
+              "flush_ack_us": 45683.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 512,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                47616,
+                46592,
+                47104
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 6144,
+              "flush_ack_us": 66922.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 512,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            },
+            {
+              "verified_frames": [
+                47872,
+                44800,
+                41984
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 14336,
+              "flush_ack_us": 100594.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 7168,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": [
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+          ]
+        },
+        {
+          "name": "tests-OFF.log",
+          "sha256": "cea7fe8323164cd93e667fef11187a0addb3f42b4a1da55cab7119156c8cb0ba",
+          "successful_processes": 1,
+          "measurements": [
+            {
+              "verified_frames": [
+                47616,
+                46848,
+                46848
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 8192,
+              "flush_ack_us": 100252.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 1536,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": [
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+          ]
+        },
+        {
+          "name": "tests-ON.log",
+          "sha256": "094d654fe1d519a3b8ed810fb96ef42baf0bd8b62adfbbe88f970781ab12a35f",
+          "successful_processes": 1,
+          "measurements": [
+            {
+              "verified_frames": [
+                47616,
+                47104,
+                46592
+              ],
+              "bad_samples_or_order": 0,
+              "capture_frame_gaps": 0,
+              "zero_frames": 5120,
+              "flush_ack_us": 37077.0,
+              "capture_lost_frames": 0,
+              "underrun_frames": 1024,
+              "hail_peak_bytes": 351168,
+              "steady_hail_allocations": 0
+            }
+          ],
+          "diagnostics": [
+            "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+          ]
+        }
+      ]
+    }
+  ],
+  "native_source_unchanged": true,
+  "limits": [
+    "Hosted VM scheduling; counters include unprimed startup and transitions",
+    "Flush acknowledgement is a control observation, not audible interruption latency",
+    "Instrumented discontinuities are retained; strict-release and instrumented profiles are separate"
+  ],
+  "source_sha256": {
+    "src/backend_coreaudio.c": "1139ce146ffc0387fb0bc89a8fc0f2b74cc5bca98f11df1d440af7d165e05baf",
+    "src/core.c": "4d2b9693c3ab811b38742ad29a1eefe132e134bc03759ee6e12845f62f2c218f",
+    "src/native.c": "4d51a97b954b9d357ca8a27e38cf7d4ea65629f64218bd9be1f51d7cbf209202",
+    "src/queue.c": "7acdd71a0bc3575b4f2f36bd73c5adb19cd69a5a5381239e59de76ba5fe04d22",
+    "src/hail_internal.h": "7b73aebdaf4ce15f382a7d455b203213a53957a1d1ecbeb04fb934bef1b0f1b1",
+    "include/hail.h": "d54b4ed757e801f702b33b1949c0809a9b9b79ae1983137b892d63ef86188a88",
+    "tests/coreaudio_loopback.c": "68813ab39456b1e79ca7cc200e87e84741aec4cbbe48f0b8d7543ce17d25b3a0",
+    "tests/fixtures/coreaudio/Info.plist": "58183f42b0c355106b1af596d96ca8a34164c9f34d5fbe444992c0f8f1247168",
+    ".github/workflows/coreaudio-loopback.yml": "91c7847e952d0ba949ccceb897b5c166bac3c542e0b7bdedbf18bb11e568e64b"
+  },
+  "interpretation": "Latest strict Release and instrumented ASan/UBSan profiles pass. Earlier strict/instrumented failures are retained; there is no promise of uninterrupted delivery under sanitizer/VM scheduling load, and no physical latency result."
+}
