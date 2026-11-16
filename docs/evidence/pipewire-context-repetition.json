@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-16",
+  "scope": "No Hail linked; repeated native PipeWire context construction in one process",
+  "configuration": "Same RT-default module configuration used by the bisection; pw_init once, pw_deinit after all contexts",
+  "cases": [
+    {
+      "contexts": 1,
+      "leaked_bytes": 3525,
+      "allocations": 34
+    },
+    {
+      "contexts": 10,
+      "leaked_bytes": 35250,
+      "allocations": 340
+    }
+  ],
+  "source": "#include <pipewire/pipewire.h>\n#include <stdlib.h>\nint main(int argc, char **argv) {\n    unsigned count = argc > 1 ? (unsigned)strtoul(argv[1], 0, 10) : 1;\n    pw_init(0, 0);\n    for (unsigned i = 0; i < count; ++i) {\n        struct pw_main_loop *loop = pw_main_loop_new(0);\n        if (!loop) return 77;\n        struct pw_context *context = pw_context_new(pw_main_loop_get_loop(loop), 0, 0);\n        if (!context) return 77;\n        pw_context_destroy(context);\n        pw_main_loop_destroy(loop);\n    }\n    pw_deinit(); return 0;\n}\n",
+  "build": "cc -g -fsanitize=address probe.c $(pkg-config --cflags --libs libpipewire-0.3) -o probe",
+  "run": "PIPEWIRE_CONFIG_NAME=/path/to/rt-default.conf ./probe CONTEXT_COUNT",
+  "interpretation": "The finding recurs across context construction on this host; this does not identify the exact allocation owner or authorize global DBus shutdown."
+}

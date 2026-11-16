@@ -43,6 +43,12 @@ Gate D commit 7b7aed1 passed all eleven macOS/Windows/Linux jobs in
 This includes native target builds, context creation/enumeration on macOS and
 Windows (headless snapshots may be empty), portable tests and installed consumers.
 These checks do not open native microphones or prove physical stream behavior.
+The follow-up fixture commit b6a97f9 has passing Linux static/shared native suites
+in [run 43919570772](https://github.com/artalis-io/hail/actions/runs/43919570772).
+At the [saved CI snapshot](evidence/qualification-ci.json), ten jobs pass and the
+macOS shared job is waiting for a runner. Native source/public headers are
+unchanged from the fully green baseline; the remaining job is not reported as a
+completed check.
 
 Gate D local checks add a native producer/control handoff stress test and an
 opt-in real libasound null-device duplex test (six tests total in native static

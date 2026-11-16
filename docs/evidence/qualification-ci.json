@@ -1,0 +1,79 @@
+{
+  "snapshot_utc": "2026-11-16T17:44:09.033909+00:00",
+  "baseline_code_commit": "7b7aed174e91f5e1659143e136a90f40b05e84d0",
+  "baseline_run": "https://github.com/artalis-io/hail/actions/runs/43917043569",
+  "baseline_result": "11/11 jobs passed",
+  "qualification_code_commit": "b6a97f9d21da16598b502dcffe9571a17b7c2b97",
+  "qualification_run": "https://github.com/artalis-io/hail/actions/runs/43919570772",
+  "qualification_status": "queued",
+  "qualification_conclusion": "",
+  "jobs": [
+    {
+      "name": "freestanding",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/artalis-io/hail/actions/runs/43919570772/job/133482899119"
+    },
+    {
+      "name": "native-linux (ON)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/artalis-io/hail/actions/runs/43919570772/job/133482899168"
+    },
+    {
+      "name": "native-linux (OFF)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/artalis-io/hail/actions/runs/43919570772/job/133482899372"
+    },
+    {
+      "name": "sanitizers (thread)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/artalis-io/hail/actions/runs/43919570772/job/133482899484"
+    },
+    {
+      "name": "virtual (windows-latest, ON)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/artalis-io/hail/actions/runs/43919570772/job/133482899541"
+    },
+    {
+      "name": "virtual (macos-latest, OFF)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/artalis-io/hail/actions/runs/43919570772/job/133482899557"
+    },
+    {
+      "name": "virtual (macos-latest, ON)",
+      "status": "queued",
+      "conclusion": "",
+      "url": "https://github.com/artalis-io/hail/actions/runs/43919570772/job/133482899622"
+    },
+    {
+      "name": "virtual (windows-latest, OFF)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/artalis-io/hail/actions/runs/43919570772/job/133482899686"
+    },
+    {
+      "name": "sanitizers (address)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/artalis-io/hail/actions/runs/43919570772/job/133482899689"
+    },
+    {
+      "name": "virtual (ubuntu-latest, ON)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/artalis-io/hail/actions/runs/43919570772/job/133482899747"
+    },
+    {
+      "name": "virtual (ubuntu-latest, OFF)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/artalis-io/hail/actions/runs/43919570772/job/133482899847"
+    }
+  ],
+  "scope": "Native source and public headers unchanged between baseline and qualification commits; fixture/measurement coverage added. One macOS shared job is waiting for a runner at this snapshot."
+}

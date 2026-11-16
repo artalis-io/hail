@@ -29,5 +29,6 @@
     "tests/fixtures/pipewire/client.conf": "e614cc49a2f57d6938cbce25ea237e0c42663e722b09bb3129056ec191f3728f"
   },
   "probe_sha256": "aadccf91f24629993a78cc21ac298526680200c5ea5660d8b9a1e49f73d49fe4",
-  "pipewire": "pipewire\nCompiled with libpipewire 1.6.8\nLinked with libpipewire 1.6.8"
+  "pipewire": "pipewire\nCompiled with libpipewire 1.6.8\nLinked with libpipewire 1.6.8",
+  "recorded_source_commit": "b6a97f9d21da16598b502dcffe9571a17b7c2b97"
 }

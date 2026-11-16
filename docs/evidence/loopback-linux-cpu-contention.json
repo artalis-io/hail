@@ -1,0 +1,165 @@
+{
+  "date_utc": "2026-11-16T17:37:12Z",
+  "source_commit": "b6a97f9d21da16598b502dcffe9571a17b7c2b97",
+  "scope": "Private native PipeWire software loopback, no hardware; not physical latency or a hard RT guarantee",
+  "platform": {
+    "os": "Linux",
+    "kernel": "7.1.5-76070105-generic",
+    "machine": "x86_64",
+    "cpu": "AMD Ryzen Threadripper 9980X 64-Cores",
+    "pipewire": "pipewire\nCompiled with libpipewire 1.6.8\nLinked with libpipewire 1.6.8"
+  },
+  "configuration": {
+    "rate_hz": 48000,
+    "channels": 2,
+    "format": "F32",
+    "quantum_frames": 256,
+    "capture_slots": 16,
+    "playback_slots": 4,
+    "phase_seconds": 1,
+    "scheduling": "ordinary userspace; no RT module or session manager"
+  },
+  "runs": [
+    {
+      "compared_frames": 95744,
+      "capture_frames": 96000,
+      "capture_after_flush": 47872,
+      "zero_frames": 256,
+      "bad_samples": 0,
+      "sequence_gaps": 0,
+      "capture_epoch": 1,
+      "flush_ack_us": 299.959,
+      "producer_to_capture_us": {
+        "median": 26496.368,
+        "p95": 27048.263,
+        "p99": 27052.791,
+        "max": 27100.353
+      },
+      "elapsed_ms": 2000.563,
+      "cpu_ms": 6.379,
+      "peak_rss_kib": 17588,
+      "hail_peak_allocated_bytes": 297504,
+      "steady_hail_allocations": 0,
+      "underrun_frames": 0,
+      "injected_starvation": {
+        "capture_lost_frames": 5632,
+        "block_reported_loss": 5632,
+        "playback_underrun_frames": 13824
+      },
+      "lifecycle": "device loss, replacement incarnation, explicit reopen and teardown passed",
+      "transcript": [
+        "READY",
+        "{\"compared_frames\":95744,\"capture_frames\":96000,\"capture_after_flush\":47872,\"zero_frames\":256,\"bad_samples\":0,\"sequence_gaps\":0,\"capture_epoch\":1,\"flush_ack_us\":299.959,\"producer_to_capture_us\":{\"median\":26496.368,\"p95\":27048.263,\"p99\":27052.791,\"max\":27100.353},\"elapsed_ms\":2000.563,\"cpu_ms\":6.379,\"peak_rss_kib\":17588,\"hail_peak_allocated_bytes\":297504,\"steady_hail_allocations\":0,\"underrun_frames\":0}",
+        "REMOVE",
+        "REPLACE",
+        "REOPEN",
+        "XRUN {\"capture_lost_frames\":5632,\"block_reported_loss\":5632,\"playback_underrun_frames\":13824}",
+        "PASS sample accuracy, capture-preserving flush, stale writes, device loss/replacement, explicit reopen and teardown"
+      ]
+    },
+    {
+      "compared_frames": 95744,
+      "capture_frames": 96000,
+      "capture_after_flush": 47872,
+      "zero_frames": 256,
+      "bad_samples": 0,
+      "sequence_gaps": 0,
+      "capture_epoch": 1,
+      "flush_ack_us": 229.201,
+      "producer_to_capture_us": {
+        "median": 26447.333,
+        "p95": 26989.914,
+        "p99": 27001.823,
+        "max": 27042.185
+      },
+      "elapsed_ms": 2000.725,
+      "cpu_ms": 5.208,
+      "peak_rss_kib": 18612,
+      "hail_peak_allocated_bytes": 297504,
+      "steady_hail_allocations": 0,
+      "underrun_frames": 0,
+      "injected_starvation": {
+        "capture_lost_frames": 5632,
+        "block_reported_loss": 5632,
+        "playback_underrun_frames": 14080
+      },
+      "lifecycle": "device loss, replacement incarnation, explicit reopen and teardown passed",
+      "transcript": [
+        "READY",
+        "{\"compared_frames\":95744,\"capture_frames\":96000,\"capture_after_flush\":47872,\"zero_frames\":256,\"bad_samples\":0,\"sequence_gaps\":0,\"capture_epoch\":1,\"flush_ack_us\":229.201,\"producer_to_capture_us\":{\"median\":26447.333,\"p95\":26989.914,\"p99\":27001.823,\"max\":27042.185},\"elapsed_ms\":2000.725,\"cpu_ms\":5.208,\"peak_rss_kib\":18612,\"hail_peak_allocated_bytes\":297504,\"steady_hail_allocations\":0,\"underrun_frames\":0}",
+        "REMOVE",
+        "REPLACE",
+        "REOPEN",
+        "XRUN {\"capture_lost_frames\":5632,\"block_reported_loss\":5632,\"playback_underrun_frames\":14080}",
+        "PASS sample accuracy, capture-preserving flush, stale writes, device loss/replacement, explicit reopen and teardown"
+      ]
+    },
+    {
+      "compared_frames": 95744,
+      "capture_frames": 96256,
+      "capture_after_flush": 48128,
+      "zero_frames": 512,
+      "bad_samples": 0,
+      "sequence_gaps": 0,
+      "capture_epoch": 1,
+      "flush_ack_us": 233.678,
+      "producer_to_capture_us": {
+        "median": 26444.86,
+        "p95": 26974.781,
+        "p99": 27029.184,
+        "max": 29243.095
+      },
+      "elapsed_ms": 2000.55,
+      "cpu_ms": 5.201,
+      "peak_rss_kib": 18612,
+      "hail_peak_allocated_bytes": 297504,
+      "steady_hail_allocations": 0,
+      "underrun_frames": 256,
+      "injected_starvation": {
+        "capture_lost_frames": 5632,
+        "block_reported_loss": 5632,
+        "playback_underrun_frames": 13824
+      },
+      "lifecycle": "device loss, replacement incarnation, explicit reopen and teardown passed",
+      "transcript": [
+        "READY",
+        "{\"compared_frames\":95744,\"capture_frames\":96256,\"capture_after_flush\":48128,\"zero_frames\":512,\"bad_samples\":0,\"sequence_gaps\":0,\"capture_epoch\":1,\"flush_ack_us\":233.678,\"producer_to_capture_us\":{\"median\":26444.860,\"p95\":26974.781,\"p99\":27029.184,\"max\":29243.095},\"elapsed_ms\":2000.550,\"cpu_ms\":5.201,\"peak_rss_kib\":18612,\"hail_peak_allocated_bytes\":297504,\"steady_hail_allocations\":0,\"underrun_frames\":256}",
+        "REMOVE",
+        "REPLACE",
+        "REOPEN",
+        "XRUN {\"capture_lost_frames\":5632,\"block_reported_loss\":5632,\"playback_underrun_frames\":13824}",
+        "PASS sample accuracy, capture-preserving flush, stale writes, device loss/replacement, explicit reopen and teardown"
+      ]
+    }
+  ],
+  "build": {
+    "type": "Release",
+    "shared": "ON",
+    "c_flags": "",
+    "configuration_flags": "-O3 -DNDEBUG",
+    "compiler": "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
+  },
+  "source_sha256": {
+    "CMakeLists.txt": "5577827dbc87a6135b4cc2b857b1a1000701c5f8af5208a182f700fc45efb2c5",
+    "include/hail.h": "d54b4ed757e801f702b33b1949c0809a9b9b79ae1983137b892d63ef86188a88",
+    "src/hail_internal.h": "7b73aebdaf4ce15f382a7d455b203213a53957a1d1ecbeb04fb934bef1b0f1b1",
+    "src/core.c": "4d2b9693c3ab811b38742ad29a1eefe132e134bc03759ee6e12845f62f2c218f",
+    "src/queue.c": "7acdd71a0bc3575b4f2f36bd73c5adb19cd69a5a5381239e59de76ba5fe04d22",
+    "src/native.c": "4d51a97b954b9d357ca8a27e38cf7d4ea65629f64218bd9be1f51d7cbf209202",
+    "src/backend_pipewire.c": "a06060f7c04cf027d33998afdc9d075dcecf1223f2fd7505e9593f69e137cb22",
+    "tests/pipewire_loopback.c": "895c0a3f99b410511c9660d50929c567b11d532052004b81a77842736b0b4fd5",
+    "tools/run_pipewire_loopback.py": "bfdf83b81ab1e76377c980305040aa135fcd862d7f816de745627b99ceb84e25",
+    "tests/fixtures/pipewire/server.conf": "154b114a669b9cba73969fc5f2e8cd651053c722519b45a3a3c9ac27d1f351ec",
+    "tests/fixtures/pipewire/client.conf": "e614cc49a2f57d6938cbce25ea237e0c42663e722b09bb3129056ec191f3728f"
+  },
+  "executable_sha256": "faa05bc0f842d28d3797333efe07338ca4e0dd862e3f135a64befbaafdf34263",
+  "controlled_load": {
+    "affinity_cpus": [
+      127
+    ],
+    "competing_processes": 1,
+    "competitor": "CPU-bound Python monotonic busy loop, same CPU, ordinary scheduling; terminated after trials",
+    "method": "taskset -c 127 python3 tools/run_pipewire_loopback.py --test build-native-shared/hail_pipewire_loopback --iterations 3",
+    "counter_scope": "Underrun counters are cumulative from stream start, including startup; no inference of exact scheduling cause."
+  }
+}

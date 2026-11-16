@@ -411,5 +411,7 @@
     "tests/fixtures/pipewire/server.conf": "154b114a669b9cba73969fc5f2e8cd651053c722519b45a3a3c9ac27d1f351ec",
     "tests/fixtures/pipewire/client.conf": "e614cc49a2f57d6938cbce25ea237e0c42663e722b09bb3129056ec191f3728f"
   },
-  "executable_sha256": "faa05bc0f842d28d3797333efe07338ca4e0dd862e3f135a64befbaafdf34263"
+  "executable_sha256": "faa05bc0f842d28d3797333efe07338ca4e0dd862e3f135a64befbaafdf34263",
+  "recorded_source_commit": "b6a97f9d21da16598b502dcffe9571a17b7c2b97",
+  "source_state": "Measurement used the new harness/fixtures in the working tree over source_commit; that exact hashed snapshot was committed in recorded_source_commit."
 }

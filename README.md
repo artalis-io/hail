@@ -5,7 +5,7 @@ playback, and full-duplex operation. Public identifiers use `ha_` and `HA_`.
 
 **Status: Gate D native implementations, version 0.1.** CoreAudio, shared WASAPI,
 PipeWire and ALSA now accompany the portable core and deterministic virtual
-backend. Isolated native loopback tests and all eleven platform CI jobs pass.
+backend. Native platform builds and isolated loopback tests pass.
 Software delivery/flush measurements are recorded; physical-device qualification
 and physical latency measurements remain outstanding. The ABI remains provisional.
 

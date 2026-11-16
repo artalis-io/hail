@@ -70,6 +70,14 @@ nominal result. These short trials are a baseline, not a long soak or latency
 guarantee. Physical round trip, audible interruption tail, callback duration,
 callback jitter, server CPU and behavior under controlled CPU stress remain open.
 
+Three [additional CPU-contention trials](evidence/loopback-linux-cpu-contention.json)
+pin the runner/server/client to one CPU alongside one busy process. All pass
+sample/order, interruption, recovery and fault assertions. Two report zero
+underruns; one reports 256 underrun frames. These counters include stream startup,
+so the observation does not identify an exact missed-deadline cause. Known PCM
+remains ordered and correct, with silence separately counted. This is a small
+controlled scheduling experiment, not worst-case stress qualification.
+
 ## Dependency finding
 
 [Recorded bisection results](evidence/pipewire-leak-bisection.json) retain the
@@ -84,7 +92,9 @@ portal fallback is leak-clean on this host. PipeWire's
 confirms those fallback switches control DBus setup. This is evidence about the
 path involved, not proof of the exact faulty allocation owner or a production
 fix. Default desktop configuration remains an open dependency qualification
-item. Hail does not disable scheduling services or call process-wide DBus
+item. [Repeated standalone context construction](evidence/pipewire-context-repetition.json)
+reported 3525 bytes for one context and 35250 bytes for ten in one process,
+so the finding is not merely a single process-start allocation in that setup. Hail does not disable scheduling services or call process-wide DBus
 shutdown to conceal it. No sanitizer suppression is used.
 
 The isolated loopback intentionally loads neither the RT module nor a session
