@@ -13,6 +13,15 @@ Source hashes, tool versions and per-target results are recorded in
 
 ## Current executed evidence
 
+The expanded [device-free fuzz suite](../fuzz/README.md) adds separate
+configuration, lifecycle, queue-model and backend-failure harnesses. On macOS
+arm64 with Homebrew Clang 22.1.8, each completed 100,000 seeded inputs with
+ASan/UBSan, seed 73 and maximum input length 1,024. The normal macOS build's
+eight device-free CTests also passed. These campaigns cover the portable core,
+virtual adapter and scripted backend seam; they do not qualify native SDKs or
+prove all thread schedules safe. The new fuzz CI workflow runs bounded campaigns
+on pushes/PRs and longer weekly campaigns, retaining logs and reproducers.
+
 The published audit/separation fixes at `4e2d61f` passed all eleven jobs in
 [CI run 44171083719](https://github.com/artalis-io/hail/actions/runs/44171083719).
 Windows static executed all seven CTests, including `wasapi_retirement` and

@@ -1,0 +1,44 @@
+name: device-free fuzzing
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 3 * * 1'
+permissions:
+  contents: read
+jobs:
+  fuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Record toolchain and revision
+        run: |
+          mkdir -p build-fuzz
+          clang --version > build-fuzz/toolchain.txt
+          cmake --version >> build-fuzz/toolchain.txt
+          git rev-parse HEAD > build-fuzz/revision.txt
+      - name: Configure fully instrumented library and harnesses
+        run: >-
+          cmake -S . -B build-fuzz -DCMAKE_C_COMPILER=clang
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHA_BUILD_FUZZER=ON
+          -DHA_BUILD_TESTS=OFF -DHA_BUILD_EXAMPLES=OFF -DHA_SANITIZER=address
+          -DHA_BACKEND_COREAUDIO=OFF -DHA_BACKEND_WASAPI=OFF
+          -DHA_BACKEND_ALSA=OFF -DHA_BACKEND_PIPEWIRE=OFF
+      - run: cmake --build build-fuzz --parallel
+      - name: Run seeded configuration, lifecycle, queue and failure campaigns
+        env:
+          FUZZ_RUNS: ${{ github.event_name == 'schedule' && '300000' || '30000' }}
+        run: python3 tools/run_fuzz.py --runs "$FUZZ_RUNS"
+      - name: Retain logs, corpus and reproducer artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hail-fuzz-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            build-fuzz/results/
+            build-fuzz/CMakeCache.txt
+            build-fuzz/toolchain.txt
+            build-fuzz/revision.txt
+          retention-days: 14

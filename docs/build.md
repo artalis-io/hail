@@ -59,19 +59,23 @@ That GCC installation path is host-specific, not a Hail build requirement.
 No runtime error suppression, retry-until-pass logic, or disabling of sanitizer
 findings is part of the build.
 
-The optional configuration/virtual-sequence fuzzer uses Clang libFuzzer:
+The optional device-free fuzz suite uses Clang libFuzzer with ASan/UBSan:
 
 ```sh
 cmake -S . -B build-fuzz -DCMAKE_C_COMPILER=clang -DHA_BUILD_TESTS=OFF \
-  -DHA_BUILD_EXAMPLES=OFF -DHA_BUILD_FUZZER=ON -DHA_SANITIZER=address
+  -DHA_BUILD_EXAMPLES=OFF -DHA_BUILD_FUZZER=ON -DHA_SANITIZER=address \
+  -DHA_BACKEND_COREAUDIO=OFF -DHA_BACKEND_WASAPI=OFF \
+  -DHA_BACKEND_ALSA=OFF -DHA_BACKEND_PIPEWIRE=OFF
 cmake --build build-fuzz --parallel
-./build-fuzz/hail_fuzz_config -runs=30000 -max_len=96 -seed=73
+python3 tools/run_fuzz.py --runs 100000
 ```
 
-On this host Clang also needed the GCC installation selection shown above in
-`CMAKE_C_FLAGS`, because libFuzzer links a C++ runtime. Normal C library builds
-do not require a C++ runtime. Persist any future crashing input as a regression
-fixture; do not mark a native backend covered by this portable target.
+See the [fuzz suite](../fuzz/README.md) for configuration, lifecycle, queue-model
+and backend-failure targets, named seeds, bounds, CI campaigns and crash replay.
+Both the library and harnesses are instrumented. Native backends must be disabled.
+On this Linux host Clang also needed the GCC installation selection shown above
+in `CMAKE_C_FLAGS`, because libFuzzer links a C++ runtime. Normal C library builds
+do not require a C++ runtime. Portable fuzzing does not qualify native drivers.
 
 For reproducible builds, retain the exact source revision, CMake cache, compiler,
 archiver and system SDK versions, feature flags and source/dependency hashes.
