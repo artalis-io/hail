@@ -1,0 +1,67 @@
+UpdateCTestConfiguration  from :/Users/runner/work/hail/hail/build-OFF/DartConfiguration.tcl
+Test project /Users/runner/work/hail/hail/build-OFF
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: headers_cpp
+
+1: Test command: /Users/runner/work/hail/hail/build-OFF/hail_headers
+1: Working Directory: /Users/runner/work/hail/hail/build-OFF
+1: Test timeout computed to be: 10000000
+1/6 Test #1: headers_cpp ......................   Passed    0.01 sec
+test 2
+    Start 2: coreaudio_loopback
+
+2: Test command: /Users/runner/work/hail/hail/build-OFF/hail_coreaudio_loopback
+2: Working Directory: /Users/runner/work/hail/hail/build-OFF
+2: Environment variables: 
+2:  HA_TEST_COREAUDIO_LOOPBACK=1
+2: Test timeout computed to be: 45
+2: profile=strict-continuity
+2: fixture=BlackHole 2ch uid=BlackHole2ch_UID rate=48000 channels=2 pcm=2 sequence_mask=65535
+2: {"verified_frames":[36352,36096,36608],"bad_samples_or_order":0,"capture_frame_gaps":0,"zero_frames":39424,"flush_ack_us":95914.000,"capture_lost_frames":0,"underrun_frames":33280,"hail_peak_bytes":351168,"steady_hail_allocations":0}
+2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity
+2: PASS CoreAudio nonzero duplex, flush/capture continuity, stale writes, stop/restart and teardown
+2/6 Test #2: coreaudio_loopback ...............   Passed    3.81 sec
+test 3
+    Start 3: conformance
+
+3: Test command: /Users/runner/work/hail/hail/build-OFF/hail_conformance
+3: Working Directory: /Users/runner/work/hail/hail/build-OFF
+3: Test timeout computed to be: 10000000
+3: portable conformance passed
+3/6 Test #3: conformance ......................   Passed    0.01 sec
+test 4
+    Start 4: concurrency
+
+4: Test command: /Users/runner/work/hail/hail/build-OFF/hail_concurrency
+4: Working Directory: /Users/runner/work/hail/hail/build-OFF
+4: Test timeout computed to be: 10000000
+4: concurrent reader/writer/reference/flush/close passed
+4/6 Test #4: concurrency ......................   Passed    0.11 sec
+test 5
+    Start 5: native_handoff
+
+5: Test command: /Users/runner/work/hail/hail/build-OFF/hail_native_handoff
+5: Working Directory: /Users/runner/work/hail/hail/build-OFF
+5: Test timeout computed to be: 10000000
+5: native callback gates and snapshot handoff passed
+5/6 Test #5: native_handoff ...................   Passed    0.06 sec
+test 6
+    Start 6: example
+
+6: Test command: /Users/runner/work/hail/hail/build-OFF/hail_virtual_example
+6: Working Directory: /Users/runner/work/hail/hail/build-OFF
+6: Test timeout computed to be: 10000000
+6: Virtual capture; Virtual playback
+6: Captured 4 frames at 0 ns; playback first sample 100
+6: Capture continued at frame 4 after interruption
+6/6 Test #6: example ..........................   Passed    0.01 sec
+
+100% tests passed out of 6
+
+Total Test time (real) =   4.03 sec

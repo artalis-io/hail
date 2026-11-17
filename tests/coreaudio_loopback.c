@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdatomic.h>
 
 #define Q 256u
 #define CHECK(x) do { if (!(x)) { fprintf(stderr,"%s:%d: %s\n",__FILE__,__LINE__,#x); exit(1); } } while (0)
@@ -16,6 +17,10 @@ static uint64_t captured, verified[4], zero_frames, bad, frame_gaps, last_frame,
 static uint32_t instrumented, pending_gap;
 static uint32_t last_code, last_phase, seen;
 static uint32_t test_rate=48000, test_channels=2, test_pcm=HA_PCM_F32, sequence_mask=65535;
+static uint64_t poll_calls,poll_total_ns,poll_max_ns;
+static uint64_t previous_raw_end,previous_host;
+static uint32_t previous_time_flags;
+static atomic_uint rate_notifications;
 typedef union test_pcm_buffer { float f[Q*2u]; int16_t s[Q*2u]; } test_pcm_buffer;
 static void *HA_CALL allocate(void *user,size_t n,size_t alignment)
 { void *p=NULL; (void)user; if(posix_memalign(&p,alignment,n)) return NULL; ++allocations; bytes+=n; if(bytes>peak) peak=bytes; return p; }
@@ -24,7 +29,12 @@ static void HA_CALL deallocate(void *user,void *p,size_t n,size_t alignment)
 static uint64_t now_ns(void)
 { struct timespec t; CHECK(!clock_gettime(CLOCK_MONOTONIC,&t)); return (uint64_t)t.tv_sec*1000000000u+(uint64_t)t.tv_nsec; }
 static void pause_control(void) { struct timespec t={0,1000000}; nanosleep(&t,NULL); }
-static void progress(void) { uint32_t n; CHECK(ha_context_poll(context,NULL,0,&n)==HA_OK); }
+static void progress(void)
+{
+    uint32_t n; uint64_t start=now_ns(),elapsed;
+    CHECK(ha_context_poll(context,NULL,0,&n)==HA_OK);
+    elapsed=now_ns()-start; ++poll_calls; poll_total_ns+=elapsed; if(elapsed>poll_max_ns) poll_max_ns=elapsed;
+}
 static ha_stream_status status(void)
 {
     ha_stream_status s=HA_INIT(ha_stream_status); CHECK(ha_stream_get_status(stream,&s)==HA_OK);
@@ -49,12 +59,13 @@ static void read_capture(void)
         if(captured && block.first_frame!=last_frame) { ++frame_gaps; CHECK(instrumented && marked); pending_gap=1; }
         if(!epoch) epoch=block.clock_epoch;
         if(block.clock_epoch!=epoch) {
-            fprintf(stderr,"capture epoch changed %llu -> %llu flags=%u logical=%llu raw=%llu\n",(unsigned long long)epoch,(unsigned long long)block.clock_epoch,block.flags,(unsigned long long)block.first_frame,(unsigned long long)block.device_position);
+            fprintf(stderr,"capture epoch changed %llu -> %llu flags=%u logical=%llu raw=%llu expected_raw=%llu previous_host=%llu host=%llu previous_flags=%u poll_calls=%llu poll_max_ns=%llu\n",(unsigned long long)epoch,(unsigned long long)block.clock_epoch,block.flags,(unsigned long long)block.first_frame,(unsigned long long)block.device_position,(unsigned long long)previous_raw_end,(unsigned long long)previous_host,(unsigned long long)block.host_time_ns,previous_time_flags,(unsigned long long)poll_calls,(unsigned long long)poll_max_ns);
             CHECK(instrumented && block.clock_epoch>epoch && (block.flags & HA_BLOCK_DISCONTINUITY));
             ++clock_gaps; pending_gap=1; epoch=block.clock_epoch;
         }
         if(instrumented && captured && (block.flags & HA_BLOCK_GAP)) pending_gap=1;
         captured+=n; last_frame=block.first_frame+n;
+        previous_raw_end=block.device_position+n; previous_host=block.host_time_ns; previous_time_flags=block.flags;
         for(i=0;i<n;++i) {
             float left=test_pcm==HA_PCM_F32?pcm.f[i*test_channels]:(float)pcm.s[i*test_channels]/32768.0f;
             float right=test_channels==1?-left:test_pcm==HA_PCM_F32?pcm.f[i*test_channels+1u]:(float)pcm.s[i*test_channels+1u]/32768.0f;
@@ -112,6 +123,11 @@ static void phase(uint32_t marker,uint64_t generation)
     if(bad || verified[marker]<=test_rate/3u || (!instrumented && frame_gaps)) fprintf(stderr,"phase=%u verified=%llu bad=%llu frame_gaps=%llu clock_gaps=%llu\n",marker,(unsigned long long)verified[marker],(unsigned long long)bad,(unsigned long long)frame_gaps,(unsigned long long)clock_gaps);
     CHECK(verified[marker]>test_rate/3u && !bad && (instrumented || !frame_gaps));
 }
+static OSStatus rate_changed(AudioObjectID object,UInt32 count,const AudioObjectPropertyAddress *addresses,void *user)
+{
+    (void)object; (void)count; (void)addresses; (void)user;
+    atomic_fetch_add_explicit(&rate_notifications,1,memory_order_release); return noErr;
+}
 static void fixture_rate(const char *uid)
 {
     AudioDeviceID devices[64],selected=0; UInt32 n=sizeof(devices),i;
@@ -127,11 +143,29 @@ static void fixture_rate(const char *uid)
         }
     }
     CHECK(selected);
+    { UInt32 period=0,size=sizeof(period);
+      address.mSelector=kAudioDevicePropertyBufferFrameSize;
+      CHECK(!AudioObjectGetPropertyData(selected,&address,0,NULL,&size,&period));
+      printf("fixture_native_period_frames=%u\n",period);
+    }
+    { uint64_t deadline=now_ns()+5000000000u;
+      address.mSelector=kAudioDevicePropertyDeviceIsRunningSomewhere;
+      do { UInt32 running=1,size=sizeof(running);
+           CHECK(!AudioObjectGetPropertyData(selected,&address,0,NULL,&size,&running));
+           if(!running) break; CHECK(now_ns()<deadline); pause_control(); } while(1);
+    }
     address.mSelector=kAudioDevicePropertyNominalSampleRate;
-    { Float64 rate=test_rate; uint64_t deadline=now_ns()+5000000000u;
-      CHECK(!AudioObjectSetPropertyData(selected,&address,0,NULL,sizeof(rate),&rate));
-      do { UInt32 size=sizeof(rate); CHECK(!AudioObjectGetPropertyData(selected,&address,0,NULL,&size,&rate));
-           if(rate==test_rate) break; CHECK(now_ns()<deadline); pause_control(); } while(1);
+    { Float64 rate=0; UInt32 size=sizeof(rate); uint64_t deadline=now_ns()+5000000000u;
+      CHECK(!AudioObjectGetPropertyData(selected,&address,0,NULL,&size,&rate));
+      if(rate==test_rate) { printf("fixture_rate_reused=%.0f no_device_rate_write=1\n",rate); return; }
+      printf("fixture_rate_change=%.0f->%u\n",rate,test_rate);
+      atomic_init(&rate_notifications,0);
+      CHECK(!AudioObjectAddPropertyListener(selected,&address,rate_changed,NULL));
+      rate=test_rate; CHECK(!AudioObjectSetPropertyData(selected,&address,0,NULL,sizeof(rate),&rate));
+      do { size=sizeof(rate); CHECK(!AudioObjectGetPropertyData(selected,&address,0,NULL,&size,&rate));
+           if(rate==test_rate && atomic_load_explicit(&rate_notifications,memory_order_acquire)) break;
+           CHECK(now_ns()<deadline); pause_control(); } while(1);
+      CHECK(!AudioObjectRemovePropertyListener(selected,&address,rate_changed,NULL));
     }
 }
 int main(void)
@@ -187,6 +221,7 @@ int main(void)
       (unsigned long long)verified[1],(unsigned long long)verified[2],(unsigned long long)verified[3],(unsigned long long)bad,(unsigned long long)frame_gaps,
       (unsigned long long)zero_frames,(double)(flush_ack-flush_begin)/1000.0,(unsigned long long)s.capture_lost_frames,(unsigned long long)s.playback_underrun_frames,(unsigned long long)peak);
     printf("reported_clock_discontinuities=%llu reported_sample_gaps=%llu profile=%s\n",(unsigned long long)clock_gaps,(unsigned long long)sample_gaps,instrumented?"instrumented-reported-gaps":"strict-continuity");
+    printf("control_poll_calls=%llu mean_ns=%llu max_ns_including_lifecycle=%llu\n",(unsigned long long)poll_calls,(unsigned long long)(poll_calls?poll_total_ns/poll_calls:0),(unsigned long long)poll_max_ns);
     CHECK(ha_stream_close_begin(stream)==HA_PENDING); deadline=now_ns()+5000000000u;
     while(stream) { progress(); if(ha_stream_close_finish(&stream)==HA_OK) break; CHECK(now_ns()<deadline); pause_control(); }
     deadline=now_ns()+5000000000u;

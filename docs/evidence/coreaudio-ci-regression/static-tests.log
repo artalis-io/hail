@@ -1,0 +1,18 @@
+Internal ctest changing into directory: /Users/mark/artalis.io/src/hail/build-native-macos
+Test project /Users/mark/artalis.io/src/hail/build-native-macos
+    Start 1: headers_cpp
+1/6 Test #1: headers_cpp ......................   Passed    0.01 sec
+    Start 2: coreaudio_permission_worker
+2/6 Test #2: coreaudio_permission_worker ......   Passed    0.13 sec
+    Start 3: conformance
+3/6 Test #3: conformance ......................   Passed    0.01 sec
+    Start 4: concurrency
+4/6 Test #4: concurrency ......................   Passed    0.04 sec
+    Start 5: native_handoff
+5/6 Test #5: native_handoff ...................   Passed    0.03 sec
+    Start 6: example
+6/6 Test #6: example ..........................   Passed    0.01 sec
+
+100% tests passed, 0 tests failed out of 6
+
+Total Test time (real) =   0.21 sec

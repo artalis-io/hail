@@ -21,6 +21,7 @@ jobs:
           for linkage in OFF ON; do
             cmake -S . -B "build-$linkage" -DCMAKE_BUILD_TYPE=Release -DHA_BUILD_SHARED="$linkage" -DHA_BUILD_NATIVE_TESTS=ON
             cmake --build "build-$linkage" --parallel
+            "build-$linkage/hail_coreaudio_permission_cost" 64 | tee "results/permission-cost-$linkage.log"
             codesign --force --sign - "build-$linkage/hail_coreaudio_loopback"
             ctest --test-dir "build-$linkage" --verbose | tee "results/tests-$linkage.log"
             ctest --test-dir "build-$linkage" -R coreaudio_loopback --repeat until-fail:3 --verbose | tee "results/repeat-$linkage.log"

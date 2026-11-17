@@ -4,13 +4,25 @@
 #include <AudioToolbox/AudioToolbox.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <time.h>
+#include <pthread.h>
 ha_result hail_coreaudio_capture_permission(void);
 #if HA_COREAUDIO_DIAGNOSTICS
 #include "coreaudio_diagnostics.h"
 #include <mach/mach_time.h>
 #endif
 
-typedef struct ca_context { ha_context *owner; atomic_uint callbacks; uint32_t listeners; AudioDeviceID defaults[2]; } ca_context;
+typedef struct ca_context {
+    ha_context *owner;
+    atomic_uint callbacks;
+    uint32_t listeners;
+    AudioDeviceID defaults[2];
+    pthread_mutex_t permission_mutex;
+    pthread_cond_t permission_condition;
+    pthread_t permission_thread;
+    atomic_int permission_result;
+    uint32_t mutex_initialized, condition_initialized, worker_started;
+    uint32_t permission_users, permission_quit; /* Permission mutex owned. */
+} ca_context;
 typedef struct ca_leg { ha_stream *owner; AudioUnit unit; uint32_t leg, initialized, started; atomic_uint callbacks; } ca_leg;
 typedef struct ca_stream {
 #if HA_COREAUDIO_DIAGNOSTICS
@@ -19,9 +31,42 @@ typedef struct ca_stream {
 #endif
     ca_leg legs[2];
     atomic_uint callbacks;
-    uint32_t flushing, flush_running;
+    uint32_t flushing, flush_running, permission_registered;
     unsigned char input[HA_MAX_QUANTUM * 8u];
 } ca_stream;
+
+/* AVFoundation authorization reads can take milliseconds. Construction/start
+ * recheck synchronously, but periodic revocation reads must not stall poll or
+ * the application's PCM producer. Neither path runs on an audio callback. */
+static ha_result ca_permission(ca_context *p)
+{
+    ha_result result;
+    if (pthread_mutex_lock(&p->permission_mutex)) return HA_STREAM_FAILED;
+    result = hail_coreaudio_capture_permission();
+    atomic_store_explicit(&p->permission_result, result, memory_order_release);
+    pthread_mutex_unlock(&p->permission_mutex);
+    return result;
+}
+static void *ca_permission_worker(void *user)
+{
+    ca_context *p = user;
+    const struct timespec interval = {0, 250000000};
+    if (pthread_mutex_lock(&p->permission_mutex)) {
+        atomic_store_explicit(&p->permission_result, HA_STREAM_FAILED, memory_order_release);
+        return NULL;
+    }
+    while (!p->permission_quit) {
+        if (!p->permission_users) {
+            pthread_cond_wait(&p->permission_condition, &p->permission_mutex);
+            continue;
+        }
+        atomic_store_explicit(&p->permission_result, hail_coreaudio_capture_permission(), memory_order_release);
+        /* Relative wait avoids wall-clock adjustments changing the cadence. */
+        pthread_cond_timedwait_relative_np(&p->permission_condition, &p->permission_mutex, &interval);
+    }
+    pthread_mutex_unlock(&p->permission_mutex);
+    return NULL;
+}
 
 #if HA_COREAUDIO_DIAGNOSTICS
 static uint64_t ca_trace_now(void) { return AudioConvertHostTimeToNanos(mach_absolute_time()); }
@@ -139,7 +184,11 @@ static ha_result ca_context_init(ha_context *c)
 {
     ca_context *p = c->backend_state; uint32_t i;
     ha_result r;
-    p->owner = c; atomic_init(&p->callbacks, 0);
+    p->owner = c; atomic_init(&p->callbacks, 0); atomic_init(&p->permission_result, HA_OK);
+    if (pthread_mutex_init(&p->permission_mutex, NULL)) return HA_BACKEND_INIT_FAILED;
+    p->mutex_initialized = 1;
+    if (pthread_cond_init(&p->permission_condition, NULL)) return HA_BACKEND_INIT_FAILED;
+    p->condition_initialized = 1;
     r = ca_refresh(c);
     if (r != HA_OK) return r;
     for (i = 0; i < 1; ++i) {
@@ -153,12 +202,29 @@ static ha_result ca_context_init(ha_context *c)
 static ha_result ca_context_free(ha_context *c)
 {
     ca_context *p = c->backend_state; uint32_t i;
+    if (p->worker_started) {
+        if (pthread_mutex_lock(&p->permission_mutex)) return HA_PENDING;
+        p->permission_quit = 1;
+        pthread_cond_signal(&p->permission_condition);
+        pthread_mutex_unlock(&p->permission_mutex);
+        if (pthread_join(p->permission_thread, NULL)) return HA_PENDING;
+        p->worker_started = 0;
+    }
     for (i = 0; i < p->listeners; ++i) {
         AudioObjectPropertyAddress address = {ca_properties[i], kAudioObjectPropertyScopeGlobal, 0};
         if (AudioObjectRemovePropertyListener(kAudioObjectSystemObject, &address, ca_changed, p)) return HA_PENDING;
     }
     p->listeners = 0;
-    return atomic_load_explicit(&p->callbacks, memory_order_acquire) ? HA_PENDING : HA_OK;
+    if (atomic_load_explicit(&p->callbacks, memory_order_acquire)) return HA_PENDING;
+    if (p->condition_initialized) {
+        if (pthread_cond_destroy(&p->permission_condition)) return HA_PENDING;
+        p->condition_initialized = 0;
+    }
+    if (p->mutex_initialized) {
+        if (pthread_mutex_destroy(&p->permission_mutex)) return HA_PENDING;
+        p->mutex_initialized = 0;
+    }
+    return HA_OK;
 }
 static void ca_context_poll(ha_context *c)
 {
@@ -169,15 +235,11 @@ static void ca_context_poll(ha_context *c)
             p->defaults[leg] = device; atomic_store_explicit(&c->registry_dirty, 1, memory_order_release);
         }
     }
-    /* Observe a known denial/revocation on the control owner. Never query
-     * authorization on an audio callback or fall back to another endpoint. */
-    for (i = 0; i < c->max_streams; ++i) if (c->streams[i] && c->streams[i]->info.capture_slots) {
-        if (hail_coreaudio_capture_permission() == HA_PERMISSION_DENIED) {
-            uint32_t j;
-            for (j = i; j < c->max_streams; ++j) if (c->streams[j] && c->streams[j]->info.capture_slots)
-                hail_rt_error(c->streams[j], 0, HA_PERMISSION_DENIED, 0);
-        }
-        break;
+    {
+        ha_result permission = atomic_load_explicit(&p->permission_result, memory_order_acquire);
+        if (permission != HA_OK) for (i = 0; i < c->max_streams; ++i)
+            if (c->streams[i] && c->streams[i]->info.capture_slots)
+                hail_rt_error(c->streams[i], 0, permission, 0);
     }
 }
 static int ca_native_format(AudioDeviceID device, uint32_t leg, ha_format *format)
@@ -207,7 +269,10 @@ static ha_result ca_probe(ha_context *c, uint64_t id, const ha_format *f, uint32
     uint32_t leg; OSStatus status;
     if (!d) return HA_DEVICE_UNAVAILABLE;
     leg = d->info.direction == HA_CAPTURE ? 0u : 1u;
-    if (!leg && hail_coreaudio_capture_permission() == HA_PERMISSION_DENIED) return HA_PERMISSION_DENIED;
+    if (!leg) {
+        ha_result permission = ca_permission(c->backend_state);
+        if (permission != HA_OK) return permission;
+    }
     status = ca_get((AudioDeviceID)d->native_id, kAudioDevicePropertyNominalSampleRate, kAudioObjectPropertyScopeGlobal, &rate, &bytes);
     if (status) return ca_result(status);
     if (rate != (double)f->sample_rate) return HA_FORMAT_UNSUPPORTED; /* AUHAL does not change device clock rate. */
@@ -325,6 +390,13 @@ static void ca_stream_free(ha_stream *s)
         AudioUnitUninitialize(a->legs[i].unit);
         AudioComponentInstanceDispose(a->legs[i].unit); a->legs[i].unit = NULL;
     }
+    if (a->permission_registered) {
+        ca_context *p = s->context->backend_state;
+        pthread_mutex_lock(&p->permission_mutex);
+        --p->permission_users;
+        pthread_mutex_unlock(&p->permission_mutex);
+        a->permission_registered = 0;
+    }
 }
 static ha_result ca_open(ha_stream *s)
 {
@@ -347,12 +419,28 @@ static ha_result ca_open(ha_stream *s)
             s->info.clock_relationship = HA_CLOCK_SHARED; s->info.playback_clock_domain = s->info.capture_clock_domain;
         }
     }
+    if (ids[0]) {
+        ca_context *p = s->context->backend_state;
+        if (!p->worker_started) {
+            if (pthread_create(&p->permission_thread, NULL, ca_permission_worker, p)) {
+                ca_stream_free(s); return HA_RESOURCE_EXHAUSTED;
+            }
+            p->worker_started = 1;
+        }
+        pthread_mutex_lock(&p->permission_mutex);
+        ++p->permission_users; a->permission_registered = 1;
+        pthread_cond_signal(&p->permission_condition);
+        pthread_mutex_unlock(&p->permission_mutex);
+    }
     return HA_OK;
 }
 static ha_result ca_start(ha_stream *s)
 {
     ca_stream *a = s->backend_state; uint32_t i;
-    if (s->info.capture_slots && hail_coreaudio_capture_permission() == HA_PERMISSION_DENIED) return HA_PERMISSION_DENIED;
+    if (s->info.capture_slots) {
+        ha_result permission = ca_permission(s->context->backend_state);
+        if (permission != HA_OK) return permission;
+    }
     for (i = 0; i < 2; ++i) if (a->legs[i].unit) {
         OSStatus status = AudioOutputUnitStart(a->legs[i].unit);
         if (status) {

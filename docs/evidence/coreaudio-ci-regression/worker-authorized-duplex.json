@@ -1,0 +1,137 @@
+{
+  "started_utc": "2026-11-17T16:43:04.017006+00:00",
+  "source_revision": "246d49eb55ad30f10303c994580189b00ed6b078",
+  "source_sha256": {
+    "src/backend_alsa.c": "d7b7ab96d269dfc56ec0182d1cadd1d8a563391ff31e361604f6ddf2d33ca2fc",
+    "src/backend_coreaudio.c": "49c31ea914b8e84100145f217df403873ae565d6a4da4502b740e01d132ba371",
+    "src/backend_pipewire.c": "a06060f7c04cf027d33998afdc9d075dcecf1223f2fd7505e9593f69e137cb22",
+    "src/backend_wasapi.c": "16f2b188dcc4d6d50566c63083d10ee53a09451e284a71e87a2bbada4eb15c46",
+    "src/core.c": "4d2b9693c3ab811b38742ad29a1eefe132e134bc03759ee6e12845f62f2c218f",
+    "src/coreaudio_diagnostics.h": "0840bfef7e8beae9fafcacce5628ea9a72d1d54a9ec43f904ea089aec5c54ea8",
+    "src/hail_internal.h": "7b73aebdaf4ce15f382a7d455b203213a53957a1d1ecbeb04fb934bef1b0f1b1",
+    "src/hosted.c": "0920c557a6a478c26b630c0585f8b2931813d6a6e046f0f81ce51988dea0561a",
+    "src/native.c": "4d51a97b954b9d357ca8a27e38cf7d4ea65629f64218bd9be1f51d7cbf209202",
+    "src/queue.c": "7acdd71a0bc3575b4f2f36bd73c5adb19cd69a5a5381239e59de76ba5fe04d22",
+    "src/virtual.c": "076d684b86e8fdf49541f1a306ac994e68f58702b1e235f7e73f0c9de845c214",
+    "src/coreaudio_permission.m": "b822108e4bd3ba615c8a585c8e8b8e87cd4242db40a7205854bab484db0a16fb",
+    "include/hail.h": "d54b4ed757e801f702b33b1949c0809a9b9b79ae1983137b892d63ef86188a88",
+    "tests/coreaudio_physical.c": "ee8cd12a1ec0249300a9f969047d9b7f4a2a69be85de15b50a82bc7e4b5f622a",
+    "tests/coreaudio_authorize.m": "2ec4b76cb8423fbb063f21295fc6b59bb811bf3ed8a3fc1765637552aa5a3d0c"
+  },
+  "binary_sha256": "7dcdd132e63f62a6f203180c0e94321267f784cc484a56329c9abce1dd90424f",
+  "configuration": {
+    "test": "build-native-macos/hail_coreaudio_physical",
+    "capture": "MacBook Pro Microphone",
+    "playback": "MacBook Pro Speakers",
+    "seconds": 3,
+    "matrix": false,
+    "silent": true,
+    "load_workers": 0,
+    "rate": 48000,
+    "channels": 1,
+    "pcm": 2,
+    "output": "docs/evidence/coreaudio-ci-regression/worker-authorized-duplex.json"
+  },
+  "platform": [
+    {
+      "command": [
+        "sw_vers"
+      ],
+      "exit_code": 0,
+      "output": "ProductName:\t\tmacOS\nProductVersion:\t\t26.6.2\nBuildVersion:\t\t25G83\n"
+    },
+    {
+      "command": [
+        "uname",
+        "-m"
+      ],
+      "exit_code": 0,
+      "output": "arm64\n"
+    },
+    {
+      "command": [
+        "xcrun",
+        "--show-sdk-version"
+      ],
+      "exit_code": 0,
+      "output": "26.2\n"
+    },
+    {
+      "command": [
+        "sysctl",
+        "-n",
+        "machdep.cpu.brand_string",
+        "hw.memsize"
+      ],
+      "exit_code": 0,
+      "output": "Apple M1 Max\n34359738368\n"
+    },
+    {
+      "command": [
+        "pmset",
+        "-g",
+        "custom"
+      ],
+      "exit_code": 0,
+      "output": "Battery Power:\n Sleep On Power Button 1\n lowpowermode         0\n standby              1\n ttyskeepawake        1\n hibernatemode        3\n powernap             1\n hibernatefile        /var/vm/sleepimage\n displaysleep         2\n womp                 0\n networkoversleep     0\n sleep                1\n lessbright           1\n tcpkeepalive         1\n disksleep            10\nAC Power:\n Sleep On Power Button 1\n lowpowermode         1\n standby              1\n ttyskeepawake        1\n hibernatemode        3\n powernap             1\n hibernatefile        /var/vm/sleepimage\n displaysleep         180\n womp                 1\n networkoversleep     0\n sleep                1\n tcpkeepalive         1\n disksleep            10\n"
+    }
+  ],
+  "trials": [
+    {
+      "command": [
+        "/Users/mark/artalis.io/src/hail/build-native-macos/hail_coreaudio_physical",
+        "MacBook Pro Microphone",
+        "MacBook Pro Speakers",
+        "48000",
+        "1",
+        "2",
+        "3"
+      ],
+      "exit_code": 0,
+      "output": "device direction=1 name=MacBook Pro Microphone uid=BuiltInMicrophoneDevice nominal_rate=48000 native_period=512 transport=626c746e\ndevice direction=2 name=MacBook Pro Speakers uid=BuiltInSpeakerDevice nominal_rate=48000 native_period=512 transport=626c746e\ndevice direction=1 name=Microsoft Teams Audio uid=MSLoopbackDriverDevice_UID nominal_rate=48000 native_period=512 transport=76697274\ndevice direction=2 name=Microsoft Teams Audio uid=MSLoopbackDriverDevice_UID nominal_rate=48000 native_period=512 transport=76697274\nplayback_signal=digital-silence\nmicrophone_authorization_before=3\nmicrophone_authorization_after=3\nnegotiated rate=48000 channels=1 pcm=2 capture_slots=64 playback_slots=16 quantum=256 bytes=158704 conversion=3 clocks=0\n{\"total_underrun_frames_before_close\":0,\"transition_underrun_frames\":0,\"total_capture_loss_before_close\":0}\n{\"duration_s\":3.000501,\"rate\":48000,\"channels\":1,\"pcm\":2,\"captured_frames\":219136,\"nonzero_capture_samples\":219136,\"capture_gap_observations\":0,\"capture_epoch_changes_including_restart\":1,\"steady_underrun_frames\":0,\"startup_underrun_frames\":0,\"steady_capture_loss\":0,\"flush_ack_us\":56076.000,\"capture_frames_during_flush\":2560,\"max_poll_us\":104950.000,\"capture_host_age_mean_us\":10635.112,\"capture_host_age_max_us\":20492.792,\"capture_host_age_p50_bin_ms\":12,\"capture_host_age_p95_bin_ms\":13,\"capture_host_age_p99_bin_ms\":16,\"future_host_times\":0,\"cpu_user_s\":0.052542,\"cpu_system_s\":0.089294,\"rss_peak_bytes\":16809984,\"hail_peak_bytes\":285648,\"steady_hail_allocations\":0}\nactive_reopen_close_cycles=8 balanced_stream_allocations=PASS\nRESULT PASS physical transport (no known-PCM or physical latency claim)\n",
+      "rate": 48000,
+      "channels": 1,
+      "pcm": 2,
+      "measurements": [
+        {
+          "total_underrun_frames_before_close": 0,
+          "transition_underrun_frames": 0,
+          "total_capture_loss_before_close": 0
+        },
+        {
+          "duration_s": 3.000501,
+          "rate": 48000,
+          "channels": 1,
+          "pcm": 2,
+          "captured_frames": 219136,
+          "nonzero_capture_samples": 219136,
+          "capture_gap_observations": 0,
+          "capture_epoch_changes_including_restart": 1,
+          "steady_underrun_frames": 0,
+          "startup_underrun_frames": 0,
+          "steady_capture_loss": 0,
+          "flush_ack_us": 56076.0,
+          "capture_frames_during_flush": 2560,
+          "max_poll_us": 104950.0,
+          "capture_host_age_mean_us": 10635.112,
+          "capture_host_age_max_us": 20492.792,
+          "capture_host_age_p50_bin_ms": 12,
+          "capture_host_age_p95_bin_ms": 13,
+          "capture_host_age_p99_bin_ms": 16,
+          "future_host_times": 0,
+          "cpu_user_s": 0.052542,
+          "cpu_system_s": 0.089294,
+          "rss_peak_bytes": 16809984,
+          "hail_peak_bytes": 285648,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "unsupported": false
+    }
+  ],
+  "load": {
+    "method": "independent SHA256 loops over 1 MiB buffer",
+    "workers": 0
+  },
+  "finished_utc": "2026-11-17T16:43:11.297188+00:00"
+}

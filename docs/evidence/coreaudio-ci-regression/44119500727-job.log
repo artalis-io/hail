@@ -1,0 +1,199 @@
+blackhole	Build and test static and shared native backends	﻿2026-11-17T16:01:33.5872920Z ##[group]Run set -euo pipefail
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:33.5873260Z ^[[36;1mset -euo pipefail^[[0m
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:33.5873510Z ^[[36;1mfor linkage in OFF ON; do^[[0m
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:33.5874050Z ^[[36;1m  cmake -S . -B "build-$linkage" -DCMAKE_BUILD_TYPE=Release -DHA_BUILD_SHARED="$linkage" -DHA_BUILD_NATIVE_TESTS=ON^[[0m
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:33.5913470Z ^[[36;1m  cmake --build "build-$linkage" --parallel^[[0m
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:33.5915310Z ^[[36;1m  codesign --force --sign - "build-$linkage/hail_coreaudio_loopback"^[[0m
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:33.5916160Z ^[[36;1m  ctest --test-dir "build-$linkage" --verbose | tee "results/tests-$linkage.log"^[[0m
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:33.5918320Z ^[[36;1m  ctest --test-dir "build-$linkage" -R coreaudio_loopback --repeat until-fail:3 --verbose | tee "results/repeat-$linkage.log"^[[0m
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:33.5920640Z ^[[36;1m  for rate in 16000 24000 44100 48000; do^[[0m
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:33.5921550Z ^[[36;1m    for channels in 1 2; do^[[0m
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:33.5922480Z ^[[36;1m      for pcm in 1 2; do^[[0m
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:33.5923790Z ^[[36;1m        HA_TEST_COREAUDIO_LOOPBACK=1 HA_TEST_COREAUDIO_RATE="$rate" \^[[0m
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:33.5926000Z ^[[36;1m          HA_TEST_COREAUDIO_CHANNELS="$channels" HA_TEST_COREAUDIO_PCM="$pcm" \^[[0m
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:33.5926900Z ^[[36;1m          "build-$linkage/hail_coreaudio_loopback" 2>&1 | tee "results/format-$linkage-$rate-$channels-$pcm.log"^[[0m
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:33.5927460Z ^[[36;1m      done^[[0m
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:33.5927710Z ^[[36;1m    done^[[0m
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:33.5927890Z ^[[36;1m  done^[[0m
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:33.6104150Z ^[[36;1mdone^[[0m
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:33.6260350Z shell: /bin/bash -e {0}
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:33.6261470Z ##[endgroup]
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:35.7961670Z -- The C compiler identification is AppleClang 21.0.0.21000101
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:36.9098370Z -- Detecting C compiler ABI info
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:38.0819920Z -- Detecting C compiler ABI info - done
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:38.0994800Z -- Check for working C compiler: /usr/bin/cc - skipped
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:38.1006960Z -- Detecting C compile features
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:38.1015200Z -- Detecting C compile features - done
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:38.2559680Z -- The OBJC compiler identification is AppleClang 21.0.0.21000101
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:38.2824910Z -- Detecting OBJC compiler ABI info
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:38.4639200Z -- Detecting OBJC compiler ABI info - done
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:38.4804800Z -- Check for working OBJC compiler: /usr/bin/cc - skipped
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:39.4316400Z -- The CXX compiler identification is AppleClang 21.0.0.21000101
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:39.4387510Z -- Detecting CXX compiler ABI info
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:39.6739340Z -- Detecting CXX compiler ABI info - done
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:39.7035410Z -- Check for working CXX compiler: /usr/bin/c++ - skipped
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:39.7051890Z -- Detecting CXX compile features
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:39.7052900Z -- Detecting CXX compile features - done
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:39.7155070Z -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:39.9434230Z -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:39.9464210Z -- Found Threads: TRUE
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:39.9552540Z -- Configuring done (5.7s)
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:40.0469200Z -- Generating done (0.1s)
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:40.0480520Z -- Build files have been written to: /Users/runner/work/hail/hail/build-OFF
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:40.1538440Z [  3%] Building C object CMakeFiles/hail.dir/src/native.c.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:40.1665710Z [  6%] Building C object CMakeFiles/hail.dir/src/queue.c.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:40.1788210Z [  9%] Building C object CMakeFiles/hail.dir/src/core.c.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:40.1899880Z [ 12%] Building C object CMakeFiles/hail.dir/src/backend_coreaudio.c.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:40.2053220Z [ 15%] Building OBJC object CMakeFiles/hail.dir/src/coreaudio_permission.m.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:40.2178090Z [ 18%] Building C object CMakeFiles/hail.dir/src/virtual.c.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:40.2322220Z [ 21%] Building C object CMakeFiles/hail.dir/src/hosted.c.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:43.6786580Z [ 25%] Linking C static library libhail.a
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:45.6698750Z [ 25%] Built target hail
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:45.7826440Z [ 28%] Building C object CMakeFiles/hail_coreaudio_loopback.dir/tests/coreaudio_loopback.c.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:45.7971450Z [ 31%] Building C object CMakeFiles/hail_coreaudio_faults.dir/tests/coreaudio_faults.c.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:45.8124660Z [ 34%] Building C object CMakeFiles/hail_native_handoff.dir/tests/native_handoff.c.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:45.8232650Z [ 37%] Building C object CMakeFiles/hail_conformance.dir/tests/conformance.c.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:45.8368820Z [ 40%] Building OBJC object CMakeFiles/hail_coreaudio_permission.dir/tests/coreaudio_permission.m.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:45.8519000Z [ 43%] Building C object CMakeFiles/hail_virtual_example.dir/examples/virtual.c.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:45.8660070Z [ 50%] Building OBJC object CMakeFiles/hail_coreaudio_permission.dir/tests/coreaudio_authorize.m.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:45.8847780Z [ 50%] Building C object CMakeFiles/hail_native_example.dir/examples/native.c.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:45.9216020Z [ 53%] Building CXX object CMakeFiles/hail_concurrency.dir/tests/concurrency.cpp.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:45.9218470Z [ 56%] Building C object CMakeFiles/hail_coreaudio_registry.dir/tests/coreaudio_registry.c.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:45.9324150Z [ 59%] Building C object CMakeFiles/hail_coreaudio_physical.dir/tests/coreaudio_physical.c.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:45.9457960Z [ 62%] Building OBJC object CMakeFiles/hail_coreaudio_physical.dir/tests/coreaudio_authorize.m.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:45.9596570Z [ 65%] Building CXX object CMakeFiles/hail_headers.dir/tests/headers.cpp.o
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:46.2569390Z [ 68%] Linking CXX executable hail_headers
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:46.3202990Z [ 71%] Linking C executable hail_virtual_example
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:46.3415330Z [ 75%] Linking C executable hail_native_example
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:46.6342360Z [ 78%] Linking C executable hail_native_handoff
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:47.1860370Z [ 78%] Built target hail_headers
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:47.2024330Z [ 78%] Built target hail_virtual_example
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:47.2344500Z [ 78%] Built target hail_native_example
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:47.3281550Z [ 78%] Built target hail_native_handoff
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:47.4084060Z [ 81%] Linking C executable hail_coreaudio_registry
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:47.6685510Z [ 81%] Built target hail_coreaudio_registry
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:47.6891500Z [ 84%] Linking C executable hail_coreaudio_loopback
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:47.7369860Z [ 87%] Linking C executable hail_coreaudio_faults
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:47.9681080Z [ 87%] Built target hail_coreaudio_faults
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:47.9883890Z [ 87%] Built target hail_coreaudio_loopback
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:48.0892740Z [ 90%] Linking C executable hail_conformance
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:48.2426510Z [ 90%] Built target hail_conformance
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:48.5889380Z [ 93%] Linking CXX executable hail_concurrency
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:48.7999320Z [ 93%] Built target hail_concurrency
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:48.9170390Z [ 96%] Linking C executable hail_coreaudio_physical
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:48.9175960Z [100%] Linking OBJC executable hail_coreaudio_permission
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.1031850Z [100%] Built target hail_coreaudio_permission
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.1032650Z [100%] Built target hail_coreaudio_physical
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.1326720Z build-OFF/hail_coreaudio_loopback: replacing existing signature
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2126400Z UpdateCTestConfiguration  from :/Users/runner/work/hail/hail/build-OFF/DartConfiguration.tcl
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2162260Z Test project /Users/runner/work/hail/hail/build-OFF
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2172050Z Constructing a list of tests
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2189140Z Done constructing a list of tests
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2193740Z Updating test list for fixtures
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2195470Z Added 0 tests to meet fixture requirements
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2200340Z Checking test dependency graph...
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2207410Z Checking test dependency graph end
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2226580Z test 1
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2228110Z     Start 1: headers_cpp
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2228930Z 
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2229700Z 1: Test command: /Users/runner/work/hail/hail/build-OFF/hail_headers
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2231310Z 1: Working Directory: /Users/runner/work/hail/hail/build-OFF
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2233550Z 1: Test timeout computed to be: 10000000
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2330330Z 1/6 Test #1: headers_cpp ......................   Passed    0.01 sec
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2335700Z test 2
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2336920Z     Start 2: coreaudio_loopback
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2337480Z 
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2338080Z 2: Test command: /Users/runner/work/hail/hail/build-OFF/hail_coreaudio_loopback
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2339520Z 2: Working Directory: /Users/runner/work/hail/hail/build-OFF
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2340430Z 2: Environment variables: 
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2341210Z 2:  HA_TEST_COREAUDIO_LOOPBACK=1
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.2341930Z 2: Test timeout computed to be: 45
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.4053520Z 2: profile=strict-continuity
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:49.4060100Z 2: fixture=BlackHole 2ch uid=BlackHole2ch_UID rate=48000 channels=2 pcm=2 sequence_mask=65535
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.0398700Z 2: {"verified_frames":[36352,36096,36608],"bad_samples_or_order":0,"capture_frame_gaps":0,"zero_frames":39424,"flush_ack_us":95914.000,"capture_lost_frames":0,"underrun_frames":33280,"hail_peak_bytes":351168,"steady_hail_allocations":0}
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.0503720Z 2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.0607090Z 2: PASS CoreAudio nonzero duplex, flush/capture continuity, stale writes, stop/restart and teardown
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.0728890Z 2/6 Test #2: coreaudio_loopback ...............   Passed    3.81 sec
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.0836540Z test 3
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.0942220Z     Start 3: conformance
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1044370Z 
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1121760Z 3: Test command: /Users/runner/work/hail/hail/build-OFF/hail_conformance
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1132730Z 3: Working Directory: /Users/runner/work/hail/hail/build-OFF
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1159250Z 3: Test timeout computed to be: 10000000
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1160640Z 3: portable conformance passed
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1161280Z 3/6 Test #3: conformance ......................   Passed    0.01 sec
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1162060Z test 4
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1162410Z     Start 4: concurrency
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1162540Z 
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1162800Z 4: Test command: /Users/runner/work/hail/hail/build-OFF/hail_concurrency
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1163970Z 4: Working Directory: /Users/runner/work/hail/hail/build-OFF
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1164400Z 4: Test timeout computed to be: 10000000
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1760190Z 4: concurrent reader/writer/reference/flush/close passed
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1763390Z 4/6 Test #4: concurrency ......................   Passed    0.11 sec
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1768340Z test 5
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1768840Z     Start 5: native_handoff
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1770100Z 
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1770400Z 5: Test command: /Users/runner/work/hail/hail/build-OFF/hail_native_handoff
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1771410Z 5: Working Directory: /Users/runner/work/hail/hail/build-OFF
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.1771840Z 5: Test timeout computed to be: 10000000
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2410190Z 5: native callback gates and snapshot handoff passed
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2412370Z 5/6 Test #5: native_handoff ...................   Passed    0.06 sec
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2414690Z test 6
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2416080Z     Start 6: example
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2416390Z 
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2416830Z 6: Test command: /Users/runner/work/hail/hail/build-OFF/hail_virtual_example
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2417360Z 6: Working Directory: /Users/runner/work/hail/hail/build-OFF
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2417880Z 6: Test timeout computed to be: 10000000
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2486080Z 6: Virtual capture; Virtual playback
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2488280Z 6: Captured 4 frames at 0 ns; playback first sample 100
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2490590Z 6: Capture continued at frame 4 after interruption
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2492920Z 6/6 Test #6: example ..........................   Passed    0.01 sec
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2502310Z 
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2504100Z 100% tests passed out of 6
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2504260Z 
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2504470Z Total Test time (real) =   4.03 sec
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2651070Z UpdateCTestConfiguration  from :/Users/runner/work/hail/hail/build-OFF/DartConfiguration.tcl
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2652290Z Test project /Users/runner/work/hail/hail/build-OFF
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2652830Z Constructing a list of tests
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2653710Z Done constructing a list of tests
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2655580Z Updating test list for fixtures
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2656170Z Added 0 tests to meet fixture requirements
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2662340Z Checking test dependency graph...
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2662840Z Checking test dependency graph end
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2663250Z test 2
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2663490Z     Start 2: coreaudio_loopback
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2664520Z 
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2665050Z 2: Test command: /Users/runner/work/hail/hail/build-OFF/hail_coreaudio_loopback
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2665660Z 2: Working Directory: /Users/runner/work/hail/hail/build-OFF
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2666550Z 2: Environment variables: 
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2667300Z 2:  HA_TEST_COREAUDIO_LOOPBACK=1
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.2667610Z 2: Test timeout computed to be: 45
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.3879400Z 2: profile=strict-continuity
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:53.3885200Z 2: fixture=BlackHole 2ch uid=BlackHole2ch_UID rate=48000 channels=2 pcm=2 sequence_mask=65535
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:56.9250330Z 2: {"verified_frames":[37376,37888,33280],"bad_samples_or_order":0,"capture_frame_gaps":0,"zero_frames":40448,"flush_ack_us":102939.000,"capture_lost_frames":0,"underrun_frames":34304,"hail_peak_bytes":351168,"steady_hail_allocations":0}
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:56.9390720Z 2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:56.9501650Z 2: PASS CoreAudio nonzero duplex, flush/capture continuity, stale writes, stop/restart and teardown
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:56.9609330Z     Test #2: coreaudio_loopback ...............   Passed    3.66 sec
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:56.9705000Z     Start 2: coreaudio_loopback
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:56.9880120Z 
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:56.9881840Z 2: Test command: /Users/runner/work/hail/hail/build-OFF/hail_coreaudio_loopback
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.0021400Z 2: Working Directory: /Users/runner/work/hail/hail/build-OFF
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.0170290Z 2: Environment variables: 
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.0280680Z 2:  HA_TEST_COREAUDIO_LOOPBACK=1
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.0395010Z 2: Test timeout computed to be: 45
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.1357360Z 2: profile=strict-continuity
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.1360960Z 2: fixture=BlackHole 2ch uid=BlackHole2ch_UID rate=48000 channels=2 pcm=2 sequence_mask=65535
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.3415270Z 2: capture epoch changed 1 -> 2 flags=43 logical=2048 raw=2600
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.3517780Z 2: /Users/runner/work/hail/hail/tests/coreaudio_loopback.c:53: instrumented && block.clock_epoch>epoch && (block.flags & HA_BLOCK_DISCONTINUITY)
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.3770440Z     Test #2: coreaudio_loopback ...............***Failed    0.41 sec
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.3873840Z Errors while running CTest
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.4265280Z 
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.4273340Z Output from these tests are in: /Users/runner/work/hail/hail/build-OFF/Testing/Temporary/LastTest.log
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.4273880Z 0% tests passed, 1 tests failed out of 1
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.4274340Z Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.4274620Z 
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.4274690Z Total Test time (real) =   4.11 sec
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.4274850Z 
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.4274910Z The following tests FAILED:
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.4275100Z 	  2 - coreaudio_loopback (Failed)
+blackhole	Build and test static and shared native backends	2026-11-17T16:01:57.4291820Z ##[error]Process completed with exit code 8.
