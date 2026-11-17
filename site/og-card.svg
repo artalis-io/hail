@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+<title id="title">Hail — audio, in both directions.</title><desc id="desc">Bounded, timestamped capture and playback for C11. Four native adapters, independent clocks and explicit ownership.</desc>
+<defs><pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="#ffffff" stroke-opacity=".045"/></pattern></defs>
+<rect width="1200" height="630" fill="#0a0a0a"/><rect width="1200" height="630" fill="url(#grid)"/>
+<g transform="translate(70 60)"><rect width="48" height="48" rx="11" fill="#101513" stroke="#22d3a8" stroke-opacity=".4"/><path d="M12 12v24m24-24v24M12 24h8l4-9 4 18 4-9h4" fill="none" stroke="#22d3a8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><text x="65" y="34" fill="#f4f4f5" font-size="33" font-family="system-ui,sans-serif" font-weight="600">Hail</text></g>
+<text x="70" y="210" fill="#f4f4f5" font-size="83" font-weight="600" font-family="system-ui,sans-serif" letter-spacing="-4">Audio, in</text><text x="70" y="302" fill="#f4f4f5" font-size="83" font-weight="600" font-family="system-ui,sans-serif" letter-spacing="-4">both directions.</text>
+<text x="74" y="366" fill="#a1a1aa" font-size="25" font-family="system-ui,sans-serif">Bounded, timestamped capture and playback for C.</text>
+<g stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round"><path stroke="#22d3a8" d="M750 165h22l7-23 7 47 7-63 7 79 7-48 7 8h24l7-18 7 32 7-48 7 61 7-36 7 9h24l7-28 7 53 7-72 7 87 7-54 7 14h24l7-20 7 40 7-56 7 67 7-41 7 10h25"/><path stroke="#93c5fd" d="M750 280h22l7-20 7 40 7-57 7 72 7-43 7 8h24l7-16 7 30 7-47 7 61 7-36 7 8h177"/></g>
+<path d="M914 243v79" stroke="#a1a1aa" stroke-dasharray="4 5"/><text x="929" y="251" fill="#a1a1aa" font-size="13" font-family="monospace">FLUSH</text>
+<path d="M70 453h1060" stroke="#ffffff" stroke-opacity=".12"/><text x="74" y="508" fill="#22d3a8" font-size="19" font-family="monospace">C11 · OPAQUE HANDLES · BOUNDED QUEUES · NATIVE ADAPTERS</text><text x="74" y="563" fill="#a1a1aa" font-size="18" font-family="system-ui,sans-serif">github.com/artalis-io/hail</text><text x="973" y="563" fill="#a1a1aa" font-size="16" font-family="monospace">v0.1 / provisional</text>
+</svg>

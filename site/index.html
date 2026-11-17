@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hail — bounded, timestamped audio for C</title>
+  <meta name="description" content="Portable C11 capture, playback and full-duplex PCM transport. Bounded queues, independent clocks, playback interruption and explicit native retirement. Explore the API, architecture and platform evidence.">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta property="og:title" content="Hail — audio, in both directions.">
+  <meta property="og:description" content="Bounded, timestamped PCM transport for C11. Capture and playback stay independent. Platform support backed by explicit evidence.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://hail-audio.lastpelican2.chatgpt.site/og-card.svg">
+  <meta property="og:image:type" content="image/svg+xml">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Hail — bounded audio for C">
+  <meta name="twitter:description" content="Capture, playback and full-duplex PCM. Bounded by design. Explicit about time.">
+  <meta name="twitter:image" content="https://hail-audio.lastpelican2.chatgpt.site/og-card.svg">
+  <link rel="icon" type="image/svg+xml" href="mark.svg">
+  <link rel="stylesheet" href="hail.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareSourceCode",
+    "name": "Hail",
+    "version": "0.1.0",
+    "description": "Portable C11 library for bounded, timestamped capture, playback and full-duplex PCM transport. The version 0.1 ABI is provisional; native qualification is configuration-specific.",
+    "programmingLanguage": "C11",
+    "codeRepository": "https://github.com/artalis-io/hail",
+    "url": "https://hail-audio.lastpelican2.chatgpt.site/",
+    "author": {"@type": "Organization", "name": "Artalis", "url": "https://artalis.io"}
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <div class="container nav-row">
+      <a class="brand" href="#" aria-label="Hail home"><img src="mark.svg" width="27" height="27" alt=""><span>Hail</span><span class="chip">C11</span></a>
+      <nav class="desktop-nav" aria-label="Primary">
+        <a href="#start">Start</a><a href="#architecture">Architecture</a><a href="#platforms">Platforms</a><a href="#evidence">Evidence</a><a href="https://github.com/artalis-io/hail#readme">Docs</a>
+      </nav>
+      <div class="nav-actions">
+        <details class="mobile-nav">
+          <summary>Menu <span aria-hidden="true">+</span></summary>
+          <nav aria-label="Mobile"><a href="#start">Start</a><a href="#architecture">Architecture</a><a href="#contracts">Contracts</a><a href="#platforms">Platforms</a><a href="#evidence">Evidence</a><a href="https://github.com/artalis-io/hail#readme">Documentation</a></nav>
+        </details>
+        <a class="button button-small" href="https://github.com/artalis-io/hail"><span class="code-glyph" aria-hidden="true">&lt;/&gt;</span> GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <section class="hero">
+      <div class="grid-background" aria-hidden="true"></div>
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <a class="eyebrow-pill" href="#platforms"><span class="dot"></span> v0.1 · native implementations · provisional ABI <span aria-hidden="true">↗</span></a>
+          <h1>Audio, in<br>both directions.</h1>
+          <p class="lead">Bounded, timestamped capture and playback for C. Keep listening while playback changes. Know what crossed the queue, when it belongs, and who owns it.</p>
+          <p class="hero-detail">Portable PCM contracts above native audio backends. Independent legs, explicit clocks, and a lifecycle that waits for actual retirement.</p>
+          <div class="button-row"><a class="button button-primary" href="#start">Run an example <span aria-hidden="true">→</span></a><a class="button" href="https://github.com/artalis-io/hail/blob/main/docs/api.md">Read the API</a></div>
+          <p class="hero-note">C11 · opaque handles · custom allocators · static or shared</p>
+        </div>
+        <figure class="duplex-panel">
+          <div class="panel-bar"><span><span class="dot"></span> Duplex transport</span><span class="mono muted">independent legs</span></div>
+          <div class="signal-lane">
+            <div class="lane-label"><span class="mint">Capture</span><span class="mono muted">keeps flowing</span></div>
+            <svg class="wave wave-capture" viewBox="0 0 440 66" fill="none" aria-hidden="true" focusable="false"><path class="wave-axis" d="M0 33H440"/><path d="M0 33h12l4-8 4 16 4-29 4 42 4-28 4 7h14l4-16 4 32 4-42 4 51 4-30 4 5h15l4-9 4 17 4-27 4 35 4-19 4 3h16l4-14 4 25 4-41 4 51 4-29 4 8h15l4-19 4 37 4-45 4 52 4-34 4 9h16l4-12 4 24 4-36 4 41 4-24 4 7h16l4-22 4 40 4-48 4 57 4-34 4 7h15l4-12 4 25 4-39 4 46 4-28 4 8h16l4-9 4 18 4-28 4 35 4-22 4 6h15l4-18 4 32 4-39 4 48 4-28 4 5h20"/></svg>
+            <div class="lane-foot"><span>bounded PCM queue</span><span>position · epoch · uncertainty</span></div>
+          </div>
+          <div class="signal-lane render-lane">
+            <div class="lane-label"><span class="blue">Playback</span><span class="mono muted">generation 7 → 8</span></div>
+            <svg class="wave wave-render" viewBox="0 0 440 66" fill="none" aria-hidden="true" focusable="false"><path class="wave-axis" d="M0 33H440"/><path d="M0 33h10l5-13 5 26 5-40 5 51 5-32 5 8h14l5-18 5 32 5-42 5 51 5-30 5 7h14l5-10 5 19 5-34 5 42 5-24 5 7h14l5-17 5 30 5-38 5 48 5-29 5 6h19l5-8 5 13 5-5h220"/></svg>
+            <div class="flush-marker"><span>FLUSH</span></div>
+            <div class="lane-foot"><span>old content discarded</span><span>capture stays active</span></div>
+          </div>
+          <div class="panel-bottom"><span class="chip">HA_STALE_GENERATION</span><p>Late writes keep their old generation.<br>Cancelled audio stays cancelled.</p></div>
+          <figcaption>Illustrative queue behavior, not a latency trace. Render-only reset depends on backend support.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <div class="container facts-strip" aria-label="Library facts">
+      <div><strong>4</strong><span>native adapters</span></div><div><strong>1</strong><span>Hail allocation / stream</span></div><div><strong>S16 / F32</strong><span>exact application PCM</span></div><div><strong>0</strong><span>mandatory core DSP dependencies</span></div>
+    </div>
+
+    <section id="architecture" class="section container">
+      <div class="section-heading"><span class="kicker">01 / Architecture</span><h2>Keep the responsibilities separate.</h2><p>Transport semantics, execution ownership and native resources meet at a private seam. Application processing stays above it.</p></div>
+      <div class="architecture-grid">
+        <figure class="architecture-map">
+          <div class="arch-stage"><span class="arch-label">Application / external processing</span><p>Speech · recording · sensing · optional Hull binding</p></div>
+          <div class="connector" aria-hidden="true">↕</div>
+          <div class="arch-stage arch-core"><span class="arch-label">Hail semantic core</span><p>Capture &amp; playback queues · timing records<br>generation · flow control · lifecycle · memory plans</p></div>
+          <div class="connector" aria-hidden="true">↕</div>
+          <div class="arch-axes"><div class="arch-stage"><span class="arch-label">Execution ownership</span><p>Serialized external drive<br>Concurrent gates + snapshots</p></div><div class="arch-stage"><span class="arch-label">Platform resources</span><p>CoreAudio · WASAPI<br>PipeWire · ALSA · virtual</p></div></div>
+          <figcaption>Ownership is declared explicitly. A platform name does not choose the execution model.</figcaption>
+        </figure>
+        <div class="architecture-notes">
+          <article><span class="number">01</span><div><h3>PCM crosses the boundary.</h3><p>Opaque streams and neutral, versioned records. SDK buffers, thread handles and native errors stay behind the adapter.</p></div></article>
+          <article><span class="number">02</span><div><h3>Time stays explicit.</h3><p>Each leg has its own position, clock domain, epoch and uncertainty. Matching sample rates do not imply synchronized clocks.</p></div></article>
+          <article><span class="number">03</span><div><h3>Retirement is a real barrier.</h3><p>Closed admission is not proof that a native worker has exited. Failed opens retain their accounted storage until cleanup is proven.</p></div></article>
+          <a class="text-link" href="https://github.com/artalis-io/hail/blob/main/docs/axis-audit.md">Read the source-grounded axis audit <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section id="start" class="section section-tinted">
+      <div class="container">
+        <div class="section-heading"><span class="kicker">02 / Start small</span><h2>A working duplex example.<br>No microphone required.</h2><p>Start with the deterministic virtual backend and a fixed caller-owned arena. Native adapters use the same public contracts.</p></div>
+        <div class="start-grid">
+          <div class="code-block"><div class="code-header"><span class="mono">Terminal</span><span class="muted">CMake · C11</span></div><pre tabindex="0" role="region" aria-label="Build commands, scroll horizontally if needed"><code><span class="code-comment"># Build and run the device-free example</span>
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+ctest --test-dir build --output-on-failure
+./build/hail_virtual_example
+
+<span class="code-comment"># Opt into Linux native backends</span>
+cmake -S . -B build-linux \
+  -DHA_BACKEND_ALSA=ON \
+  -DHA_BACKEND_PIPEWIRE=ON</code></pre></div>
+          <div class="start-notes"><h3>Explicit by default.</h3><p>The example exercises capture, playback, flush, stale-write rejection and device loss. It allocates from a fixed arena.</p><ul class="plain-list"><li>Default tests do not open native audio streams.</li><li>macOS enables CoreAudio; Windows enables WASAPI.</li><li>Linux native builds require backend development packages.</li><li>Freestanding builds require your allocator and supported atomics.</li></ul><div class="button-row"><a class="button" href="https://github.com/artalis-io/hail/blob/main/examples/virtual.c">View complete example <span aria-hidden="true">↗</span></a></div><a class="text-link" href="https://github.com/artalis-io/hail/blob/main/docs/build.md">Build, install and integrate →</a></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contracts" class="section container">
+      <div class="section-heading"><span class="kicker">03 / The contract</span><h2>Small surface. Observable behavior.</h2><p>Bounded operations with explicit failure, timing and completion facts.</p></div>
+      <div class="contract-grid">
+        <article><span class="contract-symbol" aria-hidden="true">↔</span><h3>Independent duplex legs</h3><p>Different rates, periods and clocks. Playback interruption does not require throwing away the user’s ongoing capture.</p></article>
+        <article><span class="contract-symbol" aria-hidden="true">▤</span><h3>Bounded flow</h3><p>Full capture drops newest. Empty playback produces silence. Loss and underrun counters make both conditions visible.</p></article>
+        <article><span class="contract-symbol" aria-hidden="true">#</span><h3>Generation-safe playback</h3><p>Flush advances the content generation. Old writes are rejected, even if obsolete work finishes after interruption.</p></article>
+        <article><span class="contract-symbol" aria-hidden="true">⌁</span><h3>Useful render reference</h3><p>Selected playback PCM supports external processing. It describes render selection, not guaranteed acoustic presentation.</p></article>
+        <article><span class="contract-symbol" aria-hidden="true">◷</span><h3>Honest clock metadata</h3><p>Positions, domains, epochs, gaps and uncertainty travel with audio. Unknown timing is never promoted to a precise measurement.</p></article>
+        <article><span class="contract-symbol" aria-hidden="true">□</span><h3>Accounted memory</h3><p>One Hail allocation per context and stream, exact plans and no steady-state Hail allocations. Native SDK memory is separate.</p></article>
+      </div>
+      <div class="format-strip"><span class="mono mint">Application PCM</span><p>Native-endian S16 or F32 · interleaved mono/stereo · 8–192 kHz range</p><span class="muted">Actual endpoint support is negotiated.</span></div>
+    </section>
+
+    <section id="platforms" class="section section-tinted">
+      <div class="container">
+        <div class="section-heading"><span class="kicker">04 / Platforms</span><h2>Platform support,<br>backed by evidence.</h2><p>Implementation, test execution and physical qualification are recorded separately. Hail 0.1 is not a blanket production or latency claim.</p></div>
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Platform support table, scroll horizontally on small screens">
+          <table class="support-table"><caption>Current adapter and qualification status</caption><thead><tr><th scope="col">Target</th><th scope="col">Implemented / exercised</th><th scope="col">Next qualification</th></tr></thead><tbody>
+            <tr><td><strong>macOS</strong><span>CoreAudio</span></td><td><span class="status status-tested">Scoped native evidence</span><p>M1 Max physical duplex; arm64 macOS 15/26 BlackHole format matrix, repetitions and sanitizers.</p></td><td>Broader devices and calibrated physical latency. Hosted continuity uses a declared 2,048-frame native period.</td></tr>
+            <tr><td><strong>Windows</strong><span>Shared WASAPI</span></td><td><span class="status status-tested">CI + fault tests</span><p>Native ClangCL static/shared builds, device-free retirement/ownership regressions and consumers.</p></td><td><a href="https://github.com/artalis-io/hail/blob/main/docs/native-windows-goal.md">Real capture/render and sustained duplex ↗</a></td></tr>
+            <tr><td><strong>Linux / Pi</strong><span>PipeWire · ALSA</span></td><td><span class="status status-tested">Software fixtures</span><p>Isolated PipeWire loopback, ALSA null PCM, malformed-buffer and retirement tests.</p></td><td>Physical devices and intended Raspberry Pi hardware. Linux fixture evidence does not qualify a Pi audio interface.</td></tr>
+            <tr><td><strong>Freestanding</strong><span>Virtual / portable core</span></td><td><span class="status status-tested">Core builds + arena tests</span><p>Externally driven virtual processing, custom allocation and backend-free compilation.</p></td><td>FreeRTOS/UEFI audio adapters, target atomics, DMA/cache behavior and real hardware.</td></tr>
+            <tr><td><strong>Android / iOS</strong><span>Future adapters</span></td><td><span class="status status-planned">Planned direction</span><p>No Android or iOS audio backend is implemented. The current AUHAL adapter is macOS-specific.</p></td><td>Native adapters, permissions/session lifecycle, routes and on-device duplex qualification.</td></tr>
+          </tbody></table>
+        </div>
+        <a class="text-link" href="https://github.com/artalis-io/hail/blob/main/docs/verification.md">Full verification matrix and limitations <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
+    <section id="evidence" class="section container">
+      <div class="section-heading"><span class="kicker">05 / Evidence</span><h2>Follow the result back to source.</h2><p>The published audit-fix baseline is <code>4e2d61f</code>. Test profiles, failures and remaining gaps stay visible.</p></div>
+      <div class="evidence-grid">
+        <div class="evidence-number"><strong>11<span>/11</span></strong><p>General CI jobs passed</p><span>Linux · macOS Intel · Windows<br>static/shared · sanitizers · freestanding</span><a class="text-link" href="https://github.com/artalis-io/hail/actions/runs/44171083719">Inspect the CI run ↗</a></div>
+        <div class="evidence-links">
+          <a href="https://github.com/artalis-io/hail/blob/main/docs/evidence/audit-ci-2026-11-17.json"><div><h3>Native CoreAudio fixture runs</h3><p>40 strict processes + 3 ASan/UBSan processes per OS on macOS 15 and 26. Source and artifact hashes recorded.</p></div><span aria-hidden="true">↗</span></a>
+          <a href="https://github.com/artalis-io/hail/blob/main/docs/c-audit-2026-11-17.md"><div><h3>C safety audit and regressions</h3><p>Native retirement barriers, stop failures, buffer validation and hosted hardening. Findings and resolutions retained.</p></div><span aria-hidden="true">↗</span></a>
+          <a href="https://github.com/artalis-io/hail/blob/main/docs/axis-audit.md"><div><h3>Architecture tested across axes</h3><p>Identity × ownership combinations, private storage plans, loss metadata and independent error publication.</p></div><span aria-hidden="true">↗</span></a>
+          <a href="https://github.com/artalis-io/hail/blob/main/docs/coreaudio-ci-regression.md"><div><h3>Failures are part of the evidence</h3><p>The earlier 512-frame hosted continuity failures remain documented. The passing fixture profile does not erase them.</p></div><span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section id="ecosystem" class="section section-tinted">
+      <div class="container">
+        <div class="section-heading"><span class="kicker">06 / Place in the stack</span><h2>Build above PCM.</h2><p>Device transport is one responsibility. Processing, application policy and inference can evolve independently above it.</p></div>
+        <div class="ecosystem-grid"><article><span class="mint mono">Hail</span><h3>Device transport</h3><p>Capture, render, time, bounded queues and physical resource lifetime.</p></article><article><span class="muted mono">External processing</span><h3>DSP &amp; codecs</h3><p>Resampling, AEC, VAD, noise suppression and explicit processing delay.</p></article><article><span class="muted mono">Optional host</span><h3>Hull &amp; applications</h3><p>Capabilities, configuration, orchestration and runtime integration.</p></article><article><span class="muted mono">External service</span><h3>Duplex speech</h3><p>Networking, ASR/TTS, cancellation and conversation scheduling.</p></article></div>
+        <div class="roadmap-note"><p>The next Hail gate is physical Windows qualification, followed by intended Linux/Pi configurations. Mobile and embedded audio support require dedicated adapter milestones.</p><a class="text-link" href="https://github.com/artalis-io/hail/blob/main/docs/roadmap.md">Read the cross-repository roadmap →</a></div>
+      </div>
+    </section>
+
+    <section class="closing container"><div><span class="kicker">Start with the contract.</span><h2>Bring your application.<br>Keep the audio bounded.</h2></div><div class="button-row"><a class="button button-primary" href="https://github.com/artalis-io/hail">Explore the repository <span aria-hidden="true">↗</span></a><a class="button" href="https://github.com/artalis-io/hail/blob/main/docs/api.md">API reference</a></div></section>
+  </main>
+
+  <footer class="site-footer"><div class="container footer-row"><a class="brand" href="#"><img src="mark.svg" width="25" height="25" alt=""><span>Hail</span></a><p>Bounded, timestamped audio for C.<br><span class="muted">Version 0.1 · ABI provisional</span></p><nav aria-label="Related projects"><a href="https://libkeel.dev">Keel ↗</a><a href="https://gethull.dev">Hull ↗</a><a href="https://artalis.io">Artalis ↗</a></nav></div></footer>
+</body>
+</html>
