@@ -1,7 +1,9 @@
 # Goal: qualify Hail native streaming on Windows
 
-Status: handoff for work on a native Windows computer. WASAPI streaming is not yet
-qualified; the existing green hosted CI is build/context/enumeration evidence.
+Status: qualification artifacts and focused backend fixes are implemented;
+[2026-11-18 local results](native-windows-results.md) record native builds and
+device-free execution. WASAPI streaming is not yet qualified; physical endpoint
+selection and an approved signed paired fixture remain prerequisites.
 
 ## Objective
 
@@ -21,8 +23,9 @@ measurements and a truthful support matrix.
   exercised, so this is not proof that capture/playback works.
 - The [paired-endpoint loopback design](wasapi-loopback-design.md) is complete.
   It requires an independently provisioned signed virtual render/capture pair.
-  Its executable, fixture validator and provisioned-runner workflow are proposed
-  artifacts, not already implemented Windows loopback coverage.
+  Its executable, fixture validator and provisioned-runner workflow are now
+  implemented; [setup and limitations](wasapi-qualification.md) distinguish them
+  from actual Windows loopback execution, which remains outstanding.
 - Built-in WASAPI render-loopback is not currently exposed by Hail and does not
   create an endpoint on an empty host. A native render-monitor helper alone
   would not qualify Hail's capture client or duplex path.

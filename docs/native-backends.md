@@ -8,6 +8,12 @@ See [verification](verification.md), [CoreAudio loopback results](coreaudio-qual
 and the [WASAPI qualification design](wasapi-loopback-design.md) for exact evidence
 and remaining tests.
 
+The [Windows qualification harness](wasapi-qualification.md) now implements
+explicit-key physical/paired tests, fixture validation and a provisioned workflow.
+[Local Windows results](native-windows-results.md) add device-free regression,
+static/shared and installed-consumer evidence; native WASAPI streaming remains
+unqualified pending actual authorized endpoint/fixture runs.
+
 ## Selection and discovery
 
 CoreAudio and WASAPI are enabled by default on their target OS. Linux backends

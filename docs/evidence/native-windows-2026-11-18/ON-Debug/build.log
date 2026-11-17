@@ -1,0 +1,3 @@
+[1/8] Linking C shared library hail.dll
+[2/3] Building C object CMakeFiles\hail_wasapi_loopback.dir\tests\wasapi_loopback.c.obj
+[3/3] Linking C executable hail_wasapi_loopback.exe

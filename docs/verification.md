@@ -13,6 +13,17 @@ Source hashes, tool versions and per-target results are recorded in
 
 ## Current executed evidence
 
+On 2026-11-18, native Windows ClangCL static Debug/Release each passed nine
+device-free CTests; shared Debug/Release each passed five, and all four installed
+C/C++ consumer configurations passed. PE/COFF symbol checks matched the 27 public
+exports. New WASAPI SDK seams cover packet leases/flags/bounds, stop/flush/start
+failures, command supersession, notifications and partial initialization. The
+native harness's independent oracle passes corruption-negative tests. Actual
+physical/cable streams were not opened. ClangCL 19 ASan built but failed before
+test execution during runtime interception on Windows build 26300. See
+[Windows results](native-windows-results.md) and [harness setup](wasapi-qualification.md);
+these results do not complete the native Windows goal.
+
 The expanded [device-free fuzz suite](../fuzz/README.md) adds separate
 configuration, lifecycle, queue-model and backend-failure harnesses. On macOS
 arm64 with Homebrew Clang 22.1.8, each completed 100,000 seeded inputs with

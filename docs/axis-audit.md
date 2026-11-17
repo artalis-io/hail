@@ -1,5 +1,37 @@
 # Audio architecture axis audit
 
+## 2026-11-18 Windows qualification artifacts
+
+Applied [axis-audit](../.claude/skills/axis-audit/SKILL.md) to the WASAPI fixes,
+native test, provisioning scripts and build/export checks on base `dbfbc27`.
+The map and cross-backend traces in the preserved 2026-11-17 pass remain the
+architecture baseline. No new upward cross-axis coupling was found in this
+focused scope; this is not blanket native Windows qualification.
+
+| Boundary/trace | Observed ownership and evidence |
+| --- | --- |
+| Capture transport | COM worker acquires/validates/releases packets; `hail_native_capture` publishes bounded copied PCM/time; application I/O thread reads public partial-slot records. SDK silence/timestamp facts now survive translation. Nonzero/silent/split/malformed packets pass device-free seams. |
+| Playback and interruption | Application writes generation-bound PCM; worker selects through `hail_native_render`, returns native buffer, and owns render Stop/Reset/Start. Capture client/gate/clock remain independent. Failed/superseded commands cannot acknowledge success. Actual native continuity remains untested. |
+| Lifecycle and memory | Application roles join before close_finish; native worker termination and notification retirement independently prove storage safety. New fault tests cover every partial event acquisition and failed thread creation. No timeout authorizes reclamation. |
+| Fixture/discovery | Exact persistent keys and directions are validated against signed-driver/PnP records outside Hail. Provisioner scripts own installation/removal policy. Native loss mode requires DEVICE_LOST, explicit close/reopen and new incarnations/domains; it is compiled, not executed. |
+| Timing/representation | Independent leg domains remain intact. Test-only SDK queries report mix/application/native-period facts; physical format remains unknown. Exact grid oracle is outside portable transport; conversion profiles need independent future numerical oracles. |
+| Processing/service | No DSP, speech, network, driver installer, scheduler or fixture policy enters core/public headers. No public ABI change or mandatory new dependency. |
+
+Windows static/shared Debug/Release, installed C/C++ consumers and PE/COFF
+symbol/boundary checks passed. Static checks run source-private SDK seams; shared
+checks run only public tests. The native oracle's negative cases also passed.
+Clang analysis reported no diagnostics. ASan failed in runtime initialization;
+no supported sanitizer or physical/paired audio run is claimed. The
+[evidence/support matrix](native-windows-results.md) explicitly leaves sustained
+I/O, actual COM streaming, driver loss/reopen, format conversion, latency and
+memory diagnostics incomplete. A passing provisioned workflow will still be
+virtual-cable evidence, separate from physical audio and audible latency.
+
+Focused safety fixes are recorded in the [C audit](c-audit-2026-11-18.md).
+Next acceptance work is to supply approved physical endpoints/level and signed
+fixture manifests/procedures, execute the strict/sustained/loss trials, and retain
+failures and actual measurements. Do not infer support from the harness itself.
+
 ## 2026-11-17 separation fixes
 
 **A2 and A3 are resolved. All four findings from the initial pass are now

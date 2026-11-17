@@ -1,0 +1,139 @@
+Start testing: Nov 18 00:13 Central Europe Standard Time
+----------------------------------------------------------
+1/8 Testing: headers_cpp
+1/8 Test: headers_cpp
+Command: "C:/Users/Mark/artalis.io/src/hail/build-windows-asan/hail_headers.exe"
+Directory: C:/Users/Mark/artalis.io/src/hail/build-windows-asan
+"headers_cpp" start time: Nov 18 00:13 Central Europe Standard Time
+Output:
+----------------------------------------------------------
+==11044==interception_win: unhandled instruction at 0x7ffff4f14a40: 44 0f b6 1a 4c 8b d2 48
+==11044==interception_win: unhandled instruction at 0x7ffff4f14a40: 44 0f b6 1a 4c 8b d2 48
+<end of output>
+Test time =   2.95 sec
+----------------------------------------------------------
+Test Failed.
+"headers_cpp" end time: Nov 18 00:13 Central Europe Standard Time
+"headers_cpp" time elapsed: 00:00:02
+----------------------------------------------------------
+
+2/8 Testing: wasapi_retirement
+2/8 Test: wasapi_retirement
+Command: "C:/Users/Mark/artalis.io/src/hail/build-windows-asan/hail_wasapi_retirement.exe"
+Directory: C:/Users/Mark/artalis.io/src/hail/build-windows-asan
+"wasapi_retirement" start time: Nov 18 00:13 Central Europe Standard Time
+Output:
+----------------------------------------------------------
+==19936==interception_win: unhandled instruction at 0x7ffff4f14a40: 44 0f b6 1a 4c 8b d2 48
+==19936==interception_win: unhandled instruction at 0x7ffff4f14a40: 44 0f b6 1a 4c 8b d2 48
+<end of output>
+Test time =   2.89 sec
+----------------------------------------------------------
+Test Failed.
+"wasapi_retirement" end time: Nov 18 00:13 Central Europe Standard Time
+"wasapi_retirement" time elapsed: 00:00:02
+----------------------------------------------------------
+
+3/8 Testing: wasapi_buffers
+3/8 Test: wasapi_buffers
+Command: "C:/Users/Mark/artalis.io/src/hail/build-windows-asan/hail_wasapi_buffers.exe"
+Directory: C:/Users/Mark/artalis.io/src/hail/build-windows-asan
+"wasapi_buffers" start time: Nov 18 00:13 Central Europe Standard Time
+Output:
+----------------------------------------------------------
+==20308==interception_win: unhandled instruction at 0x7ffff4f14a40: 44 0f b6 1a 4c 8b d2 48
+==20308==interception_win: unhandled instruction at 0x7ffff4f14a40: 44 0f b6 1a 4c 8b d2 48
+<end of output>
+Test time =   2.72 sec
+----------------------------------------------------------
+Test Failed.
+"wasapi_buffers" end time: Nov 18 00:13 Central Europe Standard Time
+"wasapi_buffers" time elapsed: 00:00:02
+----------------------------------------------------------
+
+4/8 Testing: conformance
+4/8 Test: conformance
+Command: "C:/Users/Mark/artalis.io/src/hail/build-windows-asan/hail_conformance.exe"
+Directory: C:/Users/Mark/artalis.io/src/hail/build-windows-asan
+"conformance" start time: Nov 18 00:13 Central Europe Standard Time
+Output:
+----------------------------------------------------------
+==23028==interception_win: unhandled instruction at 0x7ffff4f14a40: 44 0f b6 1a 4c 8b d2 48
+==23028==interception_win: unhandled instruction at 0x7ffff4f14a40: 44 0f b6 1a 4c 8b d2 48
+<end of output>
+Test time =   3.56 sec
+----------------------------------------------------------
+Test Failed.
+"conformance" end time: Nov 18 00:13 Central Europe Standard Time
+"conformance" time elapsed: 00:00:03
+----------------------------------------------------------
+
+5/8 Testing: concurrency
+5/8 Test: concurrency
+Command: "C:/Users/Mark/artalis.io/src/hail/build-windows-asan/hail_concurrency.exe"
+Directory: C:/Users/Mark/artalis.io/src/hail/build-windows-asan
+"concurrency" start time: Nov 18 00:13 Central Europe Standard Time
+Output:
+----------------------------------------------------------
+==2652==interception_win: unhandled instruction at 0x7ffff4f14a40: 44 0f b6 1a 4c 8b d2 48
+==2652==interception_win: unhandled instruction at 0x7ffff4f14a40: 44 0f b6 1a 4c 8b d2 48
+<end of output>
+Test time =   2.76 sec
+----------------------------------------------------------
+Test Failed.
+"concurrency" end time: Nov 18 00:13 Central Europe Standard Time
+"concurrency" time elapsed: 00:00:02
+----------------------------------------------------------
+
+6/8 Testing: retirement
+6/8 Test: retirement
+Command: "C:/Users/Mark/artalis.io/src/hail/build-windows-asan/hail_retirement.exe"
+Directory: C:/Users/Mark/artalis.io/src/hail/build-windows-asan
+"retirement" start time: Nov 18 00:13 Central Europe Standard Time
+Output:
+----------------------------------------------------------
+==23860==interception_win: unhandled instruction at 0x7ffff4f14a40: 44 0f b6 1a 4c 8b d2 48
+==23860==interception_win: unhandled instruction at 0x7ffff4f14a40: 44 0f b6 1a 4c 8b d2 48
+<end of output>
+Test time =   2.70 sec
+----------------------------------------------------------
+Test Failed.
+"retirement" end time: Nov 18 00:13 Central Europe Standard Time
+"retirement" time elapsed: 00:00:02
+----------------------------------------------------------
+
+7/8 Testing: backend_axes
+7/8 Test: backend_axes
+Command: "C:/Users/Mark/artalis.io/src/hail/build-windows-asan/hail_backend_axes.exe"
+Directory: C:/Users/Mark/artalis.io/src/hail/build-windows-asan
+"backend_axes" start time: Nov 18 00:13 Central Europe Standard Time
+Output:
+----------------------------------------------------------
+==13564==interception_win: unhandled instruction at 0x7ffff4f14a40: 44 0f b6 1a 4c 8b d2 48
+==13564==interception_win: unhandled instruction at 0x7ffff4f14a40: 44 0f b6 1a 4c 8b d2 48
+<end of output>
+Test time =   2.79 sec
+----------------------------------------------------------
+Test Failed.
+"backend_axes" end time: Nov 18 00:13 Central Europe Standard Time
+"backend_axes" time elapsed: 00:00:02
+----------------------------------------------------------
+
+8/8 Testing: example
+8/8 Test: example
+Command: "C:/Users/Mark/artalis.io/src/hail/build-windows-asan/hail_virtual_example.exe"
+Directory: C:/Users/Mark/artalis.io/src/hail/build-windows-asan
+"example" start time: Nov 18 00:13 Central Europe Standard Time
+Output:
+----------------------------------------------------------
+==28016==interception_win: unhandled instruction at 0x7ffff4f14a40: 44 0f b6 1a 4c 8b d2 48
+==28016==interception_win: unhandled instruction at 0x7ffff4f14a40: 44 0f b6 1a 4c 8b d2 48
+<end of output>
+Test time =   2.72 sec
+----------------------------------------------------------
+Test Failed.
+"example" end time: Nov 18 00:13 Central Europe Standard Time
+"example" time elapsed: 00:00:02
+----------------------------------------------------------
+
+End testing: Nov 18 00:13 Central Europe Standard Time

@@ -1,0 +1,9 @@
+Test project C:/Users/Mark/artalis.io/src/hail/build-windows-validation/ON-Debug/consumer
+    Start 1: installed_c
+1/2 Test #1: installed_c ......................   Passed    0.03 sec
+    Start 2: installed_cpp
+2/2 Test #2: installed_cpp ....................   Passed    0.01 sec
+
+100% tests passed out of 2
+
+Total Test time (real) =   0.04 sec

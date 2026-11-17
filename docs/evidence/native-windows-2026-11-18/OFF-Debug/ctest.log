@@ -1,0 +1,23 @@
+Test project C:/Users/Mark/artalis.io/src/hail/build-windows-validation/OFF-Debug
+    Start 1: headers_cpp
+1/9 Test #1: headers_cpp ......................   Passed    0.01 sec
+    Start 2: wasapi_retirement
+2/9 Test #2: wasapi_retirement ................   Passed    0.02 sec
+    Start 3: wasapi_buffers
+3/9 Test #3: wasapi_buffers ...................   Passed    0.03 sec
+    Start 4: wasapi_oracle
+4/9 Test #4: wasapi_oracle ....................   Passed    0.03 sec
+    Start 5: conformance
+5/9 Test #5: conformance ......................   Passed    0.01 sec
+    Start 6: concurrency
+6/9 Test #6: concurrency ......................   Passed    0.03 sec
+    Start 7: retirement
+7/9 Test #7: retirement .......................   Passed    0.01 sec
+    Start 8: backend_axes
+8/9 Test #8: backend_axes .....................   Passed    0.01 sec
+    Start 9: example
+9/9 Test #9: example ..........................   Passed    0.01 sec
+
+100% tests passed out of 9
+
+Total Test time (real) =   0.22 sec
