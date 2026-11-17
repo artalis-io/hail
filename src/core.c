@@ -264,10 +264,12 @@ static ha_result stream_config(ha_context *c, const ha_stream_config *cfg,
                                  ha_stream_info *info, size_t *bytes)
 {
     uint32_t bpf[2] = {0, 0}, i;
-    size_t ring_bytes, stride;
+    size_t ring_bytes, stride, backend_bytes, extra = 0, aligned;
     ha_result r;
     if (!c || !HAIL_HEADER(cfg)) return HA_INVALID_ARGUMENT;
     if (c->closing) return HA_INVALID_STATE;
+    if (c->backend->execution != HAIL_EXEC_SERIALIZED &&
+        c->backend->execution != HAIL_EXEC_CONCURRENT) return HA_UNSUPPORTED;
     if (cfg->diagnostic && !HAIL_HEADER(cfg->diagnostic)) return HA_INVALID_ARGUMENT;
     if (!cfg->directions || (cfg->directions & ~(HA_CAPTURE | HA_PLAYBACK)) ||
         cfg->negotiation > HA_EXACT_APPLICATION) return HA_INVALID_ARGUMENT;
@@ -313,11 +315,14 @@ static ha_result stream_config(ha_context *c, const ha_stream_config *cfg,
             !hail_add(&stride, sizeof(hail_slot)) || !(stride = hail_align(stride)) ||
             !hail_mul(n, stride, &ring_bytes) || !hail_add(bytes, ring_bytes)) return HA_OVERFLOW;
     }
-    if (info->capture_slots) {
-        if (!hail_mul(info->quantum_frames, bpf[0], &ring_bytes) ||
-            !hail_add(bytes, hail_align(ring_bytes))) return HA_OVERFLOW;
+    backend_bytes = c->backend->stream_bytes;
+    if (c->backend->stream_extra_bytes) {
+        r = c->backend->stream_extra_bytes(info, &extra);
+        if (r != HA_OK) return r;
     }
-    if (!hail_add(bytes, hail_align(c->backend->stream_bytes))) return HA_OVERFLOW;
+    if (!hail_add(&backend_bytes, extra)) return HA_OVERFLOW;
+    aligned = hail_align(backend_bytes);
+    if ((backend_bytes && !aligned) || !hail_add(bytes, aligned)) return HA_OVERFLOW;
     info->allocated_bytes = *bytes;
     return HA_OK;
 }
@@ -372,7 +377,7 @@ ha_result HA_CALL ha_stream_open(ha_context *c, const ha_stream_config *cfg, ha_
     memset(s, 0, bytes);
     s->context = c; s->info = info; s->allocation_bytes = bytes;
     s->id = c->next_id++; s->generation = 1;
-    s->render_generation = 1; s->native = c->backend->id != HA_BACKEND_VIRTUAL;
+    s->render_generation = 1; s->concurrent = c->backend->execution == HAIL_EXEC_CONCURRENT;
     s->negotiation = cfg->negotiation;
     s->info.capture_clock_domain = info.capture_slots ? c->next_id++ : 0;
     s->info.playback_clock_domain = info.playback_slots ? c->next_id++ : 0;
@@ -391,11 +396,20 @@ ha_result HA_CALL ha_stream_open(ha_context *c, const ha_stream_config *cfg, ha_
     ring_init(&s->capture, &storage, info.capture_slots, info.quantum_frames, bpf_c);
     ring_init(&s->playback, &storage, info.playback_slots, info.quantum_frames, bpf_p);
     ring_init(&s->reference, &storage, info.reference_slots, info.quantum_frames, bpf_p);
-    s->scratch = storage;
-    s->backend_state = storage + (info.capture_slots ? hail_align((size_t)info.quantum_frames * bpf_c) : 0);
+    s->backend_state = storage;
     r = c->backend->open(s);
     if (r != HA_OK) {
-        c->allocator.deallocate(c->allocator.user, s, bytes, HAIL_ALIGNMENT);
+        /* A failed open can still own native workers. Keep it in the bounded
+         * stream table until retirement proves those references have gone. */
+        if (c->backend->retire(s) == HA_OK) {
+            if (c->backend->stream_free) c->backend->stream_free(s);
+            c->allocator.deallocate(c->allocator.user, s, bytes, HAIL_ALIGNMENT);
+        } else {
+            s->unpublished = 1;
+            atomic_store_explicit(&s->state, HA_CLOSING, memory_order_release);
+            for (i = 0; i < c->max_streams; ++i) if (!c->streams[i]) { c->streams[i] = s; break; }
+            ++c->stream_count; c->allocated += bytes;
+        }
         return diagnostic(cfg->diagnostic, c->backend->id, 2, r);
     }
     for (i = 0; i < c->max_streams; ++i) if (!c->streams[i]) { c->streams[i] = s; break; }
@@ -449,7 +463,7 @@ ha_result HA_CALL ha_stream_get_status(ha_stream *s, ha_stream_status *out)
     v = s->status;
     v.state = atomic_load_explicit(&s->state, memory_order_acquire);
     v.playback_generation = s->generation;
-    if (!s->native) { v.capture_epoch = s->capture_epoch; v.playback_epoch = s->playback_epoch; }
+    if (!s->concurrent) { v.capture_epoch = s->capture_epoch; v.playback_epoch = s->playback_epoch; }
     return HAIL_RECORD(out, v);
 }
 
@@ -469,7 +483,6 @@ ha_result HA_CALL ha_stream_start(ha_stream *s)
     s->status.capture_epoch = s->capture_epoch; s->status.playback_epoch = s->playback_epoch;
     s->capture_flags |= HA_BLOCK_DISCONTINUITY;
     s->playback_flags |= HA_BLOCK_DISCONTINUITY;
-    s->control_ticks = 0;
     atomic_store_explicit(&s->state, HA_STARTING, memory_order_release);
     return HA_PENDING;
 }
@@ -492,7 +505,7 @@ ha_result HA_CALL ha_stream_stop(ha_stream *s)
     if (state == HA_STOPPED) return HA_OK;
     if (state == HA_STOPPING) return HA_PENDING;
     if (state != HA_RUNNING && state != HA_STARTING) return HA_INVALID_STATE;
-    cancel_flush(s); s->control_ticks = 0;
+    cancel_flush(s);
     atomic_store_explicit(&s->state, HA_STOPPING, memory_order_release);
     return HA_PENDING;
 }
@@ -501,7 +514,7 @@ ha_result HA_CALL ha_stream_close_begin(ha_stream *s)
 {
     if (!s) return HA_INVALID_ARGUMENT;
     if (atomic_load_explicit(&s->state, memory_order_acquire) == HA_CLOSING) return HA_PENDING;
-    cancel_flush(s); s->control_ticks = 0;
+    cancel_flush(s);
     atomic_store_explicit(&s->state, HA_CLOSING, memory_order_release);
     return HA_PENDING;
 }
@@ -532,10 +545,10 @@ static void progress(ha_stream *s)
         if (r == HA_PENDING) return;
         if (r != HA_OK) { hail_fail(s, r); return; }
         atomic_store_explicit(&s->state, HA_RUNNING, memory_order_release);
-        if (s->native) { hail_rt_open(s, 0); hail_rt_open(s, 1); }
+        if (s->concurrent) { hail_rt_open(s, 0); hail_rt_open(s, 1); }
         hail_event(s->context, HA_EVENT_STATE, s, 0, HA_OK);
     } else if (state == HA_STOPPING) {
-        if (s->native) { int a = hail_rt_close(s, 0), b = hail_rt_close(s, 1); if (!a || !b) return; }
+        if (s->concurrent) { int a = hail_rt_close(s, 0), b = hail_rt_close(s, 1); if (!a || !b) return; }
         hail_rt_collect(s);
         if (atomic_load_explicit(&s->state, memory_order_acquire) != HA_STOPPING) return;
         r = s->context->backend->stop(s);
@@ -551,15 +564,15 @@ static void progress(ha_stream *s)
         hail_gate_leave(&s->read_gate); hail_gate_leave(&s->write_gate); hail_gate_leave(&s->reference_gate);
         hail_event(s->context, HA_EVENT_STATE, s, 0, HA_OK);
     } else if (state == HA_CLOSING) {
-        if (s->native) { int a = hail_rt_close(s, 0), b = hail_rt_close(s, 1); if (!a || !b) return; }
+        if (s->concurrent) { int a = hail_rt_close(s, 0), b = hail_rt_close(s, 1); if (!a || !b) return; }
         r = s->context->backend->retire(s);
         if (r == HA_OK && close_gates(s)) { hail_rt_final(s); s->retire_ready = 1; }
     } else if (state == HA_FAILED) {
         /* An error revokes admission; retirement still requires explicit proof. */
-        if (!s->native || (hail_rt_close(s, 0) && hail_rt_close(s, 1))) (void)s->context->backend->retire(s);
+        if (!s->concurrent || (hail_rt_close(s, 0) && hail_rt_close(s, 1))) (void)s->context->backend->retire(s);
     }
     if (s->flush_pending) {
-        if (s->native && !hail_rt_close(s, 1)) return;
+        if (s->concurrent && !hail_rt_close(s, 1)) return;
         hail_rt_collect(s);
         if (!s->flush_pending) return;
         r = s->context->backend->flush(s);
@@ -567,7 +580,7 @@ static void progress(ha_stream *s)
         s->status.flush_completed_generation = s->generation;
         s->status.flush_result = r; s->flush_pending = 0;
         if (r != HA_OK) { hail_fail(s, r); return; }
-        if (s->native) {
+        if (s->concurrent) {
             s->playback.offset = 0;
             atomic_store_explicit(&s->playback.read_index, s->flush_cutoff, memory_order_release);
             s->render_generation = s->generation;
@@ -601,7 +614,11 @@ ha_result HA_CALL ha_context_poll(ha_context *c, ha_event *events,
         c->flags |= HA_EVENT_RESCAN_REQUIRED;
         hail_event(c, HA_EVENT_DEVICE, NULL, 0, HA_OK);
     }
-    for (i = 0; i < c->max_streams; ++i) if (c->streams[i]) progress(c->streams[i]);
+    for (i = 0; i < c->max_streams; ++i) if (c->streams[i]) {
+        progress(c->streams[i]);
+        if (c->streams[i]->unpublished && c->streams[i]->retire_ready)
+            (void)ha_stream_close_finish(&c->streams[i]);
+    }
     n = c->event_count < capacity ? c->event_count : capacity;
     for (i = 0; i < n; ++i) {
         (void)HAIL_RECORD(&events[i], c->events[c->event_read]);
@@ -633,10 +650,17 @@ ha_result HA_CALL ha_context_destroy(ha_context **ptr)
 {
     ha_context *c;
     ha_allocator a;
+    uint32_t i, live = 0;
     if (!ptr) return HA_INVALID_ARGUMENT;
     c = *ptr; if (!c) return HA_OK;
-    if (c->stream_count) return HA_BUSY;
+    for (i = 0; i < c->max_streams; ++i) if (c->streams[i]) {
+        if (!c->streams[i]->unpublished) { live = 1; continue; }
+        progress(c->streams[i]);
+        if (c->streams[i]->retire_ready) (void)ha_stream_close_finish(&c->streams[i]);
+    }
+    if (live) return HA_BUSY;
     c->closing = 1;
+    if (c->stream_count) return HA_PENDING;
     if (c->backend->context_free) {
         ha_result r = c->backend->context_free(c);
         if (r != HA_OK) return r;
@@ -716,7 +740,7 @@ ha_result HA_CALL ha_stream_flush_playback(ha_stream *s, uint32_t flags, uint64_
     if (s->generation == UINT64_MAX) { hail_gate_leave(&s->write_gate); return HA_OVERFLOW; }
     ++s->generation;
     s->flush_cutoff = atomic_load_explicit(&s->playback.write_index, memory_order_acquire);
-    s->flush_pending = 1; s->flush_flags = flags; s->control_ticks = 0;
+    s->flush_pending = 1; s->flush_flags = flags;
     atomic_store_explicit(&s->flush_requested, 1, memory_order_release);
     s->status.flush_result = HA_PENDING;
     *generation = s->generation;

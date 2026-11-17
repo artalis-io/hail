@@ -35,7 +35,6 @@ static const GUID hail_clsid_enumerator = {0xbcde0395,0xe52f,0x467c,{0x8e,0x3d,0
 #define WA_START 4u
 #define WA_STOP 5u
 #define WA_FLUSH 6u
-#define WA_RETIRE 7u
 
 typedef struct wa_context wa_context;
 typedef struct wa_notification {
@@ -330,16 +329,35 @@ static ha_result wa_context_init(ha_context *c)
     p->thread = CreateThread(NULL, 0, wa_context_worker, p, 0, NULL);
     if (!p->thread) return HA_RESOURCE_EXHAUSTED;
     if (WaitForSingleObject(p->reply, INFINITE) != WAIT_OBJECT_0 || !atomic_load_explicit(&p->done, memory_order_acquire)) return HA_BACKEND_INIT_FAILED;
+    if (p->result != HA_OK) {
+        /* Failed initialization never enters the command loop. Join its
+         * already-exiting worker before core releases unpublished storage. */
+        if (WaitForSingleObject(p->thread, INFINITE) != WAIT_OBJECT_0) return HA_BACKEND_INIT_FAILED;
+        CloseHandle(p->thread); p->thread = NULL;
+    }
     return p->result == HA_OK ? hail_registry_publish(c, p->devices, p->count, p->defaults[0], p->defaults[1]) : p->result;
 }
 static ha_result wa_context_free(ha_context *c)
 {
     wa_context *p = c->backend_state;
     if (p->thread) {
-        if (atomic_load_explicit(&p->live, memory_order_acquire)) {
-            ha_result r = wa_context_request(p, WA_EXIT); if (r != HA_OK) return r;
+        DWORD wait = WaitForSingleObject(p->thread, 0);
+        if (wait == WAIT_TIMEOUT) {
+            if (atomic_load_explicit(&p->done, memory_order_acquire) &&
+                atomic_load_explicit(&p->live, memory_order_acquire)) {
+                ha_result r = wa_context_request(p, WA_EXIT);
+                if (r != HA_OK) return r;
+                wait = WaitForSingleObject(p->thread, INFINITE);
+                if (wait != WAIT_OBJECT_0) return HA_STREAM_FAILED;
+            } else {
+                /* Also works while initialization is still in flight. The
+                 * worker owns unregistration and may need repeated exits. */
+                atomic_store_explicit(&p->command, WA_EXIT, memory_order_release);
+                return SetEvent(p->request) ? HA_PENDING : HA_STREAM_FAILED;
+            }
         }
-        WaitForSingleObject(p->thread, INFINITE); CloseHandle(p->thread);
+        if (wait != WAIT_OBJECT_0) return HA_STREAM_FAILED;
+        CloseHandle(p->thread);
     }
     if (p->request) CloseHandle(p->request);
     if (p->reply) CloseHandle(p->reply);
@@ -489,8 +507,7 @@ static DWORD WINAPI wa_stream_worker(void *user)
         if (event == WAIT_OBJECT_0) {
             uint32_t command = atomic_exchange_explicit(&a->command, 0, memory_order_acquire);
             if (command == WA_EXIT) break;
-            if (command == WA_RETIRE) { wa_clients_free(a); a->result = HA_OK; }
-            else a->result = wa_result(wa_command(a, command));
+            a->result = wa_result(wa_command(a, command));
             atomic_store_explicit(&a->done, 1, memory_order_release); SetEvent(a->reply);
         } else if (event == WAIT_OBJECT_0 + 1u) wa_capture(a);
         else if (event == WAIT_OBJECT_0 + 2u) wa_render(a);
@@ -501,13 +518,7 @@ static DWORD WINAPI wa_stream_worker(void *user)
 static void wa_stream_free(ha_stream *s)
 {
     wa_stream *a = s->backend_state; uint32_t i;
-    if (a->thread) {
-        DWORD code = 0;
-        if (GetExitCodeThread(a->thread, &code) && code == STILL_ACTIVE) {
-            atomic_store_explicit(&a->command, WA_EXIT, memory_order_release); SetEvent(a->request);
-        }
-        WaitForSingleObject(a->thread, INFINITE); CloseHandle(a->thread);
-    }
+    /* retire has already proved that the worker exited. */
     if (a->request) CloseHandle(a->request);
     if (a->reply) CloseHandle(a->reply);
     for (i = 0; i < 2; ++i) if (a->audio[i]) CloseHandle(a->audio[i]);
@@ -523,15 +534,14 @@ static ha_result wa_open(ha_stream *s)
         a->audio[i] = CreateEventW(NULL, FALSE, FALSE, NULL);
         if (id) {
             hail_device *d = hail_device_find(s->context, id);
-            if (!d || !wide(a->keys[i], 1024, d->key)) { wa_stream_free(s); return HA_DEVICE_UNAVAILABLE; }
+            if (!d || !wide(a->keys[i], 1024, d->key)) return HA_DEVICE_UNAVAILABLE;
         }
     }
-    if (!a->request || !a->reply || !a->audio[0] || !a->audio[1]) { wa_stream_free(s); return HA_RESOURCE_EXHAUSTED; }
+    if (!a->request || !a->reply || !a->audio[0] || !a->audio[1]) return HA_RESOURCE_EXHAUSTED;
     a->thread = CreateThread(NULL, 0, wa_stream_worker, a, 0, NULL);
-    if (!a->thread) { wa_stream_free(s); return HA_RESOURCE_EXHAUSTED; }
-    WaitForSingleObject(a->reply, INFINITE);
+    if (!a->thread) return HA_RESOURCE_EXHAUSTED;
+    if (WaitForSingleObject(a->reply, INFINITE) != WAIT_OBJECT_0) return HA_STREAM_FAILED;
     r = atomic_load_explicit(&a->done, memory_order_acquire) ? a->result : HA_STREAM_FAILED;
-    if (r != HA_OK) wa_stream_free(s);
     return r;
 }
 static ha_result wa_request(ha_stream *s, uint32_t command)
@@ -553,7 +563,7 @@ static ha_result wa_progress(ha_stream *s, uint32_t command)
     wa_stream *a = s->backend_state;
     DWORD code = STILL_ACTIVE;
     if (GetExitCodeThread(a->thread, &code) && code != STILL_ACTIVE)
-        return command == WA_STOP || command == WA_RETIRE ? HA_OK : HA_STREAM_FAILED;
+        return command == WA_STOP ? HA_OK : HA_STREAM_FAILED;
     if (a->pending == command && atomic_load_explicit(&a->done, memory_order_acquire)) {
         a->pending = 0; return a->result;
     }
@@ -562,8 +572,22 @@ static ha_result wa_progress(ha_stream *s, uint32_t command)
 static ha_result wa_start(ha_stream *s) { return wa_progress(s, WA_START); }
 static ha_result wa_stop(ha_stream *s) { return wa_progress(s, WA_STOP); }
 static ha_result wa_flush(ha_stream *s) { return wa_progress(s, WA_FLUSH); }
-static ha_result wa_retire(ha_stream *s) { return wa_progress(s, WA_RETIRE); }
+static ha_result wa_retire(ha_stream *s)
+{
+    wa_stream *a = s->backend_state;
+    DWORD wait;
+    if (!a->thread) return HA_OK;
+    wait = WaitForSingleObject(a->thread, 0);
+    if (wait == WAIT_TIMEOUT) {
+        atomic_store_explicit(&a->command, WA_EXIT, memory_order_release);
+        return SetEvent(a->request) ? HA_PENDING : HA_STREAM_FAILED;
+    }
+    if (wait != WAIT_OBJECT_0) return HA_STREAM_FAILED;
+    CloseHandle(a->thread); a->thread = NULL;
+    return HA_OK;
+}
 const hail_backend_ops hail_wasapi_backend = {
+    .execution = HAIL_EXEC_CONCURRENT,
     .id = HA_BACKEND_WASAPI, .features = HA_FEATURE_WASAPI | HA_FEATURE_RENDER_REFERENCE | HA_FEATURE_NATIVE_FLUSH,
     .context_init = wa_context_init, .probe = wa_probe, .open = wa_open,
     .start = wa_start, .stop = wa_stop, .flush = wa_flush, .retire = wa_retire,

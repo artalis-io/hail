@@ -13,6 +13,7 @@ static ha_result context_free(ha_context *c) { (void)c; return ++context_free_ca
 static ha_result probe(ha_context *c, uint64_t id, const ha_format *f, uint32_t n, ha_probe_info *p)
 { (void)c; (void)id; (void)n; p->application_format = *f; p->device_format = *f; p->device_format_valid = 1; return HA_OK; }
 static const hail_backend_ops threaded_backend = {
+    .execution = HAIL_EXEC_CONCURRENT,
     .id = HA_BACKEND_ALSA, .features = HA_FEATURE_NATIVE_FLUSH | HA_FEATURE_RENDER_REFERENCE,
     .probe = probe, .open = noop, .start = noop, .stop = noop, .flush = noop, .retire = noop,
     .context_free = context_free

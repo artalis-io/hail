@@ -29,11 +29,25 @@ assert public == expected, {'missing': sorted(expected - public), 'extra': sorte
 private = {s for s in symbols if s not in expected and s != 'HAIL_0'}
 assert not args.shared or not private, sorted(private)
 assert all(s.startswith('hail_') for s in private), sorted(private)
-for source in ('src/core.c', 'src/queue.c', 'src/native.c', 'src/hail_internal.h', 'include/hail.h'):
+for source in ('src/core.c', 'src/queue.c', 'src/native.c', 'src/virtual.c',
+               'src/hail_internal.h', 'include/hail.h', 'include/hail/virtual.h'):
+    if args.no_virtual and source in ('src/virtual.c', 'include/hail/virtual.h'):
+        continue
     text = (root / source).read_text()
-    assert not re.search(r'#\s*include\s*[<"](?:pthread|windows|unistd|sys/|alsa|pipewire|hull|keel)', text), source
+    assert not re.search(r'#\s*include\s*[<"](?:pthread|windows|winsock|mmdevice|audioclient|'
+                         r'unistd|sys/|mach/|CoreAudio/|AudioUnit/|AudioToolbox/|CoreFoundation/|'
+                         r'AVFoundation/|Foundation/|dispatch/|alsa|pipewire|spa/|hull|keel)', text), source
+    assert not re.search(r'\b(?:AudioUnit\w*|AudioObject\w*|AudioOutputUnit\w*|'
+                         r'IAudioClient_\w*|IMMDevice\w*|snd_pcm_\w*|pw_stream_\w*|'
+                         r'WaitFor\w*|pthread_\w*)\s*\(', text), source
     assert not re.search(r'\b(?:malloc|calloc|realloc|free|printf|fprintf|sleep|dlopen)\s*\(', text), source
 for header in (root / 'include').rglob('*.h'):
     for macro in re.findall(r'^#define\s+(\w+)', header.read_text(), re.MULTILINE):
         assert macro.startswith('HA_'), (str(header), macro)
+for source in ('src/core.c', 'src/queue.c'):
+    assert not re.search(r'\bHA_BACKEND_(?:VIRTUAL|ALSA|PIPEWIRE|COREAUDIO|WASAPI)\b',
+                         (root / source).read_text()), source
+stream = (root / 'src/hail_internal.h').read_text().split('struct ha_stream {', 1)[1].split('};', 1)[0]
+assert not re.search(r'\b(?:faults|start_delay|stop_delay|flush_delay|capture_drift|playback_drift|'
+                     r'host_ns|clock_ns|clock_remainder|control_ticks|scratch)\b', stream), 'adapter state in ha_stream'
 print(f'{len(public)} public symbols match; shared visibility and portable-core boundaries checked')

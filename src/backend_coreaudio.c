@@ -408,10 +408,10 @@ static ha_result ca_open(ha_stream *s)
         hail_device *device; OSStatus status;
         if (!id) continue;
         device = hail_device_find(s->context, id);
-        if (!device) { ca_stream_free(s); return HA_DEVICE_UNAVAILABLE; }
+        if (!device) return HA_DEVICE_UNAVAILABLE;
         ids[i] = (AudioDeviceID)device->native_id;
         status = ca_unit_open(s, &a->legs[i], ids[i], i);
-        if (status) { ca_stream_free(s); return ca_result(status); }
+        if (status) return ca_result(status);
     }
     if (ids[0] && ids[0] == ids[1]) {
         UInt32 domain = 0, bytes = sizeof(domain);
@@ -423,7 +423,7 @@ static ha_result ca_open(ha_stream *s)
         ca_context *p = s->context->backend_state;
         if (!p->worker_started) {
             if (pthread_create(&p->permission_thread, NULL, ca_permission_worker, p)) {
-                ca_stream_free(s); return HA_RESOURCE_EXHAUSTED;
+                return HA_RESOURCE_EXHAUSTED;
             }
             p->worker_started = 1;
         }
@@ -493,6 +493,7 @@ static ha_result ca_flush(ha_stream *s)
     return ca_result(status);
 }
 const hail_backend_ops hail_coreaudio_backend = {
+    .execution = HAIL_EXEC_CONCURRENT,
     .id = HA_BACKEND_COREAUDIO, .features = HA_FEATURE_COREAUDIO | HA_FEATURE_RENDER_REFERENCE | HA_FEATURE_NATIVE_FLUSH,
     .context_init = ca_context_init, .probe = ca_probe, .open = ca_open,
     .start = ca_start, .stop = ca_stop, .flush = ca_flush, .retire = ca_retire,

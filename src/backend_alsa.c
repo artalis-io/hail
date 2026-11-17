@@ -261,12 +261,18 @@ static void *alsa_worker(void *user)
     return NULL;
 }
 
-static void alsa_stream_free(ha_stream *s)
+static ha_result alsa_retire(ha_stream *s)
 {
     alsa_stream *a = s->backend_state; uint32_t i;
+    atomic_store_explicit(&a->run, 0, memory_order_release);
     atomic_store_explicit(&a->exit, 1, memory_order_release);
-    if (a->created) { (void)pthread_join(a->thread, NULL); a->created = 0; }
+    if (a->created) {
+        int e = pthread_join(a->thread, NULL);
+        if (e) return alsa_result(-e);
+        a->created = 0;
+    }
     for (i = 0; i < 2; ++i) if (a->pcm[i]) { snd_pcm_close(a->pcm[i]); a->pcm[i] = NULL; }
+    return HA_OK;
 }
 static ha_result alsa_open(ha_stream *s)
 {
@@ -287,7 +293,7 @@ static ha_result alsa_open(ha_stream *s)
         a->descriptor_count += (nfds_t)descriptors;
     }
     if (e >= 0) { e = pthread_create(&a->thread, NULL, alsa_worker, s); if (!e) a->created = 1; else e = -e; }
-    if (e < 0) { alsa_stream_free(s); return e == -ENOTSUP ? HA_UNSUPPORTED : alsa_result(e); }
+    if (e < 0) return e == -ENOTSUP ? HA_UNSUPPORTED : alsa_result(e);
     s->info.clock_relationship = HA_CLOCK_UNKNOWN; return HA_OK;
 }
 static ha_result alsa_start(ha_stream *s)
@@ -302,10 +308,13 @@ static ha_result alsa_start(ha_stream *s)
 }
 static ha_result alsa_stop(ha_stream *s)
 {
-    alsa_stream *a = s->backend_state; uint32_t i;
+    alsa_stream *a = s->backend_state; uint32_t i; ha_result r = HA_OK;
     atomic_store_explicit(&a->run, 0, memory_order_release);
-    for (i = 0; i < 2; ++i) if (a->pcm[i]) (void)snd_pcm_drop(a->pcm[i]);
-    a->pending = 0; a->offset = 0; return HA_OK;
+    for (i = 0; i < 2; ++i) if (a->pcm[i]) {
+        int e = snd_pcm_drop(a->pcm[i]);
+        if (e < 0 && r == HA_OK) r = alsa_result(e);
+    }
+    a->pending = 0; a->offset = 0; return r;
 }
 static ha_result alsa_flush(ha_stream *s)
 {
@@ -315,10 +324,11 @@ static ha_result alsa_flush(ha_stream *s)
     return e < 0 ? alsa_result(e) : HA_OK;
 }
 const hail_backend_ops hail_alsa_backend = {
+    .execution = HAIL_EXEC_CONCURRENT,
     .id = HA_BACKEND_ALSA, .features = HA_FEATURE_ALSA | HA_FEATURE_RENDER_REFERENCE | HA_FEATURE_NATIVE_FLUSH,
     .context_init = alsa_context_init, .probe = alsa_probe, .open = alsa_open,
-    .start = alsa_start, .stop = alsa_stop, .flush = alsa_flush, .retire = alsa_stop,
+    .start = alsa_start, .stop = alsa_stop, .flush = alsa_flush, .retire = alsa_retire,
     .context_bytes = sizeof(alsa_context), .stream_bytes = sizeof(alsa_stream),
-    .refresh = alsa_refresh, .context_free = alsa_context_free, .stream_free = alsa_stream_free,
+    .refresh = alsa_refresh, .context_free = alsa_context_free,
     .context_poll = alsa_context_poll
 };

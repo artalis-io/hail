@@ -49,11 +49,11 @@ unload. It is never freed or mutated. No global last-error state exists.
 | `ha_context_create` | One allocation with explicit backend selection. Selects a compiled native or virtual backend; AUTO tries native availability only, never virtual. Publishes no handle on failure. |
 | `ha_context_refresh` | Refreshes the bounded native registry and defaults; virtual registry is already authoritative. It does not grant permission. |
 | `ha_context_enumerate` | Copies all current device records into initialized caller records. Insufficient capacity returns TOO_SMALL and required count without partial output. |
-| `ha_context_get_status` | Copies allocated bytes, budget, live stream count, backend/features and cumulative lost events. |
+| `ha_context_get_status` | Copies allocated bytes, budget, owned stream count (including failed opens awaiting retirement), backend/features and cumulative lost events. |
 | `ha_context_poll` | Performs at most one control progress operation per live stream, then copies up to event capacity. Zero output capacity progresses operations without consuming events. Capacity is at most HA_MAX_EVENTS. |
 | `ha_device_probe` | Checks selector/direction/permission/PCM and returns advisory application/device format facts. Direction is explicit so a default selector is unambiguous. Open rechecks. |
 | `ha_stream_plan` | Validates selectors/PCM/queue geometry and reports the exact stream allocation including queues and scratch. No allocation/reservation; quota can change before open. |
-| `ha_stream_open` | Checks quota, allocates one complete stream, and publishes STOPPED on success. Failure output is NULL; optional diagnostic reports construction result. |
+| `ha_stream_open` | Checks quota, allocates one complete stream, and publishes STOPPED on success. Failure output is NULL; optional diagnostic reports construction result. Pending native cleanup retains quota/storage until poll or destroy proves retirement. |
 | `ha_stream_get_info` | Copies immutable negotiated formats, resolved endpoint IDs, clock relationships, domains, capacities, bytes and features. Negotiated device format facts are separate per leg. |
 | `ha_stream_get_status` | Copies lifecycle, terminal result, generation, last flush result/completion generation, epochs and cumulative losses. Control-owner only. |
 | `ha_stream_start` | STOPPED to STARTING; PENDING until poll completes. Flush in progress returns BUSY. Start failure becomes FAILED. New epochs/positions begin; pre-start playback priming remains queued. |
@@ -64,7 +64,7 @@ unload. It is never freed or mutated. No global last-error state exists.
 | `ha_stream_flush_playback` | Attempts write admission revocation, then advances generation and returns PENDING. BUSY makes no generation change. Completion is sticky in status and does not depend on receiving an event. |
 | `ha_stream_close_begin` | Revokes new I/O and requests backend retirement; repeated calls while CLOSING remain PENDING. Already admitted calls may finish. |
 | `ha_stream_close_finish` | Requires application quiescence and prior close_begin. PENDING retains all storage until backend retirement and role gates are closed. Success frees once and NULLs the caller's slot. |
-| `ha_context_destroy` | Requires no live streams and no concurrent API users; native listener retirement may return PENDING, retaining all storage; success frees storage and NULLs the caller's slot. |
+| `ha_context_destroy` | Requires no live public streams and no concurrent API users; retries failed-open cleanup and native listener retirement, returning PENDING while storage remains owned; success frees storage and NULLs the caller's slot. |
 
 Audio transfers accept at most HA_MAX_QUANTUM frames per call, regardless of
 queue capacity. Larger requests must be chunked. `quantum_frames` bounds each

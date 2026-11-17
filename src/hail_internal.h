@@ -16,6 +16,8 @@ _Static_assert(sizeof(unsigned int) == 4 && ATOMIC_INT_LOCK_FREE == 2,
 #define HAIL_GATE_IDLE 0u
 #define HAIL_GATE_ACTIVE 1u
 #define HAIL_GATE_CLOSED 2u
+#define HAIL_EXEC_SERIALIZED 1u
+#define HAIL_EXEC_CONCURRENT 2u
 
 typedef struct hail_slot { ha_block_info info; } hail_slot;
 typedef struct hail_ring {
@@ -51,7 +53,7 @@ struct ha_stream;
 /* Source-private seam, not a binary plugin interface. Control methods run on
  * the context owner. Audio entry points never call these control methods. */
 typedef struct hail_backend_ops {
-    uint32_t id, features;
+    uint32_t id, features, execution; /* Identity, capabilities and ownership are independent. */
     ha_result (*context_init)(struct ha_context *);
     ha_result (*probe)(struct ha_context *, uint64_t, const ha_format *, uint32_t,
                        ha_probe_info *);
@@ -60,7 +62,9 @@ typedef struct hail_backend_ops {
     ha_result (*stop)(struct ha_stream *);
     ha_result (*flush)(struct ha_stream *);
     ha_result (*retire)(struct ha_stream *);
-    size_t context_bytes, stream_bytes;
+    size_t context_bytes, stream_bytes; /* Fixed private storage. */
+    /* Pure planning hook for additional private storage; no allocation or I/O. */
+    ha_result (*stream_extra_bytes)(const ha_stream_info *, size_t *);
     ha_result (*refresh)(struct ha_context *);
     ha_result (*context_free)(struct ha_context *);
     void (*stream_free)(struct ha_stream *);
@@ -92,17 +96,10 @@ struct ha_stream {
     uint64_t id, generation, capture_position, playback_position;
     uint64_t capture_epoch, playback_epoch;
     size_t allocation_bytes;
-    uint32_t flush_pending, flush_flags, flush_cutoff, retire_ready;
+    uint32_t flush_pending, flush_flags, flush_cutoff, retire_ready, unpublished;
     uint32_t capture_flags, playback_flags;
-    uint32_t control_ticks;
-    /* Virtual adapter storage is embedded for now, but never exposed in ABI. */
-    uint32_t faults, start_delay, stop_delay, flush_delay;
-    int32_t capture_drift, playback_drift;
-    uint64_t host_ns;
-    uint64_t clock_ns[2], clock_remainder[2];
-    unsigned char *scratch;
     void *backend_state;
-    uint32_t native, negotiation;
+    uint32_t concurrent, negotiation;
     uint64_t render_generation;
     atomic_uint flush_requested, rt_flags;
     hail_rt_leg rt[2];
@@ -144,7 +141,6 @@ size_t hail_backend_context_bytes(uint32_t);
 const hail_backend_ops *hail_backend_select(uint32_t, uint32_t);
 ha_result hail_capture(ha_stream *, const void *, uint32_t, const ha_block_info *);
 ha_result hail_render(ha_stream *, void *, uint32_t, ha_block_info *);
-ha_result hail_clock_info(ha_stream *, uint32_t, uint32_t, ha_block_info *);
 #if HA_ENABLE_VIRTUAL
 extern const hail_backend_ops hail_virtual_backend;
 #endif

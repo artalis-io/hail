@@ -2,18 +2,35 @@
 
 The private [backend contract](../src/hail_internal.h) versions with source; it
 is not an installed binary plugin ABI. Virtual, CoreAudio, shared WASAPI,
-PipeWire and ALSA drivers implement it. The virtual driver serializes processing
-on the external control owner; native drivers use the handoff below. Neither
-model should be copied into the other without preserving ownership.
+PipeWire and ALSA drivers implement it. Backend `execution` explicitly selects
+`HAIL_EXEC_SERIALIZED` (audio processing shares the control owner) or
+`HAIL_EXEC_CONCURRENT` (per-leg gates/snapshots transfer ownership). Identity and
+capability bits do not select that model. Virtual currently uses serialized
+ownership; the native adapters currently use concurrent ownership. A new adapter
+can choose either without adopting another adapter's identity or scheduling API.
+
+Adapter-specific state belongs in `backend_state`, whose fixed prefix is
+`stream_bytes`. An optional pure `stream_extra_bytes` planning hook adds private
+space derived from validated stream formats/geometry; core checks the sum and
+alignment and includes it in the single stream allocation. The hook performs no
+allocation, I/O or mutation and must not depend on the not-yet-computed final
+allocation size. Open lays out that same private region. Virtual clocks, fault
+controls, progress delays and synthetic capture scratch live only in the virtual
+adapter; generic streams and native capture plans contain none of that storage.
 
 The context owns a fixed-capacity neutral device registry, default endpoint IDs,
 events, allocator and stream table. Backend discovery supplies copied metadata
 and permission facts; selectors resolve independently of enumeration indices.
 Probe validates a requested format against a selected endpoint. Open publishes
-all negotiated facts and must return failure only after retiring any unpublished
-native references. Context/stream plans account for every Hail allocation.
+all negotiated facts. On failure, core calls retire before stream_free and
+reclamation. If retirement fails or remains pending, the unpublished stream
+stays in the bounded stream table and memory budget; control poll or context
+destroy retries retirement. Open must leave partially acquired resources in a
+state that retire can safely inspect. Stream_free only performs infallible
+cleanup after retirement proof; workers must be joined by retire, not by that
+void cleanup hook. Context/stream plans account for every Hail allocation.
 
-Native execution uses [native.c](../src/native.c) and per-leg admission gates.
+Concurrent execution uses [native.c](../src/native.c) and per-leg admission gates.
 Audio owns its leg's queue producer/consumer, frame positions, clock tracker and
 current counters while admitted. Control closes that gate before reset, flush
 or retirement and accesses final counters only after ownership is acquired.
@@ -24,8 +41,8 @@ release error result; control ignores an in-progress sentinel. Notification
 threads never mutate control state or call hail_event. Registry changes are
 copied to control or staged in bounded mailboxes.
 
-The public data roles remain one reader/writer per queue. The private native
-producer is separate from these roles. Native listeners must publish retirement
+The public data roles remain one reader/writer per queue. Backend servicing is
+separate from those application roles. Native listeners must publish retirement
 through their SDK barrier and an acquire observation before storage reclamation.
 Tests exercise concurrent producer threads, final collection, flush, removal,
 close and context-destruction retry under TSan. Native callbacks must not take

@@ -262,7 +262,8 @@ static void stream_process(void *data)
         d->chunk->offset = 0; d->chunk->stride = (int32_t)bpf; d->chunk->size = frames * bpf;
     } else {
         if (d->chunk->offset > d->maxsize || d->chunk->size > d->maxsize - d->chunk->offset ||
-            d->chunk->size % bpf || (d->chunk->stride > 0 && d->chunk->stride != (int32_t)bpf)) {
+            d->chunk->size % bpf || d->chunk->stride < 0 ||
+            (d->chunk->stride && d->chunk->stride != (int32_t)bpf)) {
             hail_rt_error(s, l->leg, HA_STREAM_FAILED, 0); goto done;
         }
         offset = d->chunk->offset; frames = d->chunk->size / bpf;
@@ -384,7 +385,6 @@ static ha_result pipewire_open(ha_stream *s)
         }
     }
     pw_thread_loop_unlock(p->loop);
-    if (result != HA_OK) pipewire_stream_free(s);
     return result;
 }
 static ha_result pipewire_active(ha_stream *s, int active)
@@ -418,6 +418,7 @@ static ha_result pipewire_flush(ha_stream *s)
 }
 static ha_result pipewire_retire(ha_stream *s) { pipewire_stream_free(s); return HA_OK; }
 const hail_backend_ops hail_pipewire_backend = {
+    .execution = HAIL_EXEC_CONCURRENT,
     .id = HA_BACKEND_PIPEWIRE, .features = HA_FEATURE_PIPEWIRE | HA_FEATURE_RENDER_REFERENCE | HA_FEATURE_NATIVE_FLUSH,
     .context_init = pipewire_context_init, .probe = pipewire_probe, .open = pipewire_open,
     .start = pipewire_start, .stop = pipewire_stop, .flush = pipewire_flush, .retire = pipewire_retire,

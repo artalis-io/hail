@@ -143,7 +143,7 @@ void hail_counter(ha_stream *s, uint64_t *counter, uint64_t increment)
 {
     if (increment > UINT64_MAX - *counter) {
         *counter = UINT64_MAX;
-        if (s->native) atomic_fetch_or_explicit(&s->rt_flags, HA_COUNTER_SATURATED, memory_order_relaxed);
+        if (s->concurrent) atomic_fetch_or_explicit(&s->rt_flags, HA_COUNTER_SATURATED, memory_order_relaxed);
         else s->status.flags |= HA_COUNTER_SATURATED;
     } else *counter += increment;
 }
@@ -158,7 +158,7 @@ ha_result hail_capture(ha_stream *s, const void *data, uint32_t frames,
     n = hail_ring_push(&s->capture, data, frames, info);
     s->capture_position += frames;
     if (n < frames) {
-        hail_counter(s, s->native ? &s->rt[0].current.lost : &s->status.capture_lost_frames, frames - n);
+        hail_counter(s, s->concurrent ? &s->rt[0].current.lost : &s->status.capture_lost_frames, frames - n);
         s->capture_flags |= HA_BLOCK_GAP;
         hail_signal(s, 0, HA_EVENT_XRUN, HA_OVERFLOW);
     } else if (frames) s->capture_flags = 0;
@@ -168,7 +168,7 @@ ha_result hail_capture(ha_stream *s, const void *data, uint32_t frames,
 ha_result hail_render(ha_stream *s, void *data, uint32_t frames, ha_block_info *info)
 {
     uint32_t done = 0;
-    uint32_t flushing = s->native ? atomic_load_explicit(&s->flush_requested, memory_order_acquire) : s->flush_pending;
+    uint32_t flushing = s->concurrent ? atomic_load_explicit(&s->flush_requested, memory_order_acquire) : s->flush_pending;
     ha_block_info ignored = HA_INIT(ha_block_info);
     if (!s->playback.slots || frames > s->playback.quantum || (frames && !data))
         return HA_INVALID_ARGUMENT;
@@ -185,14 +185,14 @@ ha_result hail_render(ha_stream *s, void *data, uint32_t frames, ha_block_info *
                0, (size_t)(frames - done) * s->playback.bytes_per_frame);
         info->flags |= HA_BLOCK_SILENCE;
         if (!flushing) {
-            hail_counter(s, s->native ? &s->rt[1].current.underrun : &s->status.playback_underrun_frames, frames - done);
+            hail_counter(s, s->concurrent ? &s->rt[1].current.underrun : &s->status.playback_underrun_frames, frames - done);
             hail_signal(s, 1, HA_EVENT_XRUN, HA_WOULD_BLOCK);
         }
     }
     if (s->reference.slots) {
         uint32_t n = hail_ring_push(&s->reference, data, frames, info);
         if (n < frames) {
-            hail_counter(s, s->native ? &s->rt[1].current.reference_lost : &s->status.reference_lost_frames, frames - n);
+            hail_counter(s, s->concurrent ? &s->rt[1].current.reference_lost : &s->status.reference_lost_frames, frames - n);
             s->playback_flags |= HA_BLOCK_GAP;
         } else if (frames) s->playback_flags = 0;
     }

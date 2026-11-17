@@ -1,6 +1,38 @@
 #include "hail_internal.h"
 #include <hail/virtual.h>
 
+/* Adapter state and synthetic PCM scratch live only in the adapter's part of
+ * the stream allocation. No virtual clock or fault controls enter core. */
+typedef struct virtual_stream {
+    uint32_t faults, start_delay, stop_delay, flush_delay;
+    uint32_t progress_operation, progress_ticks;
+    uint64_t progress_generation;
+    int32_t capture_drift, playback_drift;
+    uint64_t host_ns, clock_ns[2], clock_remainder[2];
+} virtual_stream;
+
+enum { VIRTUAL_START = 1, VIRTUAL_STOP, VIRTUAL_FLUSH };
+
+static int virtual_wait(virtual_stream *a, uint32_t operation, uint64_t generation, uint32_t delay)
+{
+    if (a->progress_operation != operation || a->progress_generation != generation) {
+        a->progress_operation = operation; a->progress_generation = generation; a->progress_ticks = 0;
+    }
+    if (a->progress_ticks >= delay) return 0;
+    ++a->progress_ticks; return 1;
+}
+
+static ha_result virtual_extra_bytes(const ha_stream_info *info, size_t *bytes)
+{
+    uint32_t bpf;
+    ha_result r;
+    *bytes = 0;
+    if (!info->capture_slots) return HA_OK;
+    r = hail_format(&info->capture_format, &bpf);
+    if (r != HA_OK) return r;
+    return hail_mul(info->quantum_frames, bpf, bytes) ? HA_OK : HA_OVERFLOW;
+}
+
 static ha_result add_device(ha_context *c, uint32_t direction, uint32_t permitted, uint64_t *id)
 {
     hail_device *d;
@@ -45,26 +77,29 @@ static ha_result virtual_open(ha_stream *s)
 
 static ha_result virtual_start(ha_stream *s)
 {
-    if (s->faults & HA_VIRTUAL_PERMISSION_DENIED) return HA_PERMISSION_DENIED;
-    if (s->faults & HA_VIRTUAL_FAIL_START) return HA_STREAM_FAILED;
-    if (s->control_ticks < s->start_delay) { ++s->control_ticks; return HA_PENDING; }
-    s->clock_ns[0] = s->host_ns; s->clock_ns[1] = s->host_ns;
-    s->clock_remainder[0] = 0; s->clock_remainder[1] = 0;
+    virtual_stream *a = s->backend_state;
+    if (a->faults & HA_VIRTUAL_PERMISSION_DENIED) return HA_PERMISSION_DENIED;
+    if (a->faults & HA_VIRTUAL_FAIL_START) return HA_STREAM_FAILED;
+    if (virtual_wait(a, VIRTUAL_START, s->generation, a->start_delay)) return HA_PENDING;
+    a->clock_ns[0] = a->host_ns; a->clock_ns[1] = a->host_ns;
+    a->clock_remainder[0] = 0; a->clock_remainder[1] = 0;
     return HA_OK;
 }
 
 static ha_result virtual_stop(ha_stream *s)
 {
-    if (s->faults & HA_VIRTUAL_HOLD_RETIREMENT) return HA_PENDING;
-    if (s->faults & HA_VIRTUAL_FAIL_STOP) return HA_STREAM_FAILED;
-    if (s->control_ticks < s->stop_delay) { ++s->control_ticks; return HA_PENDING; }
+    virtual_stream *a = s->backend_state;
+    if (a->faults & HA_VIRTUAL_HOLD_RETIREMENT) return HA_PENDING;
+    if (a->faults & HA_VIRTUAL_FAIL_STOP) return HA_STREAM_FAILED;
+    if (virtual_wait(a, VIRTUAL_STOP, s->generation, a->stop_delay)) return HA_PENDING;
     return HA_OK;
 }
 
 static ha_result virtual_flush(ha_stream *s)
 {
-    if (s->control_ticks < s->flush_delay) { ++s->control_ticks; return HA_PENDING; }
-    if (s->faults & HA_VIRTUAL_FAIL_FLUSH) return HA_STREAM_FAILED;
+    virtual_stream *a = s->backend_state;
+    if (virtual_wait(a, VIRTUAL_FLUSH, s->generation, a->flush_delay)) return HA_PENDING;
+    if (a->faults & HA_VIRTUAL_FAIL_FLUSH) return HA_STREAM_FAILED;
     /* Virtual processing and poll share the serialized driver role: no native
      * submission can still be on the stack here. The consumer owns the cursor. */
     s->playback.offset = 0;
@@ -72,7 +107,7 @@ static ha_result virtual_flush(ha_stream *s)
     if (s->flush_flags & HA_FLUSH_NATIVE_REQUIRED) {
         if (s->playback_epoch == UINT64_MAX) return HA_OVERFLOW;
         ++s->playback_epoch; s->playback_position = 0;
-        s->clock_ns[1] = s->host_ns; s->clock_remainder[1] = 0;
+        a->clock_ns[1] = a->host_ns; a->clock_remainder[1] = 0;
         s->playback_flags |= HA_BLOCK_DISCONTINUITY;
     }
     return HA_OK;
@@ -80,12 +115,14 @@ static ha_result virtual_flush(ha_stream *s)
 
 static ha_result virtual_retire(ha_stream *s)
 {
-    if (s->faults & HA_VIRTUAL_HOLD_RETIREMENT) return HA_PENDING;
+    virtual_stream *a = s->backend_state;
+    if (a->faults & HA_VIRTUAL_HOLD_RETIREMENT) return HA_PENDING;
     return HA_OK;
 }
 
 const hail_backend_ops hail_virtual_backend = {
-    .id = HA_BACKEND_VIRTUAL,
+    .id = HA_BACKEND_VIRTUAL, .execution = HAIL_EXEC_SERIALIZED,
+    .stream_bytes = sizeof(virtual_stream), .stream_extra_bytes = virtual_extra_bytes,
     .features = HA_FEATURE_VIRTUAL | HA_FEATURE_RENDER_REFERENCE | HA_FEATURE_NATIVE_FLUSH,
     .context_init = virtual_context_init, .probe = virtual_probe, .open = virtual_open,
     .start = virtual_start, .stop = virtual_stop, .flush = virtual_flush, .retire = virtual_retire
@@ -94,32 +131,35 @@ const hail_backend_ops hail_virtual_backend = {
 ha_result HA_CALL ha_virtual_configure(ha_stream *s, const ha_virtual_config *v)
 {
     uint32_t state;
+    virtual_stream *a;
     if (!s || !HAIL_HEADER(v) || s->context->backend->id != HA_BACKEND_VIRTUAL ||
         (v->faults & ~(HA_VIRTUAL_FAIL_START | HA_VIRTUAL_FAIL_STOP | HA_VIRTUAL_FAIL_FLUSH |
                       HA_VIRTUAL_HOLD_RETIREMENT | HA_VIRTUAL_PERMISSION_DENIED)) ||
         v->capture_drift_ppm < -1000 || v->capture_drift_ppm > 1000 ||
         v->playback_drift_ppm < -1000 || v->playback_drift_ppm > 1000)
         return HA_INVALID_ARGUMENT;
+    a = s->backend_state;
     state = atomic_load_explicit(&s->state, memory_order_acquire);
-    if (state != HA_STOPPED && (v->capture_drift_ppm != s->capture_drift ||
-        v->playback_drift_ppm != s->playback_drift || v->host_time_ns != s->host_ns))
+    if (state != HA_STOPPED && (v->capture_drift_ppm != a->capture_drift ||
+        v->playback_drift_ppm != a->playback_drift || v->host_time_ns != a->host_ns))
         return HA_INVALID_STATE;
-    s->faults = v->faults; s->start_delay = v->start_delay_polls;
-    s->stop_delay = v->stop_delay_polls; s->flush_delay = v->flush_delay_polls;
-    s->capture_drift = v->capture_drift_ppm; s->playback_drift = v->playback_drift_ppm;
-    s->host_ns = v->host_time_ns;
+    a->faults = v->faults; a->start_delay = v->start_delay_polls;
+    a->stop_delay = v->stop_delay_polls; a->flush_delay = v->flush_delay_polls;
+    a->capture_drift = v->capture_drift_ppm; a->playback_drift = v->playback_drift_ppm;
+    a->host_ns = v->host_time_ns;
     return HA_OK;
 }
 
-ha_result hail_clock_info(ha_stream *s, uint32_t leg, uint32_t frames, ha_block_info *info)
+static ha_result virtual_clock_info(ha_stream *s, uint32_t leg, uint32_t frames, ha_block_info *info)
 {
+    virtual_stream *a = s->backend_state;
     const ha_format *f = leg ? &s->info.playback_format : &s->info.capture_format;
-    int32_t ppm = leg ? s->playback_drift : s->capture_drift;
+    int32_t ppm = leg ? a->playback_drift : a->capture_drift;
     uint64_t denominator = (uint64_t)f->sample_rate * (uint32_t)(1000000 + ppm);
     /* frames <= 8192, so frames * 10^15 + remainder fits uint64_t. */
-    uint64_t numerator = (uint64_t)frames * UINT64_C(1000000000000000) + s->clock_remainder[leg];
+    uint64_t numerator = (uint64_t)frames * UINT64_C(1000000000000000) + a->clock_remainder[leg];
     uint64_t delta = numerator / denominator;
-    if (delta > UINT64_MAX - s->clock_ns[leg]) return HA_OVERFLOW;
+    if (delta > UINT64_MAX - a->clock_ns[leg]) return HA_OVERFLOW;
     memset(info, 0, sizeof(*info));
     info->struct_size = sizeof(*info); info->struct_version = HA_STRUCT_VERSION;
     info->first_frame = leg ? s->playback_position : s->capture_position;
@@ -127,21 +167,22 @@ ha_result hail_clock_info(ha_stream *s, uint32_t leg, uint32_t frames, ha_block_
     info->clock_domain = leg ? s->info.playback_clock_domain : s->info.capture_clock_domain;
     info->clock_epoch = leg ? s->playback_epoch : s->capture_epoch;
     info->generation = leg ? s->generation : 0;
-    info->host_time_ns = s->clock_ns[leg]; info->uncertainty_ns = 1;
+    info->host_time_ns = a->clock_ns[leg]; info->uncertainty_ns = 1;
     info->frame_time_numerator = UINT64_C(1000000000000000);
     info->frame_time_denominator = denominator;
-    info->time_remainder = s->clock_remainder[leg];
+    info->time_remainder = a->clock_remainder[leg];
     info->frames = frames; info->sample_rate = f->sample_rate;
     info->lost_frames = leg ? s->status.reference_lost_frames : s->status.capture_lost_frames;
     info->flags = HA_TIME_HOST_VALID | HA_TIME_DEVICE_VALID |
                   (leg ? s->playback_flags : s->capture_flags);
-    s->clock_ns[leg] += delta;
-    s->clock_remainder[leg] = numerator % denominator;
+    a->clock_ns[leg] += delta;
+    a->clock_remainder[leg] = numerator % denominator;
     return HA_OK;
 }
 
 static void synthetic(ha_stream *s, uint32_t frames)
 {
+    virtual_stream *a = s->backend_state;
     const ha_format *f = &s->info.capture_format;
     uint32_t i, ch;
     for (i = 0; i < frames; ++i) for (ch = 0; ch < f->channels; ++ch) {
@@ -150,10 +191,10 @@ static void synthetic(ha_stream *s, uint32_t frames)
         size_t index = (size_t)i * f->channels + ch;
         if (f->sample_format == HA_PCM_S16) {
             int16_t value = (int16_t)sample;
-            memcpy(s->scratch + index * 2u, &value, sizeof(value));
+            memcpy(((unsigned char *)(a + 1)) + index * 2u, &value, sizeof(value));
         } else {
             float value = (float)sample / 32768.0f;
-            memcpy(s->scratch + index * 4u, &value, sizeof(value));
+            memcpy(((unsigned char *)(a + 1)) + index * 4u, &value, sizeof(value));
         }
     }
 }
@@ -164,6 +205,7 @@ ha_result HA_CALL ha_virtual_step(ha_stream *s, const ha_virtual_step_info *step
     ha_block_info capture = HA_INIT(ha_block_info), render = HA_INIT(ha_block_info);
     ha_result r;
     uint32_t state;
+    virtual_stream *a;
     if (!s || !HAIL_HEADER(step) || !HAIL_HEADER(out) || step->reserved ||
         s->context->backend->id != HA_BACKEND_VIRTUAL ||
         (step->flags & ~(HA_VIRTUAL_DISCONTINUITY_CAPTURE | HA_VIRTUAL_DISCONTINUITY_PLAYBACK |
@@ -172,9 +214,10 @@ ha_result HA_CALL ha_virtual_step(ha_stream *s, const ha_virtual_step_info *step
         (step->capture_frames && !s->capture.slots) ||
         (step->playback_frames && (!s->playback.slots || !playback))) return HA_INVALID_ARGUMENT;
     if (capacity < step->playback_frames) return HA_TOO_SMALL;
+    a = s->backend_state;
     state = atomic_load_explicit(&s->state, memory_order_acquire);
     if (state != HA_RUNNING) return HA_INVALID_STATE;
-    if (step->advance_ns > UINT64_MAX - s->host_ns ||
+    if (step->advance_ns > UINT64_MAX - a->host_ns ||
         step->capture_frames > UINT64_MAX - s->capture_position ||
         step->playback_frames > UINT64_MAX - s->playback_position) {
         hail_fail(s, HA_OVERFLOW); return HA_OVERFLOW;
@@ -184,29 +227,29 @@ ha_result HA_CALL ha_virtual_step(ha_stream *s, const ha_virtual_step_info *step
     if ((step->flags & HA_VIRTUAL_DISCONTINUITY_PLAYBACK) && s->playback_epoch == UINT64_MAX) {
         hail_fail(s, HA_OVERFLOW); return HA_OVERFLOW;
     }
-    s->host_ns += step->advance_ns;
+    a->host_ns += step->advance_ns;
     if (step->flags & (HA_VIRTUAL_DISCONTINUITY_CAPTURE | HA_VIRTUAL_UNKNOWN_CAPTURE_GAP)) {
         ++s->capture_epoch; s->capture_flags |= HA_BLOCK_DISCONTINUITY;
-        s->clock_ns[0] = s->host_ns; s->clock_remainder[0] = 0;
+        a->clock_ns[0] = a->host_ns; a->clock_remainder[0] = 0;
         if (step->flags & HA_VIRTUAL_UNKNOWN_CAPTURE_GAP)
             s->capture_flags |= HA_BLOCK_UNKNOWN_GAP | HA_BLOCK_GAP;
         hail_event(s->context, HA_EVENT_CLOCK, s, 0, HA_OK);
     }
     if (step->flags & HA_VIRTUAL_DISCONTINUITY_PLAYBACK) {
         ++s->playback_epoch; s->playback_flags |= HA_BLOCK_DISCONTINUITY;
-        s->clock_ns[1] = s->host_ns; s->clock_remainder[1] = 0;
+        a->clock_ns[1] = a->host_ns; a->clock_remainder[1] = 0;
         hail_event(s->context, HA_EVENT_CLOCK, s, 0, HA_OK);
     }
     if (step->capture_frames) {
         const void *data = step->capture_data;
-        if (!data) { synthetic(s, step->capture_frames); data = s->scratch; }
-        r = hail_clock_info(s, 0, step->capture_frames, &capture);
+        if (!data) { synthetic(s, step->capture_frames); data = ((unsigned char *)(a + 1)); }
+        r = virtual_clock_info(s, 0, step->capture_frames, &capture);
         if (r != HA_OK) { hail_fail(s, r); return r; }
         r = hail_capture(s, data, step->capture_frames, &capture);
         if (r != HA_OK) { hail_fail(s, r); return r; }
     }
     if (step->playback_frames) {
-        r = hail_clock_info(s, 1, step->playback_frames, &render);
+        r = virtual_clock_info(s, 1, step->playback_frames, &render);
         if (r != HA_OK) { hail_fail(s, r); return r; }
         r = hail_render(s, playback, step->playback_frames, &render);
         if (r != HA_OK) { hail_fail(s, r); return r; }

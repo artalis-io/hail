@@ -115,34 +115,40 @@ void hail_rt_error(ha_stream *s, uint32_t leg, ha_result r, int64_t native)
 
 void hail_signal(ha_stream *s, uint32_t leg, uint32_t event, ha_result result)
 {
-    if (s->native) s->rt[leg].current.events |= 1u << event;
+    if (s->concurrent) s->rt[leg].current.events |= 1u << event;
     else hail_event(s->context, event, s, 0, result);
 }
 
 void hail_rt_collect(ha_stream *s)
 {
     uint32_t leg;
-    if (!s->native) return;
     for (leg = 0; leg < 2; ++leg) {
         hail_rt_leg *rt = &s->rt[leg];
-        unsigned r = atomic_load_explicit(&rt->read_index, memory_order_relaxed);
-        unsigned w = atomic_load_explicit(&rt->write_index, memory_order_acquire);
-        ha_result error;
-        while (r != w) {
-            hail_rt_snapshot v = rt->snapshots[r & 1u];
-            if (leg) {
-                s->status.playback_underrun_frames = v.underrun;
-                s->status.reference_lost_frames = v.reference_lost; s->status.playback_epoch = v.epoch;
-            } else { s->status.capture_lost_frames = v.lost; s->status.capture_epoch = v.epoch; }
-            if (v.events & (1u << HA_EVENT_XRUN)) hail_event(s->context, HA_EVENT_XRUN, s, 0, HA_OK);
-            if (v.events & (1u << HA_EVENT_CLOCK)) hail_event(s->context, HA_EVENT_CLOCK, s, 0, HA_OK);
-            ++r;
+        if (s->concurrent) {
+            unsigned r = atomic_load_explicit(&rt->read_index, memory_order_relaxed);
+            unsigned w = atomic_load_explicit(&rt->write_index, memory_order_acquire);
+            while (r != w) {
+                hail_rt_snapshot v = rt->snapshots[r & 1u];
+                if (leg) {
+                    s->status.playback_underrun_frames = v.underrun;
+                    s->status.reference_lost_frames = v.reference_lost; s->status.playback_epoch = v.epoch;
+                } else { s->status.capture_lost_frames = v.lost; s->status.capture_epoch = v.epoch; }
+                if (v.events & (1u << HA_EVENT_XRUN)) hail_event(s->context, HA_EVENT_XRUN, s, 0, HA_OK);
+                if (v.events & (1u << HA_EVENT_CLOCK)) hail_event(s->context, HA_EVENT_CLOCK, s, 0, HA_OK);
+                ++r;
+            }
+            atomic_store_explicit(&rt->read_index, r, memory_order_release);
         }
-        atomic_store_explicit(&rt->read_index, r, memory_order_release);
-        error = atomic_load_explicit(&rt->error, memory_order_acquire);
+        /* Notification/error publication is independent of audio ownership. */
+        ha_result error = atomic_load_explicit(&rt->error, memory_order_acquire);
         if (error && error != INT_MIN) {
-            s->status.diagnostic.native_code = rt->native_error;
-            hail_fail(s, error);
+            uint32_t state = atomic_load_explicit(&s->state, memory_order_relaxed);
+            /* Preserve one terminal cause and its payload together. A later
+             * leg failure must not replace only the native half of it. */
+            if (state != HA_FAILED && state != HA_CLOSING) {
+                s->status.diagnostic.native_code = rt->native_error;
+                hail_fail(s, error);
+            }
         }
     }
     s->status.flags |= atomic_load_explicit(&s->rt_flags, memory_order_relaxed);
@@ -150,9 +156,9 @@ void hail_rt_collect(ha_stream *s)
 
 void hail_rt_final(ha_stream *s)
 {
-    if (!s->native) return;
-    /* Both producer gates are CLOSED and native retirement has completed. */
     hail_rt_collect(s);
+    if (!s->concurrent) return;
+    /* Both producer gates are CLOSED and native retirement has completed. */
     s->status.capture_lost_frames = s->rt[0].current.lost;
     s->status.playback_underrun_frames = s->rt[1].current.underrun;
     s->status.reference_lost_frames = s->rt[1].current.reference_lost;
@@ -171,7 +177,9 @@ static ha_block_info native_block(ha_stream *s, uint32_t leg, uint32_t frames,
     b.frames = frames; b.flags = flags | (leg ? s->playback_flags : s->capture_flags);
     b.sample_rate = leg ? s->info.playback_format.sample_rate : s->info.capture_format.sample_rate;
     b.frame_time_numerator = UINT64_C(1000000000); b.frame_time_denominator = b.sample_rate;
-    b.lost_frames = leg ? s->rt[1].current.reference_lost : s->rt[0].current.lost;
+    b.lost_frames = s->concurrent ?
+        (leg ? s->rt[1].current.reference_lost : s->rt[0].current.lost) :
+        (leg ? s->status.reference_lost_frames : s->status.capture_lost_frames);
     return b;
 }
 
@@ -220,7 +228,8 @@ ha_result hail_native_capture_loss(ha_stream *s, uint32_t frames, uint32_t unkno
         s->rt[0].host_valid = 0; s->rt[0].device_valid = 0;
     }
     s->capture_position += frames;
-    hail_counter(s, &s->rt[0].current.lost, frames); s->capture_flags |= HA_BLOCK_GAP;
+    hail_counter(s, s->concurrent ? &s->rt[0].current.lost : &s->status.capture_lost_frames, frames);
+    s->capture_flags |= HA_BLOCK_GAP;
     hail_signal(s, 0, HA_EVENT_XRUN, HA_OVERFLOW);
     return HA_OK;
 }

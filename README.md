@@ -11,6 +11,8 @@ other physical targets and calibrated hardware latency remain outstanding.
 See the reports for retained failures and exact configurations. The ABI remains provisional.
 
 - [Repository and audio implementation audit](docs/audit.md)
+- [C safety audit and fixes](docs/c-audit-2026-11-17.md)
+- [Audio architecture axis audit](docs/axis-audit.md)
 - [Architecture and contracts proposal](docs/architecture.md)
 - [Verification plan and engineering gates](docs/verification.md)
 - [Public API and ownership reference](docs/api.md)
@@ -24,6 +26,9 @@ See the reports for retained failures and exact configurations. The ABI remains 
 - [Native backend contracts and limitations](docs/native-backends.md)
 - [Backend authoring boundary](docs/backend-authoring.md)
 - [Reproducible namespace evidence](docs/evidence/namespace.json)
+
+Repository audit workflows are in [c-audit](.claude/skills/c-audit/SKILL.md)
+and [axis-audit](.claude/skills/axis-audit/SKILL.md), adapted from Keel for Hail.
 
 The proposal keeps DSP, codecs, speech engines, inference, networking, recording
 persistence, and application policy outside Hail. Hull integration is a future

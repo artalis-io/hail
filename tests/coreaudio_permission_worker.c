@@ -42,7 +42,7 @@ int main(void)
     destroy_entered=dispatch_semaphore_create(0); destroy_done=dispatch_semaphore_create(0);
     atomic_init(&hold_query,1); atomic_init(&query_calls,0); atomic_init(&query_result,HA_PERMISSION_DENIED);
     p.owner=&c; c.backend_state=&p; c.streams=streams; c.max_streams=1;
-    s.context=&c; s.native=1; s.info.capture_slots=1; atomic_init(&s.state,HA_RUNNING); hail_rt_init(&s);
+    s.context=&c; s.concurrent=1; s.info.capture_slots=1; atomic_init(&s.state,HA_RUNNING); hail_rt_init(&s);
     atomic_init(&c.registry_dirty,0); atomic_init(&p.callbacks,0); atomic_init(&p.permission_result,HA_OK);
     CHECK(!pthread_mutex_init(&p.permission_mutex,NULL)); p.mutex_initialized=1;
     CHECK(!pthread_cond_init(&p.permission_condition,NULL)); p.condition_initialized=1;

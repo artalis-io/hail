@@ -76,12 +76,16 @@ Arrows mean permitted calls/dependencies. Backend callbacks may publish terminal
 status through fixed mailboxes in the core, not call public control operations.
 Queue/value modules include no OS, thread, Hull, Keel or DSP header. Lifecycle
 knows private backend operations, never platform types. Native backends know
-Hail semantics but not each other's headers. Memory and clock providers are
-injected per context; no lower layer depends on an application runtime.
+Hail semantics but not each other's headers. Allocation policy is supplied per
+context; the selected adapter supplies clock facts tracked independently per
+leg. No lower layer depends on an application runtime.
 
 The private seam has validated discovery/probe/open/control/retire operations
-and bounded capture/render entry points. Execution mode is a property of the
-driver, not a public callback requirement. Multiple native processing sources
+and bounded capture/render entry points. The private backend explicitly declares
+serialized or concurrent execution ownership independently of backend identity
+and capabilities; it is not a public callback requirement. Adapter state and
+variable scratch storage are planned through that private seam, rather than
+embedded in the generic stream. Multiple native processing sources
 must be serialized per leg before entering queue code. Cross-leg ordering is
 not required. New backend operations cannot change portable queue semantics.
 
@@ -497,7 +501,7 @@ states such as DEVICE_LOST and START_FAILED.
 | From | Operation or event | Resulting state and completion | Ownership and failure |
 | --- | --- | --- | --- |
 | No handle | open | STOPPED on success | Partial failure retires native users and frees unexposed storage; output NULL |
-| STOPPED | start | STARTING, then RUNNING | Both legs must start; early capture may queue and playback may consume during STARTING; failure stops both and becomes FAILED |
+| STOPPED | start | STARTING, then RUNNING | Both legs must start; native queue admission begins after RUNNING is published. Applications may prime playback during STARTING; failure retires both legs and becomes FAILED |
 | STARTING/RUNNING | stop | STOPPING, then STOPPED after both drivers retire | Abort queued playback, invalidate generation, clear audio queues only after consumers retire; no drain guarantee |
 | STOPPED | stop | STOPPED, success | Idempotent; preserves pre-start priming |
 | STOPPED | write | STOPPED | Allows bounded playback priming in current generation |
