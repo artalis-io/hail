@@ -1,7 +1,7 @@
 # Static Hail landing page, following Keel's dependency-free site pattern.
 .PHONY: all build check clean serve
 BUILD_DIR := build
-STATIC_FILES := index.html hail.css mark.svg og-card.svg
+STATIC_FILES := index.html hail.css mark.svg og-card.svg LICENSE
 all: build
 build:
 	@mkdir -p "$(BUILD_DIR)"

@@ -1,5 +1,6 @@
 # Hail: bounded, timestamped audio for C
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![CI](https://github.com/artalis-io/hail/actions/workflows/ci.yml/badge.svg)](https://github.com/artalis-io/hail/actions/workflows/ci.yml)
 [![C11](https://img.shields.io/badge/language-C11-22d3a8)](include/hail.h)
 [![Version 0.1](https://img.shields.io/badge/version-0.1-provisional)](docs/api.md)
@@ -170,3 +171,7 @@ make -C site check
 make -C site build
 make -C site serve
 ```
+
+## License
+
+MIT. Copyright (c) 2026 Artalis. See [LICENSE](LICENSE).

@@ -42,7 +42,7 @@ use File::Find ();
 
 my $HTML = 'index.html';
 my $CSS  = 'hail.css';
-my @ASSETS = ($HTML, $CSS, 'mark.svg', 'og-card.svg');   # the intended deployable set
+my @ASSETS = ($HTML, $CSS, 'mark.svg', 'og-card.svg', 'LICENSE');   # the intended deployable set
 
 my @fail;
 sub bad { push @fail, $_[0]; }
