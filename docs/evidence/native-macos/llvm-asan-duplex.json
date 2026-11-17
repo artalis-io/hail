@@ -1,0 +1,124 @@
+{
+  "started_utc": "2026-11-17T14:24:49.646230+00:00",
+  "source_revision": "3c126fb6f0a9a50dd5435b19059e3c84853fdc27",
+  "source_sha256": {
+    "src/backend_alsa.c": "d7b7ab96d269dfc56ec0182d1cadd1d8a563391ff31e361604f6ddf2d33ca2fc",
+    "src/backend_coreaudio.c": "1139ce146ffc0387fb0bc89a8fc0f2b74cc5bca98f11df1d440af7d165e05baf",
+    "src/backend_pipewire.c": "a06060f7c04cf027d33998afdc9d075dcecf1223f2fd7505e9593f69e137cb22",
+    "src/backend_wasapi.c": "16f2b188dcc4d6d50566c63083d10ee53a09451e284a71e87a2bbada4eb15c46",
+    "src/core.c": "4d2b9693c3ab811b38742ad29a1eefe132e134bc03759ee6e12845f62f2c218f",
+    "src/hail_internal.h": "7b73aebdaf4ce15f382a7d455b203213a53957a1d1ecbeb04fb934bef1b0f1b1",
+    "src/hosted.c": "0920c557a6a478c26b630c0585f8b2931813d6a6e046f0f81ce51988dea0561a",
+    "src/native.c": "4d51a97b954b9d357ca8a27e38cf7d4ea65629f64218bd9be1f51d7cbf209202",
+    "src/queue.c": "7acdd71a0bc3575b4f2f36bd73c5adb19cd69a5a5381239e59de76ba5fe04d22",
+    "src/virtual.c": "076d684b86e8fdf49541f1a306ac994e68f58702b1e235f7e73f0c9de845c214",
+    "include/hail.h": "d54b4ed757e801f702b33b1949c0809a9b9b79ae1983137b892d63ef86188a88",
+    "tests/coreaudio_physical.c": "922e31837f6b4a7dcab68e9603fd59a4b3e12c6a5a57255f4a1d29eb5253f653",
+    "tests/coreaudio_authorize.m": "2ec4b76cb8423fbb063f21295fc6b59bb811bf3ed8a3fc1765637552aa5a3d0c"
+  },
+  "binary_sha256": "0ac870fa59bd20683f4446487ac2a0566aa6836845bb00f5bd0dd2e8c1da1c43",
+  "configuration": {
+    "test": "build-native-macos-asan-llvm/hail_coreaudio_physical",
+    "capture": "MacBook Pro Microphone",
+    "playback": "MacBook Pro Speakers",
+    "seconds": 5,
+    "matrix": false,
+    "rate": 48000,
+    "channels": 1,
+    "pcm": 2,
+    "output": "docs/evidence/native-macos/llvm-asan-duplex.json"
+  },
+  "platform": [
+    {
+      "command": [
+        "sw_vers"
+      ],
+      "exit_code": 0,
+      "output": "ProductName:\t\tmacOS\nProductVersion:\t\t26.6.2\nBuildVersion:\t\t25G83\n"
+    },
+    {
+      "command": [
+        "uname",
+        "-m"
+      ],
+      "exit_code": 0,
+      "output": "arm64\n"
+    },
+    {
+      "command": [
+        "xcrun",
+        "--show-sdk-version"
+      ],
+      "exit_code": 0,
+      "output": "26.2\n"
+    },
+    {
+      "command": [
+        "sysctl",
+        "-n",
+        "machdep.cpu.brand_string",
+        "hw.memsize"
+      ],
+      "exit_code": 0,
+      "output": "Apple M1 Max\n34359738368\n"
+    },
+    {
+      "command": [
+        "pmset",
+        "-g",
+        "custom"
+      ],
+      "exit_code": 0,
+      "output": "Battery Power:\n Sleep On Power Button 1\n lowpowermode         0\n standby              1\n ttyskeepawake        1\n hibernatemode        3\n powernap             1\n hibernatefile        /var/vm/sleepimage\n displaysleep         2\n womp                 0\n networkoversleep     0\n sleep                1\n lessbright           1\n tcpkeepalive         1\n disksleep            10\nAC Power:\n Sleep On Power Button 1\n lowpowermode         1\n standby              1\n ttyskeepawake        1\n hibernatemode        3\n powernap             1\n hibernatefile        /var/vm/sleepimage\n displaysleep         180\n womp                 1\n networkoversleep     0\n sleep                1\n tcpkeepalive         1\n disksleep            10\n"
+    }
+  ],
+  "trials": [
+    {
+      "command": [
+        "/Users/mark/artalis.io/src/hail/build-native-macos-asan-llvm/hail_coreaudio_physical",
+        "MacBook Pro Microphone",
+        "MacBook Pro Speakers",
+        "48000",
+        "1",
+        "2",
+        "5"
+      ],
+      "exit_code": 0,
+      "output": "device direction=1 name=MacBook Pro Microphone uid=BuiltInMicrophoneDevice nominal_rate=48000 native_period=512 transport=626c746e\ndevice direction=2 name=MacBook Pro Speakers uid=BuiltInSpeakerDevice nominal_rate=48000 native_period=512 transport=626c746e\ndevice direction=1 name=Microsoft Teams Audio uid=MSLoopbackDriverDevice_UID nominal_rate=48000 native_period=512 transport=76697274\ndevice direction=2 name=Microsoft Teams Audio uid=MSLoopbackDriverDevice_UID nominal_rate=48000 native_period=512 transport=76697274\nmicrophone_authorization_before=3\nmicrophone_authorization_after=3\nnegotiated rate=48000 channels=1 pcm=2 capture_slots=64 playback_slots=16 quantum=256 bytes=158704 conversion=3 clocks=0\n{\"duration_s\":5.000507,\"rate\":48000,\"channels\":1,\"pcm\":2,\"captured_frames\":314880,\"nonzero_capture_samples\":314880,\"capture_gap_observations\":0,\"capture_epoch_changes_including_restart\":1,\"steady_underrun_frames\":0,\"startup_underrun_frames\":0,\"steady_capture_loss\":0,\"flush_ack_us\":47129.000,\"capture_frames_during_flush\":2048,\"max_poll_us\":74832.000,\"capture_host_age_mean_us\":10450.951,\"capture_host_age_max_us\":13917.917,\"capture_host_age_p50_bin_ms\":8,\"capture_host_age_p95_bin_ms\":13,\"capture_host_age_p99_bin_ms\":13,\"future_host_times\":0,\"cpu_user_s\":0.161052,\"cpu_system_s\":0.208410,\"rss_peak_bytes\":36814848,\"hail_peak_bytes\":285504,\"steady_hail_allocations\":0}\nactive_reopen_close_cycles=8 balanced_stream_allocations=PASS\nRESULT PASS physical transport (no known-PCM or physical latency claim)\n",
+      "rate": 48000,
+      "channels": 1,
+      "pcm": 2,
+      "measurements": [
+        {
+          "duration_s": 5.000507,
+          "rate": 48000,
+          "channels": 1,
+          "pcm": 2,
+          "captured_frames": 314880,
+          "nonzero_capture_samples": 314880,
+          "capture_gap_observations": 0,
+          "capture_epoch_changes_including_restart": 1,
+          "steady_underrun_frames": 0,
+          "startup_underrun_frames": 0,
+          "steady_capture_loss": 0,
+          "flush_ack_us": 47129.0,
+          "capture_frames_during_flush": 2048,
+          "max_poll_us": 74832.0,
+          "capture_host_age_mean_us": 10450.951,
+          "capture_host_age_max_us": 13917.917,
+          "capture_host_age_p50_bin_ms": 8,
+          "capture_host_age_p95_bin_ms": 13,
+          "capture_host_age_p99_bin_ms": 13,
+          "future_host_times": 0,
+          "cpu_user_s": 0.161052,
+          "cpu_system_s": 0.20841,
+          "rss_peak_bytes": 36814848,
+          "hail_peak_bytes": 285504,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "unsupported": false
+    }
+  ],
+  "finished_utc": "2026-11-17T14:24:58.683920+00:00"
+}

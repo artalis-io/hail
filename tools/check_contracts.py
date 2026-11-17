@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Linux symbol and portable-core boundary checks. No build or file mutations."""
+"""ELF/Mach-O symbol and portable-core boundary checks. No file mutations."""
 import argparse
 from pathlib import Path
 import re
 import subprocess
+import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('library', type=Path)
@@ -15,11 +16,14 @@ expected = set((root / 'cmake/exports.txt').read_text().split())
 if not args.no_virtual:
     expected.update(('ha_virtual_configure', 'ha_virtual_step', 'ha_virtual_device_set',
                      'ha_virtual_device_add', 'ha_virtual_default_set'))
-cmd = ['nm', '--defined-only', '-g']
-if args.shared:
+darwin = sys.platform == 'darwin'
+cmd = ['nm', '-g', '-U'] if darwin else ['nm', '--defined-only', '-g']
+if args.shared and not darwin:
     cmd.append('-D')
 raw = subprocess.check_output([*cmd, str(args.library)], text=True)
 symbols = {line.split()[-1].split('@')[0] for line in raw.splitlines() if len(line.split()) >= 3}
+if darwin:
+    symbols = {s[1:] if s.startswith('_') else s for s in symbols}
 public = {s for s in symbols if s.startswith('ha_')}
 assert public == expected, {'missing': sorted(expected - public), 'extra': sorted(public - expected)}
 private = {s for s in symbols if s not in expected and s != 'HAIL_0'}

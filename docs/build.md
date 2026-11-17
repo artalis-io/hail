@@ -220,3 +220,51 @@ checked separately. See [CoreAudio results](coreaudio-qualification.md), includi
 the retained earlier failures. The corresponding Windows plan is in
 [WASAPI paired-endpoint design](wasapi-loopback-design.md); it has not yet been
 executed on a provisioned Windows audio fixture.
+
+## Opt-in physical CoreAudio qualification
+
+`HA_BUILD_NATIVE_TESTS=ON` also builds `hail_coreaudio_physical` on macOS.
+It is intentionally **not registered with CTest**: selecting real devices is an
+explicit action. The test host links AVFoundation for normal microphone
+permission and embeds its own purpose string; Hail's public library is unchanged.
+No microphone PCM is saved or uploaded. Playback uses a quiet synthetic signal
+and ends at each trial teardown. Enumeration alone opens no audio stream:
+
+```sh
+cmake -S . -B build-ca-physical -DCMAKE_BUILD_TYPE=Release -DHA_BUILD_NATIVE_TESTS=ON
+cmake --build build-ca-physical --parallel
+codesign --force --sign - build-ca-physical/hail_coreaudio_physical
+./build-ca-physical/hail_coreaudio_physical
+```
+
+Choose exact enumerated names and the devices' existing nominal rate. Arguments
+are capture name (or `-`), playback name (or `-`), rate, channels, PCM (`1` S16,
+`2` F32), nominal seconds. This command captures in memory and plays sound:
+
+```sh
+python3 tools/run_coreaudio_physical.py \
+  --test build-ca-physical/hail_coreaudio_physical \
+  --capture 'MacBook Pro Microphone' --playback 'MacBook Pro Speakers' \
+  --rate 48000 --channels 1 --pcm 2 --seconds 600 \
+  --output /tmp/hail-physical-sustained.json
+```
+
+Use only devices and playback levels authorized by their owner. No defaults,
+volume, device rates, privacy database or power settings are changed. Exact
+names must be unambiguous; selection resolves within the same context. The
+runner's `--matrix` requests 16/24/44.1/48 kHz, mono/stereo, S16/F32 once each.
+Unsupported requests retain their nonzero trial exit and explicit unsupported
+classification; they are not passing trials. The runner continues the matrix
+and returns nonzero for unexpected failures. Its output includes raw logs,
+source/binary hashes, configuration and platform commands, never PCM. Retain
+all outputs, including failures, rather than retrying for a clean-looking run.
+
+The test warms up for one second, measures a nominal interval with primed
+playback, then flushes, rejects stale writes, stops/restarts and retires active
+units. A capture reader runs independently from blocking control progress.
+Eight additional active open/close cycles exercise reclamation within one
+context. No timeout frees live Hail/native references; a failed assertion ends
+the process and is a failed trial. The microphone need not contain the playback
+signal, so nonzero capture is not a known-PCM loopback assertion. Host timestamp
+age is not calibrated hardware latency. See [local results](native-macos-results.md)
+for observed limits, toolchain failures and outstanding qualification cases.

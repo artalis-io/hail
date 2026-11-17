@@ -1,0 +1,31 @@
+Retained initial harness observations, 2026-11-17 (transcribed from tool output).
+These precede the hashed runner profiles. No microphone audio is retained.
+
+1. Initial device_facts used AudioValueTranslation for TranslateUIDToDevice.
+   Failed at coreaudio_physical.c:121 before opening audio, exit 1.
+   The installed SDK header documents a CFString qualifier with AudioDeviceID
+   property data; correcting the harness to this shape fixed enumeration.
+
+2. Three-second mono F32 physical duplex, initial measurement implementation:
+   microphone_authorization_before=0
+   microphone_authorization_after=3
+   duration_s=3.000654 captured_frames=219136 nonzero_capture_samples=219136
+   capture_gap_observations=0 capture_epoch_changes_including_restart=1
+   steady_underrun_frames=0 startup_underrun_frames=0 steady_capture_loss=0
+   flush_ack_us=56834 capture_frames_during_flush=3072 max_poll_us=74430
+   hail_peak_bytes=285504 steady_hail_allocations=0
+   capture_host_age_mean_us=966008705138.361 (INVALID CLOCK DOMAINS)
+   capture_host_age_max_us=966008709741.834 (INVALID CLOCK DOMAINS)
+   Transport passed, exit 0. Timing values invalid because CLOCK_MONOTONIC
+   included sleep while CoreAudio mach absolute time did not. The corrected
+   harness uses current mach_absolute_time converted by AudioConvertHostTimeToNanos.
+   Initial signal peak was ~-40 dBFS; corrected trials use ~-46 dBFS peak.
+
+3. AppleClang17 ASan/UBSan portable test stalled at headers_cpp before main,
+   inside and outside sandbox. Terminated after stack sampling; see
+   apple-asan-startup-hang.txt. asan-portable.log is an incomplete log, not a pass.
+   Switched to a distinct LLVM22 build; no sanitizer checks were disabled.
+
+4. First direct Clang static analysis invocation omitted an SDK sysroot and
+   failed to find string.h. The explicit SDK sysroot invocation completed with
+   exit 0 and no diagnostics. static-analysis.log is its retained empty output.

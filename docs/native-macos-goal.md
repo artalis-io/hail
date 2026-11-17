@@ -1,7 +1,12 @@
 # Goal: qualify Hail native streaming on macOS
 
-Status: handoff for work on a native macOS computer. This document defines future
-work; it does not mark physical capture/playback or real-time qualification done.
+Status: partial native qualification. Physical capture/playback/duplex has
+been exercised; the full real-time and fixture criteria below are not complete.
+
+Progress on 2026-11-17: [native physical results](native-macos-results.md) now
+demonstrate built-in capture/playback/duplex and a ten-minute nominal trial.
+The full completion criteria remain open; the report identifies fixture,
+hotplug, permission-denial and physical-latency gaps.
 
 ## Objective
 

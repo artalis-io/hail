@@ -1,0 +1,9 @@
+device direction=1 name=MacBook Pro Microphone uid=BuiltInMicrophoneDevice nominal_rate=48000 native_period=512 transport=626c746e
+device direction=2 name=MacBook Pro Speakers uid=BuiltInSpeakerDevice nominal_rate=48000 native_period=512 transport=626c746e
+device direction=1 name=Microsoft Teams Audio uid=MSLoopbackDriverDevice_UID nominal_rate=48000 native_period=512 transport=76697274
+device direction=2 name=Microsoft Teams Audio uid=MSLoopbackDriverDevice_UID nominal_rate=48000 native_period=512 transport=76697274
+microphone_authorization_before=3
+microphone_authorization_after=3
+negotiated rate=48000 channels=1 pcm=2 capture_slots=64 playback_slots=16 quantum=256 bytes=158704 conversion=3 clocks=0
+{"duration_s":600.001124,"rate":48000,"channels":1,"pcm":2,"captured_frames":28875264,"nonzero_capture_samples":28875264,"capture_gap_observations":0,"capture_epoch_changes_including_restart":1,"steady_underrun_frames":0,"startup_underrun_frames":0,"steady_capture_loss":0,"flush_ack_us":58130.000,"capture_frames_during_flush":3072,"max_poll_us":71457.000,"capture_host_age_mean_us":10438.107,"capture_host_age_max_us":19485.041,"capture_host_age_p50_bin_ms":12,"capture_host_age_p95_bin_ms":13,"capture_host_age_p99_bin_ms":13,"future_host_times":0,"cpu_user_s":4.394308,"cpu_system_s":10.953748,"rss_peak_bytes":16580608,"hail_peak_bytes":285504,"steady_hail_allocations":0}
+RESULT PASS physical transport (no known-PCM or physical latency claim)

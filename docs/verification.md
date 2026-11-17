@@ -206,7 +206,7 @@ coverage. Run Clang static analysis and configuration/metadata fuzzing too.
 | Portable core and virtual | Linux GCC/Clang static/shared, freestanding exclusion | Portable tests; ASan/UBSan and Clang TSan | Not applicable | Not measured |
 | Linux PipeWire | Static/shared, GCC/Clang | Isolated nonzero loopback, flush, loss/reopen, starvation; ASan/UBSan/LSan and TSan clean in fixture; default-config dependency finding remains | Not tested | Software only; see loopback report |
 | Linux ALSA | Static/shared, GCC/Clang | Null-device duplex, flush, stop/restart; ASan/UBSan/LSan and TSan clean | Not tested | Not measured |
-| macOS CoreAudio | arm64 cross compile/link and native CI static/shared | BlackHole nonzero duplex, flush/capture continuity, restart/teardown; separate ASan/UBSan profile; [results](coreaudio-qualification.md) | Not tested | Software flush acknowledgement only |
+| macOS CoreAudio | arm64 cross compile/link, native CI and local static/shared | BlackHole known-PCM fixture; local ten-minute primed duplex, flush, restart/active teardown; separate LLVM ASan/UBSan | Built-in M1 Max microphone/speakers at 48 kHz; [scope and gaps](native-macos-results.md) | Software acknowledgement and timestamp-to-read age; physical latency unmeasured |
 | Windows shared WASAPI | MinGW cross static/shared and ClangCL native CI static/shared | Native context/empty enumeration plus virtual suite in CI; [loopback designed](wasapi-loopback-design.md), streaming not yet verified | Not tested | Not measured |
 | Embedded/RTOS/UEFI | Extension design; freestanding core compiles | No adapter | No adapter | Not measured |
 

@@ -151,6 +151,16 @@ if(HA_BUILD_TESTS)
   target_link_libraries(hail_headers PRIVATE Hail::hail)
   add_test(NAME headers_cpp COMMAND hail_headers)
   if(HA_BUILD_NATIVE_TESTS AND HA_BACKEND_COREAUDIO)
+    enable_language(OBJC)
+    find_package(Threads REQUIRED)
+    add_executable(hail_coreaudio_physical tests/coreaudio_physical.c tests/coreaudio_authorize.m)
+    target_compile_features(hail_coreaudio_physical PRIVATE c_std_11)
+    target_compile_options(hail_coreaudio_physical PRIVATE -Wall -Wextra -Wpedantic -Werror)
+    target_link_libraries(hail_coreaudio_physical PRIVATE Hail::hail Threads::Threads
+      "-framework CoreAudio" "-framework CoreFoundation" "-framework AVFoundation" "-framework Foundation")
+    target_link_options(hail_coreaudio_physical PRIVATE
+      "LINKER:-sectcreate,__TEXT,__info_plist,${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/coreaudio/PhysicalInfo.plist")
+    # Deliberately not a CTest: physical devices require explicit name selection.
     add_executable(hail_coreaudio_loopback tests/coreaudio_loopback.c)
     target_compile_features(hail_coreaudio_loopback PRIVATE c_std_11)
     target_link_libraries(hail_coreaudio_loopback PRIVATE Hail::hail "-framework CoreAudio" "-framework CoreFoundation")

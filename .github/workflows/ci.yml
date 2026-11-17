@@ -18,6 +18,15 @@ jobs:
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DHA_BUILD_SHARED=${{ matrix.shared }}
       - run: cmake --build build --config Debug --parallel
       - run: ctest --test-dir build -C Debug --output-on-failure
+      - name: Check Mach-O exports and portable boundaries
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          if [[ "${{ matrix.shared }}" == "ON" ]]; then
+            python3 tools/check_contracts.py build/libhail.dylib --shared
+          else
+            python3 tools/check_contracts.py build/libhail.a
+          fi
       - name: Enumerate CoreAudio without opening a microphone
         if: runner.os == 'macOS'
         run: ./build/hail_native_example 2
