@@ -43,10 +43,10 @@ before proposing a public ABI change. Keep platform types and worker details pri
 
 | Track | Next work and acceptance |
 | --- | --- |
-| macOS CoreAudio | Diagnose the strict Release capture-clock discontinuity retained from CI run 44119500727; retain failures and preserve strict sample/order/continuity checks. Execute the expanded BlackHole format matrix, static/shared and separate instrumented profiles on the final revision. Physical nominal/loaded duplex and denial results remain scoped evidence, not blanket production acceptance. |
+| macOS CoreAudio | Hosted functional CI now passes on arm64 macOS 15 and 26 for all sixteen format combinations per linkage, strict repetitions and ASan/UBSan at a declared 2,048-frame native period. Preserve the [512-frame failures and investigation](coreaudio-ci-regression.md); low-latency hosted continuity remains unqualified. Continue target-device/physical fixture coverage rather than inferring blanket production acceptance. |
 | Native Windows | Boot a real desktop with selected microphone/output, preferably a removable USB headset/interface. Execute [native-windows-goal.md](native-windows-goal.md), implement the [paired-endpoint harness](wasapi-loopback-design.md), and provision an independently signed virtual cable normally. Verify actual WASAPI streaming rather than build/empty-enumeration results. |
 | Native Linux clients | Qualify real physical devices on the intended client hardware. Existing PipeWire isolated-loopback and ALSA null evidence do not establish physical microphone/speaker support. |
-| Cross-platform CI | Distinguish source/test failures from runner availability. The macOS jobs in general CI run 44119500256 were cancelled before execution because hosted runners were not acquired. Do not report those jobs as tested. |
+| Cross-platform CI | All eleven jobs pass after using Intel for the general macOS lane and retaining arm64 native tests. Preserve the earlier runner-acquisition cancellations separately from source/test failures; exact [runs and profiles](coreaudio-ci-regression.md) are recorded. |
 
 Across native clients, exercise capture/playback/duplex, primed startup, native
 flush with capture progress, stale generations, stop/restart, repeated teardown,
@@ -82,7 +82,7 @@ semantics, revisions, timestamps and latency. If it only accepts completed files
 provide a bounded incremental/endpointing layer or choose a runtime with suitable
 streaming behavior. Preserve speech around VAD boundaries and interruptions.
 
-Schedule input processing independently from generation/playout. ASR must remain
+Keep the serialized Hail control owner separate from PCM reader/writer servicing: native start/flush/teardown can block even though periodic authorization queries now run on a private worker. Schedule input processing independently from generation/playout. ASR must remain
 serviced while the conversation model and TTS consume GPU resources. Bound
 per-session queues and model concurrency, propagate cancellation to obsolete
 work and measure under concurrent inference load. Avoid accumulating seconds of
@@ -150,9 +150,10 @@ VAD/AEC/noise processing stay outside the Hail core.
 
 ## Delivery milestones and acceptance
 
-1. **Finish native evidence.** Resolve the macOS CI failure without weakening its
-   oracle; run the final matrix. Bring up the Windows rig and perform actual
-   WASAPI capture/render/duplex qualification. Keep physical fixture gaps explicit.
+1. **Extend native evidence.** Maintain the passing macOS functional CI profile
+   and investigate low-latency hosted/physical fixture limits separately. Bring
+   up the Windows rig and perform actual WASAPI capture/render/duplex qualification.
+   Keep physical fixture gaps explicit.
 2. **Establish node capabilities.** Identify herding-sparks deployment/repository,
    model IDs, formats, routes, incremental ASR/TTS support, cancellation and session
    concurrency. Choose a concrete wire contract from observed capabilities.

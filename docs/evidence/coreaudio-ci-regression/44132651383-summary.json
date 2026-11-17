@@ -1,0 +1,1057 @@
+{
+  "run_id": 44132651383,
+  "source_revision": "53472941b85acd248c6c53e5c20c16099888b2aa",
+  "url": "https://github.com/artalis-io/hail/actions/runs/44132651383",
+  "native_period_frames": 2048,
+  "quantum_frames": 256,
+  "static_shared_format_cases": 32,
+  "strict_release_processes": 40,
+  "asan_ubsan_processes": 3,
+  "summary": {
+    "release": {
+      "processes": 40,
+      "verified_frames": 3638016,
+      "flush_ack_us_min": 36592.0,
+      "flush_ack_us_max": 117713.0,
+      "cumulative_underrun_min": 0,
+      "cumulative_underrun_max": 22528
+    },
+    "asan": {
+      "processes": 3,
+      "verified_frames": 363776,
+      "flush_ack_us_min": 36002.0,
+      "flush_ack_us_max": 57195.0,
+      "cumulative_underrun_min": 3328,
+      "cumulative_underrun_max": 21504
+    }
+  },
+  "profiles": {
+    "format-OFF-24000-2-1.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            22528,
+            18432,
+            18432
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 12288,
+          "flush_ack_us": 104735.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 0,
+          "hail_peak_bytes": 276560,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=508 mean_ns=903474 max_ns_including_lifecycle=202459000"
+      ]
+    },
+    "repeat-OFF.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            46592,
+            42496,
+            41984
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 16384,
+          "flush_ack_us": 102591.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 2048,
+          "hail_peak_bytes": 351312,
+          "steady_hail_allocations": 0
+        },
+        {
+          "verified_frames": [
+            46080,
+            41472,
+            41984
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 15872,
+          "flush_ack_us": 63308.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 3584,
+          "hail_peak_bytes": 351312,
+          "steady_hail_allocations": 0
+        },
+        {
+          "verified_frames": [
+            46848,
+            41728,
+            43008
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 15872,
+          "flush_ack_us": 99955.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 1536,
+          "hail_peak_bytes": 351312,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "3: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+        "3: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+        "3: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "3: control_poll_calls=626 mean_ns=624431 max_ns_including_lifecycle=137335000",
+        "3: control_poll_calls=607 mean_ns=597125 max_ns_including_lifecycle=156817000",
+        "3: control_poll_calls=651 mean_ns=629955 max_ns_including_lifecycle=154820000"
+      ]
+    },
+    "format-OFF-44100-2-1.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            40960,
+            39424,
+            38400
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 18432,
+          "flush_ack_us": 117713.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 6144,
+          "hail_peak_bytes": 276560,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=667 mean_ns=764770 max_ns_including_lifecycle=186816000"
+      ]
+    },
+    "format-OFF-24000-2-2.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            22528,
+            18432,
+            18432
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 12288,
+          "flush_ack_us": 104092.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 0,
+          "hail_peak_bytes": 351312,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=512 mean_ns=798787 max_ns_including_lifecycle=146654000"
+      ]
+    },
+    "format-OFF-44100-2-2.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            43776,
+            37120,
+            36352
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 17920,
+          "flush_ack_us": 96535.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 6400,
+          "hail_peak_bytes": 351312,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=561 mean_ns=783058 max_ns_including_lifecycle=137384000"
+      ]
+    },
+    "format-OFF-16000-2-2.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            14336,
+            12288,
+            10240
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 10240,
+          "flush_ack_us": 96450.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 0,
+          "hail_peak_bytes": 351312,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=557 mean_ns=925481 max_ns_including_lifecycle=272666000"
+      ]
+    },
+    "format-ON-48000-2-2.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            42240,
+            41728,
+            40448
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 20992,
+          "flush_ack_us": 54029.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 11008,
+          "hail_peak_bytes": 351312,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=563 mean_ns=617106 max_ns_including_lifecycle=134772000"
+      ]
+    },
+    "format-OFF-16000-2-1.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            14336,
+            12288,
+            10240
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 10240,
+          "flush_ack_us": 42218.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 0,
+          "hail_peak_bytes": 276560,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=572 mean_ns=887949 max_ns_including_lifecycle=312349000"
+      ]
+    },
+    "format-ON-48000-2-1.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            42752,
+            35840,
+            40960
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 27904,
+          "flush_ack_us": 102628.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 14592,
+          "hail_peak_bytes": 276560,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=578 mean_ns=758496 max_ns_including_lifecycle=170007000"
+      ]
+    },
+    "format-OFF-44100-1-1.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            40192,
+            35584,
+            37120
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 22272,
+          "flush_ack_us": 104378.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 8704,
+          "hail_peak_bytes": 239184,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=501 mean_ns=869489 max_ns_including_lifecycle=176002000"
+      ]
+    },
+    "format-OFF-24000-1-1.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            22528,
+            19200,
+            18432
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 11520,
+          "flush_ack_us": 87256.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 1280,
+          "hail_peak_bytes": 239184,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=561 mean_ns=788080 max_ns_including_lifecycle=204416000"
+      ]
+    },
+    "format-OFF-44100-1-2.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            40448,
+            38912,
+            35840
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 19968,
+          "flush_ack_us": 100664.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 5632,
+          "hail_peak_bytes": 276560,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=581 mean_ns=804833 max_ns_including_lifecycle=159724000"
+      ]
+    },
+    "format-OFF-24000-1-2.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            22528,
+            20480,
+            18432
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 10240,
+          "flush_ack_us": 50251.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 0,
+          "hail_peak_bytes": 276560,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=558 mean_ns=653066 max_ns_including_lifecycle=169410000"
+      ]
+    },
+    "format-ON-48000-1-2.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            41728,
+            36608,
+            37120
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 27904,
+          "flush_ack_us": 36592.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 19200,
+          "hail_peak_bytes": 276560,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=507 mean_ns=661968 max_ns_including_lifecycle=147826000"
+      ]
+    },
+    "format-OFF-16000-1-2.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            14336,
+            12288,
+            10240
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 10240,
+          "flush_ack_us": 97568.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 0,
+          "hail_peak_bytes": 276560,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=620 mean_ns=814054 max_ns_including_lifecycle=285718000"
+      ]
+    },
+    "format-ON-48000-1-1.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            41728,
+            34304,
+            35840
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 31488,
+          "flush_ack_us": 39320.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 22528,
+          "hail_peak_bytes": 239184,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=493 mean_ns=781409 max_ns_including_lifecycle=167109000"
+      ]
+    },
+    "format-OFF-16000-1-1.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            14336,
+            12288,
+            10240
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 10240,
+          "flush_ack_us": 96511.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 0,
+          "hail_peak_bytes": 239184,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=612 mean_ns=857761 max_ns_including_lifecycle=286946000"
+      ]
+    },
+    "format-ON-24000-1-1.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            22528,
+            18432,
+            18432
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 12288,
+          "flush_ack_us": 104652.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 0,
+          "hail_peak_bytes": 239184,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=506 mean_ns=836197 max_ns_including_lifecycle=154990000"
+      ]
+    },
+    "format-ON-44100-1-1.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            41216,
+            36096,
+            36352
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 19456,
+          "flush_ack_us": 52255.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 9984,
+          "hail_peak_bytes": 239184,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=557 mean_ns=559585 max_ns_including_lifecycle=80273000"
+      ]
+    },
+    "repeat-ON.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            46592,
+            41216,
+            39680
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 19968,
+          "flush_ack_us": 101590.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 6144,
+          "hail_peak_bytes": 351312,
+          "steady_hail_allocations": 0
+        },
+        {
+          "verified_frames": [
+            41984,
+            36864,
+            38144
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 28416,
+          "flush_ack_us": 61967.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 17152,
+          "hail_peak_bytes": 351312,
+          "steady_hail_allocations": 0
+        },
+        {
+          "verified_frames": [
+            43264,
+            34816,
+            37888
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 27392,
+          "flush_ack_us": 37056.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 18176,
+          "hail_peak_bytes": 351312,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+        "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+        "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "2: control_poll_calls=580 mean_ns=724258 max_ns_including_lifecycle=138114000",
+        "2: control_poll_calls=507 mean_ns=556869 max_ns_including_lifecycle=76949000",
+        "2: control_poll_calls=515 mean_ns=674102 max_ns_including_lifecycle=154681000"
+      ]
+    },
+    "format-ON-24000-1-2.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            22528,
+            18432,
+            18432
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 12288,
+          "flush_ack_us": 105778.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 0,
+          "hail_peak_bytes": 276560,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=520 mean_ns=732194 max_ns_including_lifecycle=116965000"
+      ]
+    },
+    "format-ON-44100-1-2.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            39424,
+            33536,
+            35840
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 24320,
+          "flush_ack_us": 71442.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 13056,
+          "hail_peak_bytes": 276560,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=493 mean_ns=796967 max_ns_including_lifecycle=152831000"
+      ]
+    },
+    "format-ON-16000-1-2.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            14336,
+            12288,
+            10240
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 10240,
+          "flush_ack_us": 76308.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 0,
+          "hail_peak_bytes": 276560,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=503 mean_ns=903689 max_ns_including_lifecycle=223233000"
+      ]
+    },
+    "format-OFF-48000-1-2.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            41728,
+            37888,
+            39936
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 25856,
+          "flush_ack_us": 59557.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 14592,
+          "hail_peak_bytes": 276560,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=550 mean_ns=560563 max_ns_including_lifecycle=92539000"
+      ]
+    },
+    "format-ON-16000-1-1.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            14336,
+            12288,
+            10240
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 10240,
+          "flush_ack_us": 94862.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 0,
+          "hail_peak_bytes": 239184,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=570 mean_ns=926315 max_ns_including_lifecycle=251202000"
+      ]
+    },
+    "format-OFF-48000-1-1.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            42496,
+            36608,
+            38912
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 27392,
+          "flush_ack_us": 62531.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 15360,
+          "hail_peak_bytes": 239184,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=515 mean_ns=582792 max_ns_including_lifecycle=78497000"
+      ]
+    },
+    "format-ON-44100-2-1.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            39680,
+            36096,
+            36096
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 21248,
+          "flush_ack_us": 52630.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 11264,
+          "hail_peak_bytes": 276560,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=508 mean_ns=660661 max_ns_including_lifecycle=134576000"
+      ]
+    },
+    "format-ON-24000-2-1.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            22528,
+            18432,
+            18432
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 12288,
+          "flush_ack_us": 104865.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 0,
+          "hail_peak_bytes": 276560,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=543 mean_ns=851633 max_ns_including_lifecycle=196259000"
+      ]
+    },
+    "format-ON-44100-2-2.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            40448,
+            34560,
+            37376
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 20736,
+          "flush_ack_us": 66023.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 8704,
+          "hail_peak_bytes": 351312,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=555 mean_ns=655708 max_ns_including_lifecycle=140440000"
+      ]
+    },
+    "format-ON-24000-2-2.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            22528,
+            18432,
+            18432
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 12288,
+          "flush_ack_us": 106912.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 0,
+          "hail_peak_bytes": 351312,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=486 mean_ns=802915 max_ns_including_lifecycle=126379000"
+      ]
+    },
+    "tests-ON.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            44544,
+            36608,
+            40704
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 23552,
+          "flush_ack_us": 59500.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 11776,
+          "hail_peak_bytes": 351312,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "2: control_poll_calls=546 mean_ns=725078 max_ns_including_lifecycle=189527000"
+      ]
+    },
+    "format-OFF-48000-2-2.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            44032,
+            41216,
+            39680
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 22528,
+          "flush_ack_us": 103577.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 9472,
+          "hail_peak_bytes": 351312,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=564 mean_ns=594595 max_ns_including_lifecycle=103527000"
+      ]
+    },
+    "format-ON-16000-2-2.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            14336,
+            12032,
+            10240
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 10496,
+          "flush_ack_us": 102028.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 256,
+          "hail_peak_bytes": 351312,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=581 mean_ns=976271 max_ns_including_lifecycle=288966000"
+      ]
+    },
+    "tests-OFF.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            45056,
+            43008,
+            41472
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 15872,
+          "flush_ack_us": 49331.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 5632,
+          "hail_peak_bytes": 351312,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "3: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "3: control_poll_calls=656 mean_ns=634960 max_ns_including_lifecycle=135117000"
+      ]
+    },
+    "asan.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            45056,
+            37888,
+            36864
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 23552,
+          "flush_ack_us": 36002.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 14336,
+          "hail_peak_bytes": 351312,
+          "steady_hail_allocations": 0
+        },
+        {
+          "verified_frames": [
+            39936,
+            35328,
+            36864
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 33280,
+          "flush_ack_us": 57195.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 21504,
+          "hail_peak_bytes": 351312,
+          "steady_hail_allocations": 0
+        },
+        {
+          "verified_frames": [
+            45824,
+            43008,
+            43008
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 13568,
+          "flush_ack_us": 46564.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 3328,
+          "hail_peak_bytes": 351312,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "3: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=instrumented-reported-gaps",
+        "3: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=instrumented-reported-gaps",
+        "3: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=instrumented-reported-gaps"
+      ],
+      "poll_summaries": [
+        "3: control_poll_calls=534 mean_ns=823099 max_ns_including_lifecycle=216278000",
+        "3: control_poll_calls=494 mean_ns=589129 max_ns_including_lifecycle=71898000",
+        "3: control_poll_calls=673 mean_ns=564888 max_ns_including_lifecycle=167076000"
+      ]
+    },
+    "format-OFF-48000-2-1.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            41984,
+            36608,
+            38144
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 28672,
+          "flush_ack_us": 59271.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 17920,
+          "hail_peak_bytes": 276560,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=503 mean_ns=558532 max_ns_including_lifecycle=79141000"
+      ]
+    },
+    "format-ON-16000-2-1.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            14336,
+            12288,
+            10240
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 10240,
+          "flush_ack_us": 83203.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 0,
+          "hail_peak_bytes": 276560,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "gap_summaries": [
+        "reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ],
+      "poll_summaries": [
+        "control_poll_calls=504 mean_ns=971404 max_ns_including_lifecycle=247248000"
+      ]
+    }
+  }
+}

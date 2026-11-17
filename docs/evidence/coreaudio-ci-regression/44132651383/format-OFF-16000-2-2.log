@@ -1,0 +1,9 @@
+profile=strict-continuity
+fixture_rate_reused=16000 no_device_rate_write=1
+fixture_native_period_before=512 requested=2048
+fixture_native_period_frames=2048
+fixture=BlackHole 2ch uid=BlackHole2ch_UID rate=16000 channels=2 pcm=2 sequence_mask=65535
+{"verified_frames":[14336,12288,10240],"bad_samples_or_order":0,"capture_frame_gaps":0,"zero_frames":10240,"flush_ack_us":96450.000,"capture_lost_frames":0,"underrun_frames":0,"hail_peak_bytes":351312,"steady_hail_allocations":0}
+reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity
+control_poll_calls=557 mean_ns=925481 max_ns_including_lifecycle=272666000
+PASS CoreAudio nonzero duplex, flush/capture continuity, stale writes, stop/restart and teardown

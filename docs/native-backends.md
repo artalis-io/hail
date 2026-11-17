@@ -52,12 +52,19 @@ microphone permission dialogs, or change process privacy policy. The host must
 supply its microphone usage description and obtain OS authorization. Windows
 privacy settings and Linux device/session permissions likewise remain binding.
 Probe can activate/configure a native endpoint and is advisory, never a grant.
-CoreAudio queries AVFoundation's existing authorization state on control paths:
-known denied/restricted capture fails explicitly at probe/open/start, and poll
-publishes a permission failure for existing capture streams. AUHAL can otherwise
+CoreAudio queries AVFoundation's existing authorization state synchronously at
+probe/open/start, where known denied/restricted capture fails explicitly. A lazy
+private context worker checks revocation while capture streams exist, waiting
+250 ms between SDK queries; poll only consumes the atomic result and publishes
+failures. SDK query duration and owner polling add to observation delay; no hard
+revocation deadline is promised. AUHAL can otherwise
 open/start despite an OS denial. Undetermined is not a permission grant; hosts
 must authorize physical capture normally. No authorization query runs on audio
 callbacks, and the library never displays a permission request.
+Context destruction joins this worker before freeing its synchronization/storage.
+No worker runs for enumeration/playback alone, and an existing worker sleeps
+without querying while no capture streams remain. Native SDK reads can block;
+they must not be placed on every control poll or a PCM producer's hot path.
 
 ## Timing and reference
 

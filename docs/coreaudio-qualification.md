@@ -19,6 +19,17 @@ hash, platform, source hashes, measurements and earlier failed profiles.
 [The C test](../tests/coreaudio_loopback.c) and
 [manual workflow](../.github/workflows/coreaudio-loopback.yml) reproduce the run.
 
+## Latest expanded CI profile
+
+The [CI regression report](coreaudio-ci-regression.md) records the newer arm64
+macOS 15/26 static/shared matrix: S16/F32, mono/stereo and 16/24/44.1/48 kHz,
+with strict Release and separate ASan/UBSan profiles. Those runs explicitly use
+a 2,048-frame native period. Retained 512-frame hosted failures remain
+unqualified; the larger-period pass is not low-latency or physical qualification.
+
+The sections below preserve the original 48 kHz stereo F32 evidence from run
+43976411781 and its earlier failures, rather than describing the newer matrix.
+
 ## Verified scope
 
 The fixture is explicitly selected by its BlackHole identity and configured to
@@ -33,7 +44,7 @@ stops/restarts with a new generation/epoch, and closes while native servicing
 is active before proving balanced destruction. It does not test driver removal,
 other hardware, other PCM formats/rates, or physical microphone permissions.
 
-The latest eight Release processes verified 1,124,352 nonzero frames with zero
+The eight Release processes in that historical run verified 1,124,352 nonzero frames with zero
 bad samples/order, capture frame gaps or capture queue loss. No steady-state
 Hail allocations occurred; peak Hail-requested storage was 351,168 bytes.
 Observed flush acknowledgement ranged from 34.420 to 100.594 ms. Cumulative
@@ -51,7 +62,7 @@ physical ADC/DAC latency benchmark is claimed by this test.
 The ASan/UBSan build instruments Hail's native callback/lifetime paths and the
 C test. Apple frameworks and the separate driver/server are not instrumented.
 No LeakSanitizer, TSan or hard-deadline qualification is inferred from this run.
-The latest three instrumented processes passed without ASan/UBSan diagnostics,
+The three instrumented processes in that historical run passed without ASan/UBSan diagnostics,
 bad samples/order, or observed clock/sample gaps; their underrun counts remain
 in the report. Their stricter timing result is an observation, not a guarantee.
 

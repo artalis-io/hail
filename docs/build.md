@@ -328,3 +328,22 @@ needs an Objective-C-capable compiler; portable and other native builds do not.
 No Objective-C type enters installed headers. Static C/C++ consumers receive the
 framework dependencies through the exported target/pkg-config configuration.
 The guard queries existing authorization only; hosts still own permission prompts.
+
+The hosted BlackHole job explicitly sets `HA_TEST_COREAUDIO_PERIOD=2048` for a
+conservative virtual-fixture functional profile. Application quantum remains
+256, and strict Release sample/order/generation/clock checks are unchanged.
+This is not low-latency qualification at a 512-frame native period: retained
+512-frame hosted failures remain failures. The executable leaves the existing
+period unchanged unless that environment variable is supplied. It requires an
+idle fixture, avoids redundant nominal-rate writes, and waits for the native
+property notification when changing rate or period. Both settings affect only
+the explicitly selected BlackHole fixture; use an isolated device.
+
+`hail_coreaudio_permission_cost [warm_iterations]` measures the read-only SDK
+query without opening audio or requesting access. The source is
+`tools/probes/coreaudio_permission_cost.m`; when compiling it manually, link
+AVFoundation, Foundation and CoreAudio. Native tests also register the static-only
+`coreaudio_permission_worker` CTest, which uses barriers and no audio opens to
+verify that a blocked SDK query cannot block poll, that denial reaches capture,
+and that destruction joins the worker. It runs in the normal, ASan/UBSan and
+supported TSan configurations; it does not establish instrumented driver coverage.

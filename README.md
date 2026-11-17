@@ -5,15 +5,17 @@ playback, and full-duplex operation. Public identifiers use `ha_` and `HA_`.
 
 **Status: Gate D native implementations, version 0.1.** CoreAudio, shared WASAPI,
 PipeWire and ALSA now accompany the portable core and deterministic virtual
-backend. Native platform builds and isolated loopback tests pass.
-Software delivery/flush measurements are recorded; physical-device qualification
-and physical latency measurements remain outstanding. The ABI remains provisional.
+backend. Native platform builds and selected isolated loopback profiles have
+execution evidence. Built-in macOS physical duplex has scoped qualification;
+other physical targets and calibrated hardware latency remain outstanding.
+See the reports for retained failures and exact configurations. The ABI remains provisional.
 
 - [Repository and audio implementation audit](docs/audit.md)
 - [Architecture and contracts proposal](docs/architecture.md)
 - [Verification plan and engineering gates](docs/verification.md)
 - [Public API and ownership reference](docs/api.md)
 - [Build and integration guide](docs/build.md)
+- [Hail and duplex speech-service roadmap](docs/roadmap.md)
 - [CoreAudio virtual-device qualification](docs/coreaudio-qualification.md)
 - [WASAPI paired-endpoint test design](docs/wasapi-loopback-design.md)
 - [Native macOS goal and handoff prompt](docs/native-macos-goal.md)

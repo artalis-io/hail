@@ -180,6 +180,9 @@ The first publication attempt failed because the configured GPG key could not
 sign. The owner subsequently authorized unsigned publication, and code/evidence
 were published as `20791b9d6dd7ba3b77d246665b8f979ce620e880`. Signing was disabled
 for that individual commit command; persistent Git configuration was unchanged.
-The expanded BlackHole matrix is running on that exact revision in
-[CI run 44119500727](https://github.com/artalis-io/hail/actions/runs/44119500727).
-An older passing CI run is not substituted for its result.
+That initial expanded [run 44119500727](https://github.com/artalis-io/hail/actions/runs/44119500727)
+subsequently failed on a strict capture-clock discontinuity. The later
+[CI investigation and passing profiles](coreaudio-ci-regression.md) document
+the slow authorization-query fix, retained 512-frame failures and complete
+2,048-frame native matrices on arm64 macOS 15/26. Earlier passing runs are not
+substituted for those final results.

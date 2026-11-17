@@ -6,14 +6,16 @@ been exercised; the full real-time and fixture criteria below are not complete.
 Progress on 2026-11-17: [native physical results](native-macos-results.md) now
 demonstrate built-in capture/playback/duplex and a ten-minute nominal trial.
 The full completion criteria remain open; the report identifies fixture,
-hotplug, permission-denial and physical-latency gaps.
+physical hotplug, low-latency hosted and calibrated physical-latency gaps.
 
 [Follow-up execution](native-macos-followup.md) adds loaded duplex, callback and
 native flush-call measurements, aggregate removal/replacement/default changes,
 a rollback regression/fix and fresh independent BlackHole CI. A real OS denial
 rerun exposed and fixed missing explicit denial reporting; the rerun now passes.
-The owner authorized unsigned publication as `20791b9`; the extended fixture
-format matrix is now running on that revision in CI.
+The owner authorized unsigned publication. The expanded matrix and strict
+repetitions now pass on arm64 macOS 15/26 with a declared 2,048-frame virtual
+fixture; the [CI investigation](coreaudio-ci-regression.md) retains the failed
+512-frame profiles and documents the authorization-worker fix.
 
 ## Objective
 

@@ -1,0 +1,93 @@
+{
+  "qualified_native_runs": [
+    {
+      "id": 44130819943,
+      "source_revision": "720962f085f3b51e1d93b6b5362d859cd5d35c07",
+      "result": "success",
+      "arch": "arm64",
+      "period_frames": 2048,
+      "format_cases": 32,
+      "strict_release_processes": 40,
+      "asan_ubsan_processes": 3
+    },
+    {
+      "id": 44132651383,
+      "source_revision": "53472941b85acd248c6c53e5c20c16099888b2aa",
+      "result": "success",
+      "arch": "arm64",
+      "period_frames": 2048,
+      "format_cases": 32,
+      "strict_release_processes": 40,
+      "asan_ubsan_processes": 3
+    }
+  ],
+  "retained_failed_native_runs": [
+    {
+      "id": 44119500727,
+      "period_frames": 512,
+      "failure": "strict capture epoch change during baseline repetition"
+    },
+    {
+      "id": 44129533268,
+      "period_frames": 512,
+      "failure": "48 kHz mono S16 raw position 51472 versus expected 50688, epoch change; not a known PCM loss count"
+    }
+  ],
+  "general_ci": [
+    {
+      "id": 44129532648,
+      "result": "success",
+      "jobs": 11
+    },
+    {
+      "id": 44130819066,
+      "result": "success",
+      "jobs": 11
+    }
+  ],
+  "local_checks": {
+    "release_static": 6,
+    "release_shared": 4,
+    "asan_ubsan_static": 6,
+    "tsan_permission_worker": 1,
+    "static_analysis_diagnostics": 0,
+    "public_exports_each_linkage": 27,
+    "authorized_physical_duplex": "passed, silence output, zero loss and startup/steady/transition underruns"
+  },
+  "scope_limits": [
+    "512-frame hosted continuity remains unqualified",
+    "physical latency/audible interruption not measured",
+    "Windows native streaming not yet qualified",
+    "virtual and physical results are distinct"
+  ],
+  "working_source_sha256": {
+    "src/hosted.c": "0920c557a6a478c26b630c0585f8b2931813d6a6e046f0f81ce51988dea0561a",
+    "src/backend_wasapi.c": "16f2b188dcc4d6d50566c63083d10ee53a09451e284a71e87a2bbada4eb15c46",
+    "src/hail_internal.h": "7b73aebdaf4ce15f382a7d455b203213a53957a1d1ecbeb04fb934bef1b0f1b1",
+    "src/backend_alsa.c": "d7b7ab96d269dfc56ec0182d1cadd1d8a563391ff31e361604f6ddf2d33ca2fc",
+    "src/queue.c": "7acdd71a0bc3575b4f2f36bd73c5adb19cd69a5a5381239e59de76ba5fe04d22",
+    "src/core.c": "4d2b9693c3ab811b38742ad29a1eefe132e134bc03759ee6e12845f62f2c218f",
+    "src/backend_pipewire.c": "a06060f7c04cf027d33998afdc9d075dcecf1223f2fd7505e9593f69e137cb22",
+    "src/backend_coreaudio.c": "49c31ea914b8e84100145f217df403873ae565d6a4da4502b740e01d132ba371",
+    "src/native.c": "4d51a97b954b9d357ca8a27e38cf7d4ea65629f64218bd9be1f51d7cbf209202",
+    "src/coreaudio_permission.m": "b822108e4bd3ba615c8a585c8e8b8e87cd4242db40a7205854bab484db0a16fb",
+    "src/virtual.c": "076d684b86e8fdf49541f1a306ac994e68f58702b1e235f7e73f0c9de845c214",
+    "src/coreaudio_diagnostics.h": "0840bfef7e8beae9fafcacce5628ea9a72d1d54a9ec43f904ea089aec5c54ea8",
+    "include/hail.h": "d54b4ed757e801f702b33b1949c0809a9b9b79ae1983137b892d63ef86188a88",
+    "tests/native_handoff.c": "f5fc8a71fdddfea6453603f8203606fd1d4c6f826dd41e3f642ccb51b78e04cf",
+    "tests/coreaudio_loopback.c": "f8be13905b22b671b740a0deecff10ec41c665dba59fff7adab8f7921ecc52e1",
+    "tests/coreaudio_registry.c": "c8af36d76371a71b943aebffac63192b49c4ce8aebf87d8f6a125a61c6b035be",
+    "tests/conformance.c": "4029345dfc676f2972ac7a457cc5209f5ac707cf28020b26449bb5636217ef1e",
+    "tests/concurrency.cpp": "c4530cff01a1dd2ee9266395a241832f127f3407340043814ab8570b1ed1411e",
+    "tests/coreaudio_faults.c": "a50b7c609eba20b822c637f03c385690ff2df9ab5ff4a32fb4c5fa38c8f00712",
+    "tests/coreaudio_permission_worker.c": "a1803e4a6c193a4e06354cc04f9e7cb7024a371c631979250729eaa98923e451",
+    "tests/coreaudio_authorize.m": "2ec4b76cb8423fbb063f21295fc6b59bb811bf3ed8a3fc1765637552aa5a3d0c",
+    "tests/alsa_null.c": "56d28c989ad8e1d6e240085b9135a6de37975ea6548e8e403641966b3ec0bf69",
+    "tests/coreaudio_physical.c": "ee8cd12a1ec0249300a9f969047d9b7f4a2a69be85de15b50a82bc7e4b5f622a",
+    "tests/coreaudio_permission.m": "ede16fe8d1584b3654ab3a9d4aa4c750b8712ba93957c2d5b723eb9a5368615b",
+    "tests/headers.cpp": "0f5a80b9e8e5e0877a26f35c1f2f52a162334f905a0818478b7fa8baf1587634",
+    "tests/pipewire_loopback.c": "895c0a3f99b410511c9660d50929c567b11d532052004b81a77842736b0b4fd5"
+  },
+  "native_production_sources_identical_across_tested_revisions": true,
+  "signing": "Owner-authorized unsigned commits; persistent signing configuration unchanged"
+}
