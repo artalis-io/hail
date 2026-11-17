@@ -15,6 +15,8 @@ static uint64_t allocations, frees, bytes, peak;
 static uint64_t captured, verified[4], zero_frames, bad, frame_gaps, last_frame, epoch, clock_gaps, sample_gaps;
 static uint32_t instrumented, pending_gap;
 static uint32_t last_code, last_phase, seen;
+static uint32_t test_rate=48000, test_channels=2, test_pcm=HA_PCM_F32, sequence_mask=65535;
+typedef union test_pcm_buffer { float f[Q*2u]; int16_t s[Q*2u]; } test_pcm_buffer;
 static void *HA_CALL allocate(void *user,size_t n,size_t alignment)
 { void *p=NULL; (void)user; if(posix_memalign(&p,alignment,n)) return NULL; ++allocations; bytes+=n; if(bytes>peak) peak=bytes; return p; }
 static void HA_CALL deallocate(void *user,void *p,size_t n,size_t alignment)
@@ -33,14 +35,14 @@ static void reject_sample(const char *reason,const ha_block_info *block,uint32_t
 {
     if(bad<8) fprintf(stderr,"PCM %s: logical=%llu offset=%u raw=%llu flags=%u epoch=%llu left=%.9g right=%.9g phase=%u code=%u previous_phase=%u expected_code=%u pending_gap=%u\n",
         reason,(unsigned long long)block->first_frame,offset,(unsigned long long)block->device_position,block->flags,(unsigned long long)block->clock_epoch,
-        (double)left,(double)right,phase,code,last_phase,(last_code+1u)&65535u,pending_gap);
+        (double)left,(double)right,phase,code,last_phase,(last_code+1u)&sequence_mask,pending_gap);
     ++bad;
 }
 static void read_capture(void)
 {
-    float pcm[Q*2u]; uint32_t n,i,attempt;
+    test_pcm_buffer pcm; uint32_t n,i,attempt;
     for(attempt=0;attempt<64;++attempt) {
-        ha_block_info block=HA_INIT(ha_block_info); ha_result r=ha_stream_read(stream,pcm,Q,&n,&block);
+        ha_block_info block=HA_INIT(ha_block_info); ha_result r=ha_stream_read(stream,&pcm,Q,&n,&block);
         if(r==HA_WOULD_BLOCK || r==HA_BUSY) break;
         CHECK(r==HA_OK);
         uint32_t marked=block.flags & (HA_BLOCK_GAP|HA_BLOCK_DISCONTINUITY|HA_BLOCK_UNKNOWN_GAP);
@@ -54,21 +56,28 @@ static void read_capture(void)
         if(instrumented && captured && (block.flags & HA_BLOCK_GAP)) pending_gap=1;
         captured+=n; last_frame=block.first_frame+n;
         for(i=0;i<n;++i) {
-            float left=pcm[i*2u],right=pcm[i*2u+1u]; uint32_t value,phase,code;
+            float left=test_pcm==HA_PCM_F32?pcm.f[i*test_channels]:(float)pcm.s[i*test_channels]/32768.0f;
+            float right=test_channels==1?-left:test_pcm==HA_PCM_F32?pcm.f[i*test_channels+1u]:(float)pcm.s[i*test_channels+1u]/32768.0f;
+            float scale=test_pcm==HA_PCM_F32?1048576.0f:32768.0f;
+            uint32_t value,phase,code;
             if(left==0 && right==0) { ++zero_frames; continue; }
-            if(!(left>=0.125f && left<0.8125f) || right!=-left) { reject_sample("value/channel",&block,i,left,right,0,0); continue; }
-            value=(uint32_t)(left*1048576.0f); phase=value/262144u;
-            if(phase==0 && value>=131072u && value<196608u) { phase=1; code=value-131072u; }
+            if(!(left>=0.125f && left<(test_pcm==HA_PCM_F32?0.8125f:0.875f)) || right!=-left) { reject_sample("value/channel",&block,i,left,right,0,0); continue; }
+            value=(uint32_t)(left*scale); phase=value/(test_pcm==HA_PCM_F32?262144u:8192u);
+            if(test_pcm==HA_PCM_S16) {
+                if(phase<1 || phase>3 || value-phase*8192u>sequence_mask) { reject_sample("encoding",&block,i,left,right,phase,0); continue; }
+                code=value-phase*8192u;
+            }
+            else if(phase==0 && value>=131072u && value<196608u) { phase=1; code=value-131072u; }
             else if(phase==2 && value<589824u) { phase=2; code=value-524288u; }
             else if(phase==3 && value<851968u) { phase=3; code=value-786432u; }
             else { reject_sample("encoding",&block,i,left,right,phase,0); continue; }
-            if((float)value/1048576.0f!=left || (seen && phase<last_phase)) reject_sample("precision/generation",&block,i,left,right,phase,code);
-            if(seen && phase==last_phase && code!=((last_code+1u)&65535u)) {
-                uint32_t skipped=(code-((last_code+1u)&65535u))&65535u;
+            if((float)value/scale!=left || (seen && phase<last_phase)) reject_sample("precision/generation",&block,i,left,right,phase,code);
+            if(seen && phase==last_phase && code!=((last_code+1u)&sequence_mask)) {
+                uint32_t skipped=(code-((last_code+1u)&sequence_mask))&sequence_mask;
                 /* A clock gap can precede its audible/data gap through the
                  * driver pipeline. Consume its credit only at that forward
                  * sample jump, never merely because an intact sample arrived. */
-                if(instrumented && pending_gap && skipped<32768u) {
+                if(instrumented && pending_gap && skipped<(sequence_mask+1u)/2u) {
                     ++sample_gaps; pending_gap=0;
                     fprintf(stderr,"reported forward sample gap: skipped=%u logical=%llu offset=%u\n",skipped,(unsigned long long)block.first_frame,i);
                 } else reject_sample("sequence",&block,i,left,right,phase,code);
@@ -79,9 +88,14 @@ static void read_capture(void)
 }
 static void write_pattern(uint32_t phase,uint32_t *position,uint64_t generation)
 {
-    float pcm[Q*2u]; uint32_t i,n; ha_result r; uint32_t base=phase==1?131072u:phase==2?524288u:786432u;
-    for(i=0;i<Q;++i) { pcm[2u*i]=(float)(base+((*position+i)&65535u))/1048576.0f; pcm[2u*i+1u]=-pcm[2u*i]; }
-    r=ha_stream_write(stream,pcm,Q,generation,&n); CHECK(r==HA_OK || r==HA_WOULD_BLOCK || r==HA_BUSY);
+    test_pcm_buffer pcm; uint32_t i,n; ha_result r; uint32_t base=phase==1?131072u:phase==2?524288u:786432u;
+    if(test_pcm==HA_PCM_S16) base=phase*8192u;
+    for(i=0;i<Q;++i) {
+        uint32_t value=base+((*position+i)&sequence_mask);
+        if(test_pcm==HA_PCM_F32) { pcm.f[test_channels*i]=(float)value/1048576.0f; if(test_channels==2) pcm.f[test_channels*i+1u]=-pcm.f[test_channels*i]; }
+        else { pcm.s[test_channels*i]=(int16_t)value; if(test_channels==2) pcm.s[test_channels*i+1u]=(int16_t)-(int32_t)value; }
+    }
+    r=ha_stream_write(stream,&pcm,Q,generation,&n); CHECK(r==HA_OK || r==HA_WOULD_BLOCK || r==HA_BUSY);
     if(r==HA_OK) *position+=n;
 }
 static void start(void)
@@ -95,8 +109,8 @@ static void phase(uint32_t marker,uint64_t generation)
 {
     uint32_t position=0; uint64_t deadline=now_ns()+1000000000u;
     while(now_ns()<deadline) { progress(); read_capture(); write_pattern(marker,&position,generation); pause_control(); }
-    if(bad || verified[marker]<=16000 || (!instrumented && frame_gaps)) fprintf(stderr,"phase=%u verified=%llu bad=%llu frame_gaps=%llu clock_gaps=%llu\n",marker,(unsigned long long)verified[marker],(unsigned long long)bad,(unsigned long long)frame_gaps,(unsigned long long)clock_gaps);
-    CHECK(verified[marker]>16000 && !bad && (instrumented || !frame_gaps));
+    if(bad || verified[marker]<=test_rate/3u || (!instrumented && frame_gaps)) fprintf(stderr,"phase=%u verified=%llu bad=%llu frame_gaps=%llu clock_gaps=%llu\n",marker,(unsigned long long)verified[marker],(unsigned long long)bad,(unsigned long long)frame_gaps,(unsigned long long)clock_gaps);
+    CHECK(verified[marker]>test_rate/3u && !bad && (instrumented || !frame_gaps));
 }
 static void fixture_rate(const char *uid)
 {
@@ -114,10 +128,10 @@ static void fixture_rate(const char *uid)
     }
     CHECK(selected);
     address.mSelector=kAudioDevicePropertyNominalSampleRate;
-    { Float64 rate=48000; uint64_t deadline=now_ns()+5000000000u;
+    { Float64 rate=test_rate; uint64_t deadline=now_ns()+5000000000u;
       CHECK(!AudioObjectSetPropertyData(selected,&address,0,NULL,sizeof(rate),&rate));
       do { UInt32 size=sizeof(rate); CHECK(!AudioObjectGetPropertyData(selected,&address,0,NULL,&size,&rate));
-           if(rate==48000) break; CHECK(now_ns()<deadline); pause_control(); } while(1);
+           if(rate==test_rate) break; CHECK(now_ns()<deadline); pause_control(); } while(1);
     }
 }
 int main(void)
@@ -128,6 +142,12 @@ int main(void)
     ha_stream_status s; uint32_t i,n; uint64_t input=0,output=0,generation=1,steady,deadline,before,flush_begin,flush_ack;
     const char *uid=NULL; float stale[2]={0}; ha_result result;
     CHECK(getenv("HA_TEST_COREAUDIO_LOOPBACK") && !strcmp(getenv("HA_TEST_COREAUDIO_LOOPBACK"),"1"));
+    if(getenv("HA_TEST_COREAUDIO_RATE")) test_rate=(uint32_t)strtoul(getenv("HA_TEST_COREAUDIO_RATE"),NULL,10);
+    if(getenv("HA_TEST_COREAUDIO_CHANNELS")) test_channels=(uint32_t)strtoul(getenv("HA_TEST_COREAUDIO_CHANNELS"),NULL,10);
+    if(getenv("HA_TEST_COREAUDIO_PCM")) test_pcm=(uint32_t)strtoul(getenv("HA_TEST_COREAUDIO_PCM"),NULL,10);
+    CHECK((test_rate==16000 || test_rate==24000 || test_rate==44100 || test_rate==48000) && (test_channels==1 || test_channels==2) && (test_pcm==HA_PCM_S16 || test_pcm==HA_PCM_F32));
+    if(test_pcm==HA_PCM_S16) sequence_mask=4095;
+    format.sample_rate=test_rate; format.channels=test_channels; format.channel_layout=test_channels==1?HA_LAYOUT_MONO:HA_LAYOUT_STEREO; format.sample_format=test_pcm;
     instrumented=getenv("HA_TEST_COREAUDIO_INSTRUMENTED") && !strcmp(getenv("HA_TEST_COREAUDIO_INSTRUMENTED"),"1");
     printf("profile=%s\n",instrumented?"instrumented-reported-gaps":"strict-continuity");
     allocator.allocate=allocate; allocator.deallocate=deallocate; cc.allocator=allocator; cc.backend=HA_BACKEND_COREAUDIO;
@@ -145,7 +165,7 @@ int main(void)
         CHECK(now_ns()<deadline); pause_control();
     } while(1);
     CHECK(uid && uid[0]); fixture_rate(uid);
-    printf("fixture=BlackHole 2ch uid=%s rate=48000\n",uid); fflush(stdout);
+    printf("fixture=BlackHole 2ch uid=%s rate=%u channels=%u pcm=%u sequence_mask=%u\n",uid,test_rate,test_channels,test_pcm,sequence_mask); fflush(stdout);
     selector.kind=HA_SELECT_RUNTIME_ID; selector.runtime_id=input; sc.capture_device=selector;
     selector.runtime_id=output; sc.playback_device=selector; sc.capture_format=format; sc.playback_format=format;
     sc.directions=HA_CAPTURE|HA_PLAYBACK; sc.negotiation=HA_EXACT_APPLICATION; sc.quantum_frames=Q;

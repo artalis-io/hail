@@ -1,0 +1,10 @@
+create_aggregate=0 id=122 private=0
+open=success selected=0
+open=success selected=0
+PASS default selection changes only future opens; active stream stays pinned; restored original output
+open=success selected=5
+PASS active owned aggregate removal produces terminal DEVICE_LOST
+create_aggregate=0 id=125 private=0
+open=success selected=12
+PASS replacement incarnation old=5 new=12; explicit reopen succeeds
+PASS native aggregate registry lifecycle (not physical unplug)

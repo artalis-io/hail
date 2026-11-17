@@ -268,3 +268,63 @@ the process and is a failed trial. The microphone need not contain the playback
 signal, so nonzero capture is not a known-PCM loopback assertion. Host timestamp
 age is not calibrated hardware latency. See [local results](native-macos-results.md)
 for observed limits, toolchain failures and outstanding qualification cases.
+
+For callback and native flush subcall measurements, configure a separate build
+with `-DHA_COREAUDIO_DIAGNOSTICS=ON`. This defaults off and adds fixed private
+trace storage included in planning, with no public API. The physical executable
+copies histograms only after native retirement. `--silent --load-workers 4` on
+the runner tests the render path with digital silence plus four SHA256 processes;
+worker processes are stopped in a finally block. Instrumented callback body
+measurements exclude final snapshot publication/unwind and retain transition
+intervals. Keep them separate from the default uninstrumented profile.
+
+Native registry lifecycle testing requires an explicit output UID and rate:
+
+```sh
+./build-ca-physical/hail_coreaudio_registry BuiltInSpeakerDevice 48000
+./build-ca-physical/hail_coreaudio_registry BuiltInSpeakerDevice 48000 --defaults
+```
+
+The first command creates/removes a **private owned aggregate** around that
+output. The second briefly publishes it and changes the output default to test
+pinning and future-open behavior, then restores the original default and removes
+only the owned fixture. Run when the temporary routing change is appropriate.
+Ordinary failure cleanup restores/destroys the fixture too. It is not a physical
+USB unplug test. No capture or nonzero output is used.
+
+A static native-test build also provides `hail_coreaudio_faults`:
+
+```sh
+codesign --force --sign - build-ca-physical/hail_coreaudio_faults
+./build-ca-physical/hail_coreaudio_faults BuiltInMicrophoneDevice BuiltInSpeakerDevice
+```
+
+It uses explicitly selected real units with silence, injecting SDK start/stop
+and listener-removal failures in a source-private test copy of the backend.
+It proves rollback state/retry and retirement behavior, separately from actual
+OS denial or spontaneous device failures. It is not built against shared Hail's
+hidden private symbols and is never auto-run by CTest.
+
+For an actual permission-denial trial, use the dedicated signed test app through
+LaunchServices, not a direct executable child inheriting an authorized terminal:
+
+```sh
+python3 tools/run_coreaudio_permission.py \
+  --test build-ca-physical/hail_coreaudio_permission \
+  --input 'MacBook Pro Microphone' --output /tmp/hail-permission-denied.json
+```
+
+Choose **Don't Allow** if macOS prompts for “Hail permission denied test.” The
+runner uses normal authorization, a dedicated bundle identity and App Sandbox
+without audio-input entitlement. It never resets/modifies TCC. An authorized
+identity, unanswered prompt, timeout or absent input is **not a passing denial
+case**. Timeout cancels the owned process and retains a failed/unqualified result;
+it never forces Hail to free live references. The native result must explicitly
+report permission denial. See [retained attempts and gaps](native-macos-followup.md).
+
+CoreAudio's explicit denial guard additionally uses one private Objective-C
+source and system AVFoundation/Foundation. The selected macOS backend therefore
+needs an Objective-C-capable compiler; portable and other native builds do not.
+No Objective-C type enters installed headers. Static C/C++ consumers receive the
+framework dependencies through the exported target/pkg-config configuration.
+The guard queries existing authorization only; hosts still own permission prompts.

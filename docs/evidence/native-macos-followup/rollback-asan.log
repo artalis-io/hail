@@ -1,0 +1,4 @@
+partial_start calls=2 rollback_stop_calls=2 capture_started_after_failed_stop=1
+PASS partial native start rollback retains failed-stop state and retries stop before retirement
+PASS real listener removal retries after injected error and waits for callback retirement
+PASS SDK permission error mappings (not an OS denial trial)

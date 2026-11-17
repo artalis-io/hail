@@ -3,6 +3,8 @@
 Separate [native physical results](native-macos-results.md) cover the built-in
 microphone/speakers on a native M1 Max Mac. Those observations complement this
 virtual known-PCM fixture; neither report substitutes for the other's scope.
+The [follow-up](native-macos-followup.md) also retains a fresh strict/instrumented
+BlackHole run and native registry/control timing evidence.
 
 Native CoreAudio loopback is now exercised on an actual macOS runner with
 BlackHole 2ch 0.7.1. The tested host reports macOS 26.7.2, arm64. The driver is

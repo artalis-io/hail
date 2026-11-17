@@ -24,6 +24,15 @@ jobs:
             codesign --force --sign - "build-$linkage/hail_coreaudio_loopback"
             ctest --test-dir "build-$linkage" --verbose | tee "results/tests-$linkage.log"
             ctest --test-dir "build-$linkage" -R coreaudio_loopback --repeat until-fail:3 --verbose | tee "results/repeat-$linkage.log"
+            for rate in 16000 24000 44100 48000; do
+              for channels in 1 2; do
+                for pcm in 1 2; do
+                  HA_TEST_COREAUDIO_LOOPBACK=1 HA_TEST_COREAUDIO_RATE="$rate" \
+                    HA_TEST_COREAUDIO_CHANNELS="$channels" HA_TEST_COREAUDIO_PCM="$pcm" \
+                    "build-$linkage/hail_coreaudio_loopback" 2>&1 | tee "results/format-$linkage-$rate-$channels-$pcm.log"
+                done
+              done
+            done
           done
       - name: Check native callback lifetime with ASan and UBSan
         run: |

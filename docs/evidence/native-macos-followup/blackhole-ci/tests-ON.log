@@ -1,0 +1,59 @@
+UpdateCTestConfiguration  from :/Users/runner/work/hail/hail/build-ON/DartConfiguration.tcl
+Test project /Users/runner/work/hail/hail/build-ON
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: headers_cpp
+
+1: Test command: /Users/runner/work/hail/hail/build-ON/hail_headers
+1: Working Directory: /Users/runner/work/hail/hail/build-ON
+1: Test timeout computed to be: 10000000
+1/5 Test #1: headers_cpp ......................   Passed    0.00 sec
+test 2
+    Start 2: coreaudio_loopback
+
+2: Test command: /Users/runner/work/hail/hail/build-ON/hail_coreaudio_loopback
+2: Working Directory: /Users/runner/work/hail/hail/build-ON
+2: Environment variables: 
+2:  HA_TEST_COREAUDIO_LOOPBACK=1
+2: Test timeout computed to be: 45
+2: profile=strict-continuity
+2: fixture=BlackHole 2ch uid=BlackHole2ch_UID rate=48000
+2: {"verified_frames":[47872,46336,46848],"bad_samples_or_order":0,"capture_frame_gaps":0,"zero_frames":4864,"flush_ack_us":36297.000,"capture_lost_frames":0,"underrun_frames":768,"hail_peak_bytes":351168,"steady_hail_allocations":0}
+2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity
+2: PASS CoreAudio nonzero duplex, flush/capture continuity, stale writes, stop/restart and teardown
+2/5 Test #2: coreaudio_loopback ...............   Passed    3.60 sec
+test 3
+    Start 3: conformance
+
+3: Test command: /Users/runner/work/hail/hail/build-ON/hail_conformance
+3: Working Directory: /Users/runner/work/hail/hail/build-ON
+3: Test timeout computed to be: 10000000
+3: portable conformance passed
+3/5 Test #3: conformance ......................   Passed    0.01 sec
+test 4
+    Start 4: concurrency
+
+4: Test command: /Users/runner/work/hail/hail/build-ON/hail_concurrency
+4: Working Directory: /Users/runner/work/hail/hail/build-ON
+4: Test timeout computed to be: 10000000
+4: concurrent reader/writer/reference/flush/close passed
+4/5 Test #4: concurrency ......................   Passed    0.15 sec
+test 5
+    Start 5: example
+
+5: Test command: /Users/runner/work/hail/hail/build-ON/hail_virtual_example
+5: Working Directory: /Users/runner/work/hail/hail/build-ON
+5: Test timeout computed to be: 10000000
+5: Virtual capture; Virtual playback
+5: Captured 4 frames at 0 ns; playback first sample 100
+5: Capture continued at frame 4 after interruption
+5/5 Test #5: example ..........................   Passed    0.00 sec
+
+100% tests passed out of 5
+
+Total Test time (real) =   3.78 sec

@@ -1,0 +1,10 @@
+Internal ctest changing into directory: /Users/mark/artalis.io/src/hail/build-native-macos-consumer
+Test project /Users/mark/artalis.io/src/hail/build-native-macos-consumer
+    Start 1: installed_c
+1/2 Test #1: installed_c ......................   Passed    0.46 sec
+    Start 2: installed_cpp
+2/2 Test #2: installed_cpp ....................   Passed    0.46 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =   0.93 sec

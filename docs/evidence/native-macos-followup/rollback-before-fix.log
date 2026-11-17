@@ -1,0 +1,2 @@
+FAIL /Users/mark/artalis.io/src/hail/tests/coreaudio_faults.c:60: a.legs[0].started==1
+partial_start calls=2 rollback_stop_calls=2 capture_started_after_failed_stop=0

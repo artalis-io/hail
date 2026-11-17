@@ -1,0 +1,7 @@
+create_aggregate=0 id=122 private=1
+open=success selected=5
+PASS active owned aggregate removal produces terminal DEVICE_LOST
+create_aggregate=0 id=125 private=1
+open=success selected=8
+PASS replacement incarnation old=5 new=8; explicit reopen succeeds
+PASS native aggregate registry lifecycle (not physical unplug)

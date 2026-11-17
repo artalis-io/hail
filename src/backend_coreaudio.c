@@ -4,15 +4,57 @@
 #include <AudioToolbox/AudioToolbox.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <time.h>
+ha_result hail_coreaudio_capture_permission(void);
+#if HA_COREAUDIO_DIAGNOSTICS
+#include "coreaudio_diagnostics.h"
+#include <mach/mach_time.h>
+#endif
 
 typedef struct ca_context { ha_context *owner; atomic_uint callbacks; uint32_t listeners; AudioDeviceID defaults[2]; } ca_context;
 typedef struct ca_leg { ha_stream *owner; AudioUnit unit; uint32_t leg, initialized, started; atomic_uint callbacks; } ca_leg;
 typedef struct ca_stream {
+#if HA_COREAUDIO_DIAGNOSTICS
+    /* First member for source-private qualification snapshots after retire. */
+    hail_ca_trace trace;
+#endif
     ca_leg legs[2];
     atomic_uint callbacks;
     uint32_t flushing, flush_running;
     unsigned char input[HA_MAX_QUANTUM * 8u];
 } ca_stream;
+
+#if HA_COREAUDIO_DIAGNOSTICS
+static uint64_t ca_trace_now(void) { return AudioConvertHostTimeToNanos(mach_absolute_time()); }
+static void ca_trace_callback(ca_stream *a, uint32_t leg, uint32_t frames,
+                              uint32_t rate, uint64_t entry)
+{
+    hail_ca_callback_trace *t = &a->trace.leg[leg];
+    uint64_t duration = ca_trace_now() - entry, bin = duration / 10000u;
+    ++t->calls; t->frames += frames; t->duration_ns += duration;
+    if (duration > t->max_duration_ns) t->max_duration_ns = duration;
+    ++t->duration_hist[bin < HAIL_CA_TRACE_BINS ? bin : HAIL_CA_TRACE_BINS - 1u];
+    if (t->last_entry_ns) {
+        uint64_t interval = entry - t->last_entry_ns;
+        uint64_t jitter = interval > t->last_period_ns ? interval - t->last_period_ns : t->last_period_ns - interval;
+        ++t->interval_count; t->interval_ns += interval;
+        if (interval > t->max_interval_ns) t->max_interval_ns = interval;
+        if (jitter > t->max_jitter_ns) t->max_jitter_ns = jitter;
+        bin = jitter / 10000u;
+        ++t->jitter_hist[bin < HAIL_CA_TRACE_BINS ? bin : HAIL_CA_TRACE_BINS - 1u];
+    }
+    t->last_entry_ns = entry;
+    t->last_period_ns = (uint64_t)frames * 1000000000u / rate;
+}
+#define CA_CONTROL(a, index, call) do { \
+    uint64_t ca_begin = ca_trace_now(), ca_elapsed; \
+    hail_ca_control_trace *ca_t = &(a)->trace.flush[index]; \
+    status = (call); ca_elapsed = ca_trace_now() - ca_begin; \
+    ++ca_t->calls; ca_t->total_ns += ca_elapsed; ca_t->last_status = status; \
+    if (ca_elapsed > ca_t->max_ns) ca_t->max_ns = ca_elapsed; \
+} while (0)
+#else
+#define CA_CONTROL(a, index, call) do { status = (call); } while (0)
+#endif
 
 static ha_result ca_result(OSStatus status)
 {
@@ -120,12 +162,22 @@ static ha_result ca_context_free(ha_context *c)
 }
 static void ca_context_poll(ha_context *c)
 {
-    ca_context *p = c->backend_state; uint32_t leg;
+    ca_context *p = c->backend_state; uint32_t leg, i;
     for (leg = 0; leg < 2; ++leg) {
         AudioDeviceID device = 0; UInt32 bytes = sizeof(device);
         if (!ca_get(kAudioObjectSystemObject, ca_properties[leg + 1u], kAudioObjectPropertyScopeGlobal, &device, &bytes) && device != p->defaults[leg]) {
             p->defaults[leg] = device; atomic_store_explicit(&c->registry_dirty, 1, memory_order_release);
         }
+    }
+    /* Observe a known denial/revocation on the control owner. Never query
+     * authorization on an audio callback or fall back to another endpoint. */
+    for (i = 0; i < c->max_streams; ++i) if (c->streams[i] && c->streams[i]->info.capture_slots) {
+        if (hail_coreaudio_capture_permission() == HA_PERMISSION_DENIED) {
+            uint32_t j;
+            for (j = i; j < c->max_streams; ++j) if (c->streams[j] && c->streams[j]->info.capture_slots)
+                hail_rt_error(c->streams[j], 0, HA_PERMISSION_DENIED, 0);
+        }
+        break;
     }
 }
 static int ca_native_format(AudioDeviceID device, uint32_t leg, ha_format *format)
@@ -155,6 +207,7 @@ static ha_result ca_probe(ha_context *c, uint64_t id, const ha_format *f, uint32
     uint32_t leg; OSStatus status;
     if (!d) return HA_DEVICE_UNAVAILABLE;
     leg = d->info.direction == HA_CAPTURE ? 0u : 1u;
+    if (!leg && hail_coreaudio_capture_permission() == HA_PERMISSION_DENIED) return HA_PERMISSION_DENIED;
     status = ca_get((AudioDeviceID)d->native_id, kAudioDevicePropertyNominalSampleRate, kAudioObjectPropertyScopeGlobal, &rate, &bytes);
     if (status) return ca_result(status);
     if (rate != (double)f->sample_rate) return HA_FORMAT_UNSUPPORTED; /* AUHAL does not change device clock rate. */
@@ -176,6 +229,9 @@ static OSStatus ca_audio(void *user, AudioUnitRenderActionFlags *action, const A
     uint32_t bpf = l->leg ? s->playback.bytes_per_frame : s->capture.bytes_per_frame, offset = 0;
     uint64_t host = 0, position = 0; uint32_t flags = 0; int entered = 0;
     AudioBufferList input; OSStatus status = noErr; unsigned char *data = NULL;
+#if HA_COREAUDIO_DIAGNOSTICS
+    uint64_t trace_entry = ca_trace_now();
+#endif
     (void)bus;
     atomic_fetch_add_explicit(&a->callbacks, 1, memory_order_acquire);
     atomic_fetch_add_explicit(&l->callbacks, 1, memory_order_acquire);
@@ -216,7 +272,13 @@ static OSStatus ca_audio(void *user, AudioUnitRenderActionFlags *action, const A
     }
 done:
     if (status) hail_rt_error(s, l->leg, ca_result(status), status);
-    if (entered) hail_rt_leave(s, l->leg);
+    if (entered) {
+#if HA_COREAUDIO_DIAGNOSTICS
+        ca_trace_callback(a, l->leg, frames,
+            l->leg ? s->info.playback_format.sample_rate : s->info.capture_format.sample_rate, trace_entry);
+#endif
+        hail_rt_leave(s, l->leg);
+    }
     atomic_fetch_sub_explicit(&l->callbacks, 1, memory_order_release);
     atomic_fetch_sub_explicit(&a->callbacks, 1, memory_order_release);
     return status;
@@ -290,9 +352,18 @@ static ha_result ca_open(ha_stream *s)
 static ha_result ca_start(ha_stream *s)
 {
     ca_stream *a = s->backend_state; uint32_t i;
+    if (s->info.capture_slots && hail_coreaudio_capture_permission() == HA_PERMISSION_DENIED) return HA_PERMISSION_DENIED;
     for (i = 0; i < 2; ++i) if (a->legs[i].unit) {
         OSStatus status = AudioOutputUnitStart(a->legs[i].unit);
-        if (status) { uint32_t j; for (j = 0; j < 2; ++j) if (a->legs[j].unit) { AudioOutputUnitStop(a->legs[j].unit); a->legs[j].started = 0; } return ca_result(status); }
+        if (status) {
+            uint32_t j;
+            /* A failed rollback stop is not proof of quiescence. Retain that
+             * leg as possibly started so stop/retire retries the SDK call.
+             * Also stop the failed-start leg: native partial start is unknown. */
+            for (j = 0; j <= i; ++j) if (a->legs[j].unit)
+                a->legs[j].started = AudioOutputUnitStop(a->legs[j].unit) ? 1u : 0u;
+            return ca_result(status);
+        }
         a->legs[i].started = 1;
     }
     return HA_OK;
@@ -323,13 +394,13 @@ static ha_result ca_flush(ha_stream *s)
     ca_stream *a = s->backend_state; ca_leg *l = &a->legs[1]; OSStatus status = noErr;
     if (!a->flushing) {
         a->flush_running = l->started;
-        if (l->started) status = AudioOutputUnitStop(l->unit);
+        if (l->started) { CA_CONTROL(a, 0, AudioOutputUnitStop(l->unit)); }
         if (status) return ca_result(status);
         l->started = 0; a->flushing = 1;
     }
     if (atomic_load_explicit(&l->callbacks, memory_order_acquire)) return HA_PENDING;
-    if (!status) status = AudioUnitReset(l->unit, kAudioUnitScope_Global, 0);
-    if (!status && a->flush_running) { status = AudioOutputUnitStart(l->unit); if (!status) l->started = 1; }
+    if (!status) { CA_CONTROL(a, 1, AudioUnitReset(l->unit, kAudioUnitScope_Global, 0)); }
+    if (!status && a->flush_running) { CA_CONTROL(a, 2, AudioOutputUnitStart(l->unit)); if (!status) l->started = 1; }
     a->flushing = 0;
     return ca_result(status);
 }

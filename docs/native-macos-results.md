@@ -1,5 +1,9 @@
 # Native macOS physical streaming results
 
+Follow-up: [additional native qualification](native-macos-followup.md) records
+loaded duplex, callback/flush traces, aggregate removal/default changes, and a
+rollback fix. This page preserves the first trial's historical scope.
+
 Partial qualification on 2026-11-17; this is not full production acceptance of
 [the native goal](native-macos-goal.md). Physical execution is now demonstrated.
 The independent known-PCM, hotplug and calibrated physical-latency requirements

@@ -1,0 +1,62 @@
+Retained qualification attempts, 2026-11-17. All audio samples stay in memory.
+
+Loaded trace trial: exit 0; digital silence submitted to built-in output.
+4 independent Python SHA256 CPU workers, cleaned up at trial end. Native
+rollback/registry tests and a permission experiment were also run near the
+process end; this is not a CPU-only isolated benchmark. The exact initial
+source/binary hashes are in trace-loaded-duplex.json; snapshot predates rollback fix.
+
+Rollback before fix: exit 1 at capture_started_after_failed_stop==1; actual
+AUHAL capture stop was intentionally failed by the test wrapper but state was
+incorrectly cleared. After-fix Release and ASan/UBSan: exit 0. Native objects
+are real; the errors are injected, not spontaneous hardware observations.
+
+Registry private Release: exit 0. Registry public/default Release: exit 0.
+Private shared Release: exit 0. Public/default ASan/UBSan: exit 0.
+Both built-in defaults restored and no owned aggregate survived final enumeration.
+
+Permission attempts:
+- Direct signed sandbox child: context/open/start succeeded, no explicit denial;
+  failed exit 1. AVFoundation status=3 on the status-reporting variant, so this
+  did not establish a denied OS precondition. Direct execution inherited the
+  authorized responsible process.
+- One status-reporting build initially failed because _POSIX_C_SOURCE hid types
+  required by AVFoundation SDK headers. A chained copy accidentally ran the
+  previous binary; os-permission-status.log is that stale-binary failed attempt,
+  not evidence for the status-reporting source. _DARWIN_C_SOURCE fixed compilation.
+- Corrected direct status-reporting build: status=3, no denial, exit 1.
+- LaunchServices signed app: initial status=0; old version entered native unit
+  open without first requesting host authorization. A stack sample shows a HAL
+  property IPC wait. Eventually open/start succeeded without explicit denial;
+  failed qualification, no captured sample authorization/content claim.
+- Corrected host requests ordinary AVFoundation authorization before Hail open.
+  Status remained undetermined during the trial; no decision arrived. The owned
+  process was terminated with SIGTERM after stack/log retention. No privacy
+  database, reset, grant or access bypass was used. This is unqualified, not a pass.
+
+Build checks:
+- An initial shared build incorrectly included the source-private fault executable,
+  which cannot link hidden Hail helpers. Restricted that executable to static
+  builds; shared public-API registry and physical tests remain available. No
+  private symbol was exported to make it link.
+- AppleClang static analysis of current instrumented core/backend: exit 0, empty log.
+- Static/shared/LLVM ASan portable suites, installed consumers and export checks
+  retained individually; inspect logs rather than inferring device success from
+  a portable pass.
+
+Publication:
+- Configured git commit signing attempted; gpg failed to sign the data and no
+  commit object was written. Signing configuration was not disabled. Code is
+  staged locally; extended sixteen-format CI has not run on the new source.
+
+Owner-requested denial rerun:
+- os-permission-rerun.json: macOS transitioned undetermined -> denied (2),
+  but native Hail open/start succeeded. Actual denied precondition was observed;
+  the test failed, unlike the earlier unqualified-precondition attempts.
+- Added a private AVFoundation status query on control paths only. Known denied/
+  restricted capture now returns HA_PERMISSION_DENIED at probe/open/start and
+  is reported for existing capture streams during context poll. The query never
+  requests access or changes privacy settings; no public ABI changed.
+- os-permission-rerun-after-fix.json: OS denial (2), context success, open reports
+  permission denied, destruction completes; passed=true, no timeout or reset.
+- Revocation polling is implemented; a real live OS revocation trial is not claimed.

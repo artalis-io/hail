@@ -1,0 +1,55 @@
+UpdateCTestConfiguration  from :/Users/runner/work/hail/hail/build-asan/DartConfiguration.tcl
+Test project /Users/runner/work/hail/hail/build-asan
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 2
+    Start 2: coreaudio_loopback
+
+2: Test command: /Users/runner/work/hail/hail/build-asan/hail_coreaudio_loopback
+2: Working Directory: /Users/runner/work/hail/hail/build-asan
+2: Environment variables: 
+2:  HA_TEST_COREAUDIO_LOOPBACK=1
+2: Test timeout computed to be: 45
+2: profile=instrumented-reported-gaps
+2: fixture=BlackHole 2ch uid=BlackHole2ch_UID rate=48000
+2: {"verified_frames":[47616,39680,42496],"bad_samples_or_order":0,"capture_frame_gaps":0,"zero_frames":19712,"flush_ack_us":106821.000,"capture_lost_frames":0,"underrun_frames":12288,"hail_peak_bytes":351168,"steady_hail_allocations":0}
+2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=instrumented-reported-gaps
+2: PASS CoreAudio nonzero duplex, flush/capture continuity, stale writes, stop/restart and teardown
+    Test #2: coreaudio_loopback ...............   Passed    4.00 sec
+    Start 2: coreaudio_loopback
+
+2: Test command: /Users/runner/work/hail/hail/build-asan/hail_coreaudio_loopback
+2: Working Directory: /Users/runner/work/hail/hail/build-asan
+2: Environment variables: 
+2:  HA_TEST_COREAUDIO_LOOPBACK=1
+2: Test timeout computed to be: 45
+2: profile=instrumented-reported-gaps
+2: fixture=BlackHole 2ch uid=BlackHole2ch_UID rate=48000
+2: {"verified_frames":[47104,41728,43776],"bad_samples_or_order":0,"capture_frame_gaps":0,"zero_frames":14336,"flush_ack_us":46808.000,"capture_lost_frames":0,"underrun_frames":10240,"hail_peak_bytes":351168,"steady_hail_allocations":0}
+2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=instrumented-reported-gaps
+2: PASS CoreAudio nonzero duplex, flush/capture continuity, stale writes, stop/restart and teardown
+    Test #2: coreaudio_loopback ...............   Passed    3.65 sec
+    Start 2: coreaudio_loopback
+
+2: Test command: /Users/runner/work/hail/hail/build-asan/hail_coreaudio_loopback
+2: Working Directory: /Users/runner/work/hail/hail/build-asan
+2: Environment variables: 
+2:  HA_TEST_COREAUDIO_LOOPBACK=1
+2: Test timeout computed to be: 45
+2: profile=instrumented-reported-gaps
+2: fixture=BlackHole 2ch uid=BlackHole2ch_UID rate=48000
+2: {"verified_frames":[46336,41216,42240],"bad_samples_or_order":0,"capture_frame_gaps":0,"zero_frames":18688,"flush_ack_us":92118.000,"capture_lost_frames":0,"underrun_frames":12544,"hail_peak_bytes":351168,"steady_hail_allocations":0}
+2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=instrumented-reported-gaps
+2: PASS CoreAudio nonzero duplex, flush/capture continuity, stale writes, stop/restart and teardown
+1/1 Test #2: coreaudio_loopback ...............   Passed    3.76 sec
+
+The following tests passed:
+	coreaudio_loopback
+
+100% tests passed out of 1
+
+Total Test time (real) =  11.42 sec

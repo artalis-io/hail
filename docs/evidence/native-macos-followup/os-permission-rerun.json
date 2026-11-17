@@ -1,0 +1,31 @@
+{
+  "command": [
+    "open",
+    "-W",
+    "-n",
+    "-g",
+    "--stdout",
+    "/Users/mark/artalis.io/src/hail/build-native-macos/permission-app-stdout.log",
+    "--stderr",
+    "/Users/mark/artalis.io/src/hail/build-native-macos/permission-app-stderr.log",
+    "/Users/mark/artalis.io/src/hail/build-native-macos/HailPermissionDenied.app",
+    "--args",
+    "MacBook Pro Microphone"
+  ],
+  "elapsed_s": 5.45340795814991,
+  "launch_exit": 0,
+  "timed_out": false,
+  "passed": false,
+  "stdout": "microphone_authorization_status=0\nhost_authorization_denied=1\ncontext=success\nopen=success\nstart=pending\nunexpected_running_after_permission_window\nFAIL no explicit permission denial observed\n",
+  "stderr": "microphone_authorization_before=0\nmicrophone_authorization_after=2\n",
+  "binary_sha256": "f999ef5e60e700e228ce02c0b39a115005da53006290524690308f98bd9dafc6",
+  "entitlements": {
+    "com.apple.security.app-sandbox": true
+  },
+  "no_privacy_reset": true,
+  "source_sha256": {
+    "src/backend_coreaudio.c": "f4de05641ab4413ff4a1dd5d86569b51f0f5d99ddfe9c942e4bab35d3d5bcdf1",
+    "tests/coreaudio_permission.m": "ede16fe8d1584b3654ab3a9d4aa4c750b8712ba93957c2d5b723eb9a5368615b",
+    "tests/coreaudio_authorize.m": "2ec4b76cb8423fbb063f21295fc6b59bb811bf3ed8a3fc1765637552aa5a3d0c"
+  }
+}

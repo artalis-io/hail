@@ -1,0 +1,6 @@
+microphone_authorization_status=3
+context=success
+open=success
+start=pending
+unexpected_authorized_start
+FAIL no explicit permission denial observed

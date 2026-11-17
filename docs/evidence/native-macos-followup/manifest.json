@@ -1,0 +1,228 @@
+{
+  "source_base": "015abcf79a7424cd0200a792e55beb55e490957b",
+  "working_tree_sha256": {
+    "src/backend_alsa.c": "d7b7ab96d269dfc56ec0182d1cadd1d8a563391ff31e361604f6ddf2d33ca2fc",
+    "src/backend_coreaudio.c": "eedf0b86b8f42b603eec422ead1f2b2c98363c38d35e0f618407eeccaf7084f6",
+    "src/backend_pipewire.c": "a06060f7c04cf027d33998afdc9d075dcecf1223f2fd7505e9593f69e137cb22",
+    "src/backend_wasapi.c": "16f2b188dcc4d6d50566c63083d10ee53a09451e284a71e87a2bbada4eb15c46",
+    "src/core.c": "4d2b9693c3ab811b38742ad29a1eefe132e134bc03759ee6e12845f62f2c218f",
+    "src/coreaudio_diagnostics.h": "0840bfef7e8beae9fafcacce5628ea9a72d1d54a9ec43f904ea089aec5c54ea8",
+    "src/hail_internal.h": "7b73aebdaf4ce15f382a7d455b203213a53957a1d1ecbeb04fb934bef1b0f1b1",
+    "src/hosted.c": "0920c557a6a478c26b630c0585f8b2931813d6a6e046f0f81ce51988dea0561a",
+    "src/native.c": "4d51a97b954b9d357ca8a27e38cf7d4ea65629f64218bd9be1f51d7cbf209202",
+    "src/queue.c": "7acdd71a0bc3575b4f2f36bd73c5adb19cd69a5a5381239e59de76ba5fe04d22",
+    "src/virtual.c": "076d684b86e8fdf49541f1a306ac994e68f58702b1e235f7e73f0c9de845c214",
+    "tests/coreaudio_authorize.m": "2ec4b76cb8423fbb063f21295fc6b59bb811bf3ed8a3fc1765637552aa5a3d0c",
+    "tests/coreaudio_faults.c": "a50b7c609eba20b822c637f03c385690ff2df9ab5ff4a32fb4c5fa38c8f00712",
+    "tests/coreaudio_loopback.c": "6f424403bb4f792c41485a67b6fa40dcc158e4404e674a7eb638a90d405ac528",
+    "tests/coreaudio_permission.m": "ede16fe8d1584b3654ab3a9d4aa4c750b8712ba93957c2d5b723eb9a5368615b",
+    "tests/coreaudio_physical.c": "ee8cd12a1ec0249300a9f969047d9b7f4a2a69be85de15b50a82bc7e4b5f622a",
+    "tests/coreaudio_registry.c": "c8af36d76371a71b943aebffac63192b49c4ce8aebf87d8f6a125a61c6b035be",
+    "CMakeLists.txt": "fd57ea33a6962ebfd74cb81b75c212d4b058e29ff8c6b977272b188e790f1cab",
+    ".github/workflows/coreaudio-loopback.yml": "9c68ce8dd8f22737871de9f733bf6fa34df94643e01e900155de21e5447b67cf",
+    "tools/run_coreaudio_physical.py": "a37a9b4606811e8c42eb5e15676c21300f2893102440db2eb49d5949a195680d",
+    "tools/run_coreaudio_permission.py": "fe063b9c5227a422ac0e34139be23e78e6856d53d13d0a80f23345ac098b8516",
+    "src/coreaudio_permission.m": "b822108e4bd3ba615c8a585c8e8b8e87cd4242db40a7205854bab484db0a16fb"
+  },
+  "checks": {
+    "asan-portable.log": {
+      "exit_code": 0,
+      "tests": 5,
+      "failed": 0
+    },
+    "shared-consumers.log": {
+      "exit_code": 0,
+      "tests": 2,
+      "failed": 0
+    },
+    "shared-portable.log": {
+      "exit_code": 0,
+      "tests": 4,
+      "failed": 0
+    },
+    "static-consumers.log": {
+      "exit_code": 0,
+      "tests": 2,
+      "failed": 0
+    },
+    "static-portable.log": {
+      "exit_code": 0,
+      "tests": 5,
+      "failed": 0
+    },
+    "rollback-after-fix.log": {
+      "exit_code": 0
+    },
+    "rollback-asan.log": {
+      "exit_code": 0
+    },
+    "registry-private-release.log": {
+      "exit_code": 0
+    },
+    "registry-defaults-release.log": {
+      "exit_code": 0
+    },
+    "registry-defaults-asan.log": {
+      "exit_code": 0
+    },
+    "registry-shared.log": {
+      "exit_code": 0
+    },
+    "static-contracts.log": {
+      "exit_code": 0,
+      "public_symbols": 27
+    },
+    "shared-contracts.log": {
+      "exit_code": 0,
+      "public_symbols": 27
+    },
+    "static-analysis.log": {
+      "exit_code": 0,
+      "diagnostics": 0
+    },
+    "denial-fix-shared-contracts.log": {
+      "exit_code": 0,
+      "public_symbols": 27
+    },
+    "denial-fix-static-contracts.log": {
+      "exit_code": 0,
+      "public_symbols": 27
+    },
+    "denial-fix-shared-consumers.log": {
+      "exit_code": 0,
+      "tests": 2,
+      "failed": 0
+    },
+    "denial-fix-shared-portable.log": {
+      "exit_code": 0,
+      "tests": 4,
+      "failed": 0
+    },
+    "denial-fix-asan-portable.log": {
+      "exit_code": 0,
+      "tests": 5,
+      "failed": 0
+    },
+    "denial-fix-permission-analysis.log": {
+      "exit_code": 0,
+      "diagnostics": 0
+    },
+    "denial-fix-static-portable.log": {
+      "exit_code": 0,
+      "tests": 5,
+      "failed": 0
+    },
+    "denial-fix-static-consumers.log": {
+      "exit_code": 0,
+      "tests": 2,
+      "failed": 0
+    },
+    "os-permission-rerun.json": {
+      "passed": false,
+      "os_authorization_after": 2,
+      "native_capture_open_unexpectedly_succeeded": true
+    },
+    "os-permission-rerun-after-fix.json": {
+      "passed": true,
+      "os_authorization_after": 2,
+      "open_result": "HA_PERMISSION_DENIED"
+    }
+  },
+  "qualification_complete": false,
+  "publication": "git commit attempted; gpg failed to sign; no signing configuration overridden",
+  "unqualified": [
+    "extended BlackHole format matrix prepared but not published/executed",
+    "physical USB/Bluetooth removal not available",
+    "calibrated physical latency fixture not available"
+  ],
+  "fixtures_restored": {
+    "owned_aggregates_destroyed": true,
+    "original_output_default_restored": true,
+    "microphone_default_unchanged": true
+  },
+  "builds": {
+    "build-native-macos": {
+      "CMAKE_BUILD_TYPE": "Release",
+      "CMAKE_CXX_COMPILER": "/Library/Developer/CommandLineTools/usr/bin/c++",
+      "CMAKE_C_COMPILER": "/Library/Developer/CommandLineTools/usr/bin/cc",
+      "CMAKE_OBJC_COMPILER": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "CMAKE_OSX_SYSROOT": "/Library/Developer/CommandLineTools/SDKs/MacOSX26.2.sdk",
+      "HA_BACKEND_ALSA": "OFF",
+      "HA_BACKEND_COREAUDIO": "ON",
+      "HA_BACKEND_PIPEWIRE": "OFF",
+      "HA_BACKEND_VIRTUAL": "ON",
+      "HA_BACKEND_WASAPI": "OFF",
+      "HA_BUILD_EXAMPLES": "ON",
+      "HA_BUILD_FUZZER": "OFF",
+      "HA_BUILD_NATIVE_TESTS": "ON",
+      "HA_BUILD_SHARED": "OFF",
+      "HA_BUILD_TESTS": "ON",
+      "HA_COREAUDIO_DIAGNOSTICS": "OFF",
+      "HA_FREESTANDING": "OFF",
+      "HA_SANITIZER": ""
+    },
+    "build-native-macos-shared": {
+      "CMAKE_BUILD_TYPE": "Release",
+      "CMAKE_CXX_COMPILER": "/Library/Developer/CommandLineTools/usr/bin/c++",
+      "CMAKE_C_COMPILER": "/Library/Developer/CommandLineTools/usr/bin/cc",
+      "CMAKE_OBJC_COMPILER": "/Library/Developer/CommandLineTools/usr/bin/cc",
+      "CMAKE_OSX_SYSROOT": "/Library/Developer/CommandLineTools/SDKs/MacOSX26.2.sdk",
+      "HA_BACKEND_ALSA": "OFF",
+      "HA_BACKEND_COREAUDIO": "ON",
+      "HA_BACKEND_PIPEWIRE": "OFF",
+      "HA_BACKEND_VIRTUAL": "ON",
+      "HA_BACKEND_WASAPI": "OFF",
+      "HA_BUILD_EXAMPLES": "ON",
+      "HA_BUILD_FUZZER": "OFF",
+      "HA_BUILD_NATIVE_TESTS": "ON",
+      "HA_BUILD_SHARED": "ON",
+      "HA_BUILD_TESTS": "ON",
+      "HA_COREAUDIO_DIAGNOSTICS": "OFF",
+      "HA_FREESTANDING": "OFF",
+      "HA_SANITIZER": ""
+    },
+    "build-native-macos-trace": {
+      "CMAKE_BUILD_TYPE": "Release",
+      "CMAKE_CXX_COMPILER": "/Library/Developer/CommandLineTools/usr/bin/c++",
+      "CMAKE_C_COMPILER": "/Library/Developer/CommandLineTools/usr/bin/cc",
+      "CMAKE_OBJC_COMPILER": "/Library/Developer/CommandLineTools/usr/bin/cc",
+      "CMAKE_OSX_SYSROOT": "/Library/Developer/CommandLineTools/SDKs/MacOSX26.2.sdk",
+      "HA_BACKEND_ALSA": "OFF",
+      "HA_BACKEND_COREAUDIO": "ON",
+      "HA_BACKEND_PIPEWIRE": "OFF",
+      "HA_BACKEND_VIRTUAL": "ON",
+      "HA_BACKEND_WASAPI": "OFF",
+      "HA_BUILD_EXAMPLES": "ON",
+      "HA_BUILD_FUZZER": "OFF",
+      "HA_BUILD_NATIVE_TESTS": "ON",
+      "HA_BUILD_SHARED": "OFF",
+      "HA_BUILD_TESTS": "ON",
+      "HA_COREAUDIO_DIAGNOSTICS": "ON",
+      "HA_FREESTANDING": "OFF",
+      "HA_SANITIZER": ""
+    },
+    "build-native-macos-asan-llvm": {
+      "CMAKE_BUILD_TYPE": "Debug",
+      "CMAKE_CXX_COMPILER": "/opt/homebrew/opt/llvm/bin/clang++",
+      "CMAKE_C_COMPILER": "/opt/homebrew/opt/llvm/bin/clang",
+      "CMAKE_OBJC_COMPILER": "/opt/homebrew/opt/llvm/bin/clang",
+      "CMAKE_OSX_SYSROOT": "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "HA_BACKEND_ALSA": "OFF",
+      "HA_BACKEND_COREAUDIO": "ON",
+      "HA_BACKEND_PIPEWIRE": "OFF",
+      "HA_BACKEND_VIRTUAL": "ON",
+      "HA_BACKEND_WASAPI": "OFF",
+      "HA_BUILD_EXAMPLES": "ON",
+      "HA_BUILD_FUZZER": "OFF",
+      "HA_BUILD_NATIVE_TESTS": "ON",
+      "HA_BUILD_SHARED": "OFF",
+      "HA_BUILD_TESTS": "ON",
+      "HA_COREAUDIO_DIAGNOSTICS": "OFF",
+      "HA_FREESTANDING": "OFF",
+      "HA_SANITIZER": "address"
+    }
+  },
+  "raw_log_whitespace": "Preserved verbatim, including CTest trailing spaces. Source/documentation diff whitespace checked separately.",
+  "known_os_denial_qualified": true,
+  "live_permission_revocation_trial": "Not exercised; control polling guard implemented."
+}

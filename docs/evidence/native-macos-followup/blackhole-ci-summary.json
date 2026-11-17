@@ -1,0 +1,213 @@
+{
+  "run_id": 44113827497,
+  "head_sha": "015abcf79a7424cd0200a792e55beb55e490957b",
+  "url": "https://github.com/artalis-io/hail/actions/runs/44113827497",
+  "profiles": {
+    "repeat-OFF.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            47872,
+            46336,
+            46848
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 5376,
+          "flush_ack_us": 36546.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 1280,
+          "hail_peak_bytes": 351168,
+          "steady_hail_allocations": 0
+        },
+        {
+          "verified_frames": [
+            47616,
+            46848,
+            46848
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 5632,
+          "flush_ack_us": 52442.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 1024,
+          "hail_peak_bytes": 351168,
+          "steady_hail_allocations": 0
+        },
+        {
+          "verified_frames": [
+            47872,
+            46592,
+            46848
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 7680,
+          "flush_ack_us": 100681.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 512,
+          "hail_peak_bytes": 351168,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "reported_gap_lines": [
+        "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+        "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+        "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ]
+    },
+    "repeat-ON.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            47616,
+            47104,
+            47104
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 5120,
+          "flush_ack_us": 48158.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 512,
+          "hail_peak_bytes": 351168,
+          "steady_hail_allocations": 0
+        },
+        {
+          "verified_frames": [
+            47872,
+            46592,
+            46592
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 7936,
+          "flush_ack_us": 101413.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 768,
+          "hail_peak_bytes": 351168,
+          "steady_hail_allocations": 0
+        },
+        {
+          "verified_frames": [
+            47872,
+            45056,
+            43008
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 12032,
+          "flush_ack_us": 82373.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 5888,
+          "hail_peak_bytes": 351168,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "reported_gap_lines": [
+        "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+        "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity",
+        "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ]
+    },
+    "tests-ON.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            47872,
+            46336,
+            46848
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 4864,
+          "flush_ack_us": 36297.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 768,
+          "hail_peak_bytes": 351168,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "reported_gap_lines": [
+        "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ]
+    },
+    "tests-OFF.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            46848,
+            46592,
+            46848
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 8192,
+          "flush_ack_us": 76349.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 2560,
+          "hail_peak_bytes": 351168,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "reported_gap_lines": [
+        "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=strict-continuity"
+      ]
+    },
+    "asan.log": {
+      "measurements": [
+        {
+          "verified_frames": [
+            47616,
+            39680,
+            42496
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 19712,
+          "flush_ack_us": 106821.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 12288,
+          "hail_peak_bytes": 351168,
+          "steady_hail_allocations": 0
+        },
+        {
+          "verified_frames": [
+            47104,
+            41728,
+            43776
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 14336,
+          "flush_ack_us": 46808.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 10240,
+          "hail_peak_bytes": 351168,
+          "steady_hail_allocations": 0
+        },
+        {
+          "verified_frames": [
+            46336,
+            41216,
+            42240
+          ],
+          "bad_samples_or_order": 0,
+          "capture_frame_gaps": 0,
+          "zero_frames": 18688,
+          "flush_ack_us": 92118.0,
+          "capture_lost_frames": 0,
+          "underrun_frames": 12544,
+          "hail_peak_bytes": 351168,
+          "steady_hail_allocations": 0
+        }
+      ],
+      "reported_gap_lines": [
+        "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=instrumented-reported-gaps",
+        "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=instrumented-reported-gaps",
+        "2: reported_clock_discontinuities=0 reported_sample_gaps=0 profile=instrumented-reported-gaps"
+      ]
+    }
+  }
+}

@@ -12,6 +12,10 @@
 #include <math.h>
 #include <sys/resource.h>
 #include <mach/mach_time.h>
+#if HA_COREAUDIO_DIAGNOSTICS
+#include "hail_internal.h"
+#include "coreaudio_diagnostics.h"
+#endif
 
 /* Explicit opt-in physical exercise. Never records or routes microphone PCM.
  * No arguments: enumerate only. Otherwise:
@@ -30,6 +34,25 @@ static atomic_uint_fast64_t captured;
 static uint64_t nonzero, gaps, resets, age_count, age_total, age_max, future_times;
 static uint64_t age_hist[1001];
 static uint32_t channels, pcm_kind;
+static uint32_t silent_playback;
+#if HA_COREAUDIO_DIAGNOSTICS
+static void print_trace(const hail_ca_trace *trace)
+{
+    uint32_t leg,i; const char *names[]={"stop","reset","restart"};
+    for(leg=0;leg<2;++leg) {
+        const hail_ca_callback_trace *t=&trace->leg[leg];
+        printf("{\"callback_leg\":%u,\"calls\":%llu,\"frames\":%llu,\"admitted_body_total_ns\":%llu,\"admitted_body_max_ns\":%llu,\"interval_count\":%llu,\"interval_total_ns\":%llu,\"interval_max_ns_including_transitions\":%llu,\"jitter_max_ns_including_transitions\":%llu,\"bin_width_ns\":10000,\"body_hist\":[",leg,(unsigned long long)t->calls,(unsigned long long)t->frames,(unsigned long long)t->duration_ns,(unsigned long long)t->max_duration_ns,(unsigned long long)t->interval_count,(unsigned long long)t->interval_ns,(unsigned long long)t->max_interval_ns,(unsigned long long)t->max_jitter_ns);
+        for(i=0;i<HAIL_CA_TRACE_BINS;++i) printf("%s%llu",i?",":"",(unsigned long long)t->duration_hist[i]);
+        printf("],\"jitter_hist\":[");
+        for(i=0;i<HAIL_CA_TRACE_BINS;++i) printf("%s%llu",i?",":"",(unsigned long long)t->jitter_hist[i]);
+        puts("]}");
+    }
+    for(i=0;i<3;++i) {
+        const hail_ca_control_trace *t=&trace->flush[i];
+        printf("{\"flush_native_call\":\"%s\",\"calls\":%llu,\"total_ns\":%llu,\"max_ns\":%llu,\"last_status\":%d}\n",names[i],(unsigned long long)t->calls,(unsigned long long)t->total_ns,(unsigned long long)t->max_ns,t->last_status);
+    }
+}
+#endif
 static void *HA_CALL allocate(void *u,size_t n,size_t a)
 { void *p=NULL; (void)u; if(posix_memalign(&p,a,n)) return NULL; ++allocations; live_bytes+=n; if(live_bytes>peak_bytes) peak_bytes=live_bytes; return p; }
 static void HA_CALL deallocate(void *u,void *p,size_t n,size_t a)
@@ -102,6 +125,7 @@ static void fill_playback(uint64_t generation,uint32_t rate,uint64_t *position)
             uint32_t period=rate/375u,phase=(uint32_t)((*position+i)%period);
             float sample=0.005f*(4.0f*(float)phase/(float)period-1.0f);
             if(phase>=period/2u) sample=0.005f*(3.0f-4.0f*(float)phase/(float)period);
+            if(silent_playback) sample=0;
             for(c=0;c<channels;++c) { if(pcm_kind==HA_PCM_F32) data.f[i*channels+c]=sample; else data.s[i*channels+c]=(int16_t)(sample*32767.0f); }
         }
         ha_result r=ha_stream_write(stream,&data,Q,generation,&n);
@@ -138,6 +162,10 @@ int main(int argc,char **argv)
     uint64_t start_ns,end_ns,flush_begin,flush_end,before_capture,after_capture,initial_epoch;
     uint64_t steady_underrun,steady_loss,baseline_underrun,baseline_loss;
     pthread_t reader; int has_reader=0,ok=1; struct rusage usage; ha_result r;
+#if HA_COREAUDIO_DIAGNOSTICS
+    hail_ca_trace trace={0};
+#endif
+    silent_playback=getenv("HA_TEST_SILENT") && !strcmp(getenv("HA_TEST_SILENT"),"1");
     setvbuf(stdout,NULL,_IOLBF,0); atomic_init(&captured,0); atomic_init(&quit_reader,0);
     allocator.allocate=allocate; allocator.deallocate=deallocate; cc.allocator=allocator; cc.backend=HA_BACKEND_COREAUDIO;
     CHECK(ha_context_create(&cc,&context)==HA_OK);
@@ -153,6 +181,7 @@ int main(int argc,char **argv)
     rate=(uint32_t)strtoul(argv[3],NULL,10); channels=(uint32_t)strtoul(argv[4],NULL,10);
     pcm_kind=(uint32_t)strtoul(argv[5],NULL,10); seconds=(uint32_t)strtoul(argv[6],NULL,10);
     CHECK(seconds>=1 && seconds<=3600 && (channels==1 || channels==2) && (pcm_kind==1 || pcm_kind==2));
+    printf("playback_signal=%s\n",silent_playback?"digital-silence":"quiet-triangle");
     ha_format format=HA_FORMAT_INIT(rate,channels,pcm_kind);
     sc.directions=(input?HA_CAPTURE:0u)|(output?HA_PLAYBACK:0u); sc.negotiation=HA_EXACT_APPLICATION;
     ha_device_selector selector=HA_INIT(ha_device_selector); selector.kind=HA_SELECT_RUNTIME_ID;
@@ -189,10 +218,19 @@ int main(int argc,char **argv)
     CHECK(ha_stream_start(stream)==HA_PENDING); wait_state(HA_RUNNING);
     run_for(250000000u,generation,rate,output!=0,&position);
     CHECK(allocations==steady_alloc);
+    s=status();
+    printf("{\"total_underrun_frames_before_close\":%llu,\"transition_underrun_frames\":%llu,\"total_capture_loss_before_close\":%llu}\n",(unsigned long long)s.playback_underrun_frames,(unsigned long long)(s.playback_underrun_frames-baseline_underrun-steady_underrun),(unsigned long long)s.capture_lost_frames);
     CHECK(ha_stream_close_begin(stream)==HA_PENDING);
     if(has_reader) { atomic_store_explicit(&quit_reader,1,memory_order_release); CHECK(!pthread_join(reader,NULL)); }
     uint64_t deadline=now()+10000000000ull;
-    do { progress(); CHECK(now()<deadline); r=ha_stream_close_finish(&stream); CHECK(r==HA_OK || r==HA_PENDING); if(stream) pause_control(); } while(stream);
+    do { progress(); CHECK(now()<deadline);
+#if HA_COREAUDIO_DIAGNOSTICS
+         if(stream->retire_ready) trace=*(const hail_ca_trace *)stream->backend_state;
+#endif
+         r=ha_stream_close_finish(&stream); CHECK(r==HA_OK || r==HA_PENDING); if(stream) pause_control(); } while(stream);
+#if HA_COREAUDIO_DIAGNOSTICS
+    print_trace(&trace);
+#endif
     CHECK(!getrusage(RUSAGE_SELF,&usage));
     printf("{\"duration_s\":%.6f,\"rate\":%u,\"channels\":%u,\"pcm\":%u,\"captured_frames\":%llu,\"nonzero_capture_samples\":%llu,\"capture_gap_observations\":%llu,\"capture_epoch_changes_including_restart\":%llu,\"steady_underrun_frames\":%llu,\"startup_underrun_frames\":%llu,\"steady_capture_loss\":%llu,\"flush_ack_us\":%.3f,\"capture_frames_during_flush\":%llu,\"max_poll_us\":%.3f,\"capture_host_age_mean_us\":%.3f,\"capture_host_age_max_us\":%.3f,\"capture_host_age_p50_bin_ms\":%llu,\"capture_host_age_p95_bin_ms\":%llu,\"capture_host_age_p99_bin_ms\":%llu,\"future_host_times\":%llu,\"cpu_user_s\":%.6f,\"cpu_system_s\":%.6f,\"rss_peak_bytes\":%ld,\"hail_peak_bytes\":%llu,\"steady_hail_allocations\":0}\n",
         (double)(end_ns-start_ns)/1e9,rate,channels,pcm_kind,(unsigned long long)atomic_load(&captured),(unsigned long long)nonzero,(unsigned long long)gaps,(unsigned long long)resets,(unsigned long long)steady_underrun,(unsigned long long)baseline_underrun,(unsigned long long)steady_loss,(double)(flush_end-flush_begin)/1000.0,(unsigned long long)(after_capture-before_capture),(double)poll_max_ns/1000.0,age_count?(double)age_total/(double)age_count/1000.0:0.0,(double)age_max/1000.0,(unsigned long long)age_percentile(50),(unsigned long long)age_percentile(95),(unsigned long long)age_percentile(99),(unsigned long long)future_times,(double)usage.ru_utime.tv_sec+(double)usage.ru_utime.tv_usec/1e6,(double)usage.ru_stime.tv_sec+(double)usage.ru_stime.tv_usec/1e6,usage.ru_maxrss,(unsigned long long)peak_bytes);

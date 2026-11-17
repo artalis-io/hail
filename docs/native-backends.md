@@ -52,6 +52,12 @@ microphone permission dialogs, or change process privacy policy. The host must
 supply its microphone usage description and obtain OS authorization. Windows
 privacy settings and Linux device/session permissions likewise remain binding.
 Probe can activate/configure a native endpoint and is advisory, never a grant.
+CoreAudio queries AVFoundation's existing authorization state on control paths:
+known denied/restricted capture fails explicitly at probe/open/start, and poll
+publishes a permission failure for existing capture streams. AUHAL can otherwise
+open/start despite an OS denial. Undetermined is not a permission grant; hosts
+must authorize physical capture normally. No authorization query runs on audio
+callbacks, and the library never displays a permission request.
 
 ## Timing and reference
 
