@@ -1,0 +1,1 @@
+status=3 warm_iterations=64 cold_ns=8714750 warm_mean_ns=746187 warm_min_ns=635667 warm_max_ns=972750

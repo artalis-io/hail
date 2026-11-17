@@ -1,0 +1,6 @@
+profile=strict-continuity
+fixture_native_period_frames=512
+fixture_rate_change=44100->48000
+fixture=BlackHole 2ch uid=BlackHole2ch_UID rate=48000 channels=1 pcm=1 sequence_mask=4095
+capture epoch changed 1 -> 2 flags=43 logical=50688 raw=51472 expected_raw=50688 previous_host=151639509958 host=151661176625 previous_flags=3 poll_calls=188 poll_max_ns=31075000
+/Users/runner/work/hail/hail/tests/coreaudio_loopback.c:63: instrumented && block.clock_epoch>epoch && (block.flags & HA_BLOCK_DISCONTINUITY)

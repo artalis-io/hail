@@ -1,0 +1,28 @@
+Internal ctest changing into directory: /Users/mark/artalis.io/src/hail/build-native-macos-tsan-llvm
+UpdateCTestConfiguration  from :/Users/mark/artalis.io/src/hail/build-native-macos-tsan-llvm/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/Users/mark/artalis.io/src/hail/build-native-macos-tsan-llvm/DartConfiguration.tcl
+Test project /Users/mark/artalis.io/src/hail/build-native-macos-tsan-llvm
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 2
+    Start 2: coreaudio_permission_worker
+
+2: Test command: /Users/mark/artalis.io/src/hail/build-native-macos-tsan-llvm/hail_coreaudio_permission_worker
+2: Working Directory: /Users/mark/artalis.io/src/hail/build-native-macos-tsan-llvm
+2: Test timeout computed to be: 10
+2: PASS 1000 control polls finish while SDK authorization query is blocked
+2: PASS worker denial is published to the capture leg
+2: PASS fresh synchronous check replaces cached denial
+2: PASS context retirement joins blocked worker before retiring its synchronization storage
+1/1 Test #2: coreaudio_permission_worker ......   Passed    3.28 sec
+
+The following tests passed:
+	coreaudio_permission_worker
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   3.28 sec

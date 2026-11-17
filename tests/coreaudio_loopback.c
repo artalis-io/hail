@@ -17,6 +17,7 @@ static uint64_t captured, verified[4], zero_frames, bad, frame_gaps, last_frame,
 static uint32_t instrumented, pending_gap;
 static uint32_t last_code, last_phase, seen;
 static uint32_t test_rate=48000, test_channels=2, test_pcm=HA_PCM_F32, sequence_mask=65535;
+static uint32_t test_period;
 static uint64_t poll_calls,poll_total_ns,poll_max_ns;
 static uint64_t previous_raw_end,previous_host;
 static uint32_t previous_time_flags;
@@ -128,6 +129,24 @@ static OSStatus rate_changed(AudioObjectID object,UInt32 count,const AudioObject
     (void)object; (void)count; (void)addresses; (void)user;
     atomic_fetch_add_explicit(&rate_notifications,1,memory_order_release); return noErr;
 }
+static void fixture_period(AudioDeviceID device)
+{
+    AudioObjectPropertyAddress address={kAudioDevicePropertyBufferFrameSize,kAudioObjectPropertyScopeGlobal,0};
+    UInt32 period=0,size=sizeof(period);
+    CHECK(!AudioObjectGetPropertyData(device,&address,0,NULL,&size,&period));
+    printf("fixture_native_period_before=%u requested=%u\n",period,test_period);
+    if(test_period && period!=test_period) {
+        uint64_t deadline=now_ns()+5000000000u;
+        atomic_store_explicit(&rate_notifications,0,memory_order_relaxed);
+        CHECK(!AudioObjectAddPropertyListener(device,&address,rate_changed,NULL));
+        period=test_period; CHECK(!AudioObjectSetPropertyData(device,&address,0,NULL,sizeof(period),&period));
+        do { size=sizeof(period); CHECK(!AudioObjectGetPropertyData(device,&address,0,NULL,&size,&period));
+             if(period==test_period && atomic_load_explicit(&rate_notifications,memory_order_acquire)) break;
+             CHECK(now_ns()<deadline); pause_control(); } while(1);
+        CHECK(!AudioObjectRemovePropertyListener(device,&address,rate_changed,NULL));
+    }
+    printf("fixture_native_period_frames=%u\n",period);
+}
 static void fixture_rate(const char *uid)
 {
     AudioDeviceID devices[64],selected=0; UInt32 n=sizeof(devices),i;
@@ -143,11 +162,7 @@ static void fixture_rate(const char *uid)
         }
     }
     CHECK(selected);
-    { UInt32 period=0,size=sizeof(period);
-      address.mSelector=kAudioDevicePropertyBufferFrameSize;
-      CHECK(!AudioObjectGetPropertyData(selected,&address,0,NULL,&size,&period));
-      printf("fixture_native_period_frames=%u\n",period);
-    }
+    atomic_init(&rate_notifications,0);
     { uint64_t deadline=now_ns()+5000000000u;
       address.mSelector=kAudioDevicePropertyDeviceIsRunningSomewhere;
       do { UInt32 running=1,size=sizeof(running);
@@ -157,9 +172,9 @@ static void fixture_rate(const char *uid)
     address.mSelector=kAudioDevicePropertyNominalSampleRate;
     { Float64 rate=0; UInt32 size=sizeof(rate); uint64_t deadline=now_ns()+5000000000u;
       CHECK(!AudioObjectGetPropertyData(selected,&address,0,NULL,&size,&rate));
-      if(rate==test_rate) { printf("fixture_rate_reused=%.0f no_device_rate_write=1\n",rate); return; }
+      if(rate==test_rate) { printf("fixture_rate_reused=%.0f no_device_rate_write=1\n",rate); fixture_period(selected); return; }
       printf("fixture_rate_change=%.0f->%u\n",rate,test_rate);
-      atomic_init(&rate_notifications,0);
+      atomic_store_explicit(&rate_notifications,0,memory_order_relaxed);
       CHECK(!AudioObjectAddPropertyListener(selected,&address,rate_changed,NULL));
       rate=test_rate; CHECK(!AudioObjectSetPropertyData(selected,&address,0,NULL,sizeof(rate),&rate));
       do { size=sizeof(rate); CHECK(!AudioObjectGetPropertyData(selected,&address,0,NULL,&size,&rate));
@@ -167,6 +182,7 @@ static void fixture_rate(const char *uid)
            CHECK(now_ns()<deadline); pause_control(); } while(1);
       CHECK(!AudioObjectRemovePropertyListener(selected,&address,rate_changed,NULL));
     }
+    fixture_period(selected);
 }
 int main(void)
 {
@@ -179,6 +195,8 @@ int main(void)
     if(getenv("HA_TEST_COREAUDIO_RATE")) test_rate=(uint32_t)strtoul(getenv("HA_TEST_COREAUDIO_RATE"),NULL,10);
     if(getenv("HA_TEST_COREAUDIO_CHANNELS")) test_channels=(uint32_t)strtoul(getenv("HA_TEST_COREAUDIO_CHANNELS"),NULL,10);
     if(getenv("HA_TEST_COREAUDIO_PCM")) test_pcm=(uint32_t)strtoul(getenv("HA_TEST_COREAUDIO_PCM"),NULL,10);
+    if(getenv("HA_TEST_COREAUDIO_PERIOD")) test_period=(uint32_t)strtoul(getenv("HA_TEST_COREAUDIO_PERIOD"),NULL,10);
+    CHECK(test_period<=HA_MAX_QUANTUM);
     CHECK((test_rate==16000 || test_rate==24000 || test_rate==44100 || test_rate==48000) && (test_channels==1 || test_channels==2) && (test_pcm==HA_PCM_S16 || test_pcm==HA_PCM_F32));
     if(test_pcm==HA_PCM_S16) sequence_mask=4095;
     format.sample_rate=test_rate; format.channels=test_channels; format.channel_layout=test_channels==1?HA_LAYOUT_MONO:HA_LAYOUT_STEREO; format.sample_format=test_pcm;
