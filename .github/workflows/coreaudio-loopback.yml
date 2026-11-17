@@ -1,9 +1,19 @@
 name: CoreAudio virtual-device loopback
 on:
   workflow_dispatch:
+    inputs:
+      runner:
+        description: Native arm64 image (record OS-specific results separately)
+        type: choice
+        default: macos-15
+        options:
+          - macos-15
+          - macos-26
 jobs:
   blackhole:
-    runs-on: macos-latest
+    # Pin a reproducible arm64 image; macos-latest's macOS 26 pool has failed
+    # runner acquisition. macOS 26 remains an explicit qualification option.
+    runs-on: ${{ inputs.runner || 'macos-15' }}
     timeout-minutes: 20
     # Conservative functional fixture for a hosted VM. Strict clock/PCM checks
     # remain unchanged; retained 512-frame runs are not low-latency acceptance.
