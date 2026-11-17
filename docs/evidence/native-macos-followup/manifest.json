@@ -129,9 +129,13 @@
     }
   },
   "qualification_complete": false,
-  "publication": "git commit attempted; gpg failed to sign; no signing configuration overridden",
+  "publication": {
+    "unsigned_authorized_by_owner": true,
+    "published_commit": "20791b9d6dd7ba3b77d246665b8f979ce620e880",
+    "persistent_signing_configuration_changed": false
+  },
   "unqualified": [
-    "extended BlackHole format matrix prepared but not published/executed",
+    "extended BlackHole format matrix published; queued in CI",
     "physical USB/Bluetooth removal not available",
     "calibrated physical latency fixture not available"
   ],
@@ -224,5 +228,12 @@
   },
   "raw_log_whitespace": "Preserved verbatim, including CTest trailing spaces. Source/documentation diff whitespace checked separately.",
   "known_os_denial_qualified": true,
-  "live_permission_revocation_trial": "Not exercised; control polling guard implemented."
+  "live_permission_revocation_trial": "Not exercised; control polling guard implemented.",
+  "extended_blackhole_ci": {
+    "run_id": 44119500727,
+    "source_revision": "20791b9d6dd7ba3b77d246665b8f979ce620e880",
+    "url": "https://github.com/artalis-io/hail/actions/runs/44119500727",
+    "status": "queued",
+    "result_not_yet_observed": true
+  }
 }

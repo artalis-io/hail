@@ -12,8 +12,8 @@ hotplug, permission-denial and physical-latency gaps.
 native flush-call measurements, aggregate removal/replacement/default changes,
 a rollback regression/fix and fresh independent BlackHole CI. A real OS denial
 rerun exposed and fixed missing explicit denial reporting; the rerun now passes.
-The extended fixture format matrix still needs execution; publication is
-currently blocked on the configured signing key.
+The owner authorized unsigned publication as `20791b9`; the extended fixture
+format matrix is now running on that revision in CI.
 
 ## Objective
 

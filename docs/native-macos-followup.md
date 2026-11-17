@@ -176,8 +176,10 @@ launch normally, choose **Don't Allow**, and require an explicit native
 unqualified cases. SDK error-mapping tests
 remain separate from this real OS test.
 
-Git commit signing also requires unlocking the configured GPG key. The attempted
-code commit failed to sign, so the extended BlackHole matrix has not yet been
-published/executed on its new source. An older passing CI run cannot stand in
-for that final test. Completed changes and evidence remain reviewable locally;
-signing preferences are not disabled to bypass this blocker.
+The first publication attempt failed because the configured GPG key could not
+sign. The owner subsequently authorized unsigned publication, and code/evidence
+were published as `20791b9d6dd7ba3b77d246665b8f979ce620e880`. Signing was disabled
+for that individual commit command; persistent Git configuration was unchanged.
+The expanded BlackHole matrix is running on that exact revision in
+[CI run 44119500727](https://github.com/artalis-io/hail/actions/runs/44119500727).
+An older passing CI run is not substituted for its result.

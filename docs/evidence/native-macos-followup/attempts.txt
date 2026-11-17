@@ -60,3 +60,8 @@ Owner-requested denial rerun:
 - os-permission-rerun-after-fix.json: OS denial (2), context success, open reports
   permission denied, destruction completes; passed=true, no timeout or reset.
 - Revocation polling is implemented; a real live OS revocation trial is not claimed.
+
+Publication follow-up: owner explicitly authorized unsigned publication.
+Commit 20791b9d6dd7ba3b77d246665b8f979ce620e880 pushed to origin/main.
+Per-command commit.gpgsign=false; persistent configuration unchanged.
+Expanded BlackHole workflow 44119500727 dispatched on that revision.
