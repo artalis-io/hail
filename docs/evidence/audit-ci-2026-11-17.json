@@ -1,0 +1,255 @@
+{
+  "snapshot_utc": "2026-11-17T20:45:27.620572+00:00",
+  "source_commit": "4e2d61f635cb8ba9923f4ccdcb45b2ac95ac4fd2",
+  "general_ci": {
+    "id": 44171083719,
+    "url": "https://github.com/artalis-io/hail/actions/runs/44171083719",
+    "source_commit": "4e2d61f635cb8ba9923f4ccdcb45b2ac95ac4fd2",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "freestanding",
+        "conclusion": "success",
+        "url": "https://github.com/artalis-io/hail/actions/runs/44171083719/job/134350032801"
+      },
+      {
+        "name": "sanitizers (thread)",
+        "conclusion": "success",
+        "url": "https://github.com/artalis-io/hail/actions/runs/44171083719/job/134350032989"
+      },
+      {
+        "name": "native-linux (OFF)",
+        "conclusion": "success",
+        "url": "https://github.com/artalis-io/hail/actions/runs/44171083719/job/134350033055"
+      },
+      {
+        "name": "native-linux (ON)",
+        "conclusion": "success",
+        "url": "https://github.com/artalis-io/hail/actions/runs/44171083719/job/134350033106"
+      },
+      {
+        "name": "virtual (windows-latest, ON)",
+        "conclusion": "success",
+        "url": "https://github.com/artalis-io/hail/actions/runs/44171083719/job/134350033127"
+      },
+      {
+        "name": "sanitizers (address)",
+        "conclusion": "success",
+        "url": "https://github.com/artalis-io/hail/actions/runs/44171083719/job/134350033141"
+      },
+      {
+        "name": "virtual (windows-latest, OFF)",
+        "conclusion": "success",
+        "url": "https://github.com/artalis-io/hail/actions/runs/44171083719/job/134350033186"
+      },
+      {
+        "name": "virtual (macos-15-intel, OFF)",
+        "conclusion": "success",
+        "url": "https://github.com/artalis-io/hail/actions/runs/44171083719/job/134350033222"
+      },
+      {
+        "name": "virtual (macos-15-intel, ON)",
+        "conclusion": "success",
+        "url": "https://github.com/artalis-io/hail/actions/runs/44171083719/job/134350033278"
+      },
+      {
+        "name": "virtual (ubuntu-latest, OFF)",
+        "conclusion": "success",
+        "url": "https://github.com/artalis-io/hail/actions/runs/44171083719/job/134350033289"
+      },
+      {
+        "name": "virtual (ubuntu-latest, ON)",
+        "conclusion": "success",
+        "url": "https://github.com/artalis-io/hail/actions/runs/44171083719/job/134350033308"
+      }
+    ],
+    "windows_static_regressions": {
+      "job_url": "https://github.com/artalis-io/hail/actions/runs/44171083719/job/134350033186",
+      "ctest_passed": 7,
+      "installed_consumer_tests_passed": 2,
+      "verified_log_lines": [
+        "2026-11-17T20:41:00.6571105Z 2/7 Test #2: wasapi_retirement ................   Passed    0.02 sec",
+        "2026-11-17T20:41:00.9021914Z 6/7 Test #6: backend_axes .....................   Passed    0.02 sec"
+      ],
+      "full_job_log_sha256": "a56f0d1cc964a820ba70416c65835feed788e1ff3d1fa9b3afa7280571873e8c",
+      "scope": "Device-free SDK fault injection and portable ownership/storage tests; not WASAPI capture/render qualification."
+    }
+  },
+  "coreaudio_ci": [
+    {
+      "id": 44171131139,
+      "url": "https://github.com/artalis-io/hail/actions/runs/44171131139",
+      "source_commit": "4e2d61f635cb8ba9923f4ccdcb45b2ac95ac4fd2",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "name": "blackhole",
+          "conclusion": "success",
+          "url": "https://github.com/artalis-io/hail/actions/runs/44171131139/job/134350208143"
+        }
+      ],
+      "runner": "macos-15",
+      "platform": [
+        "ProductName:\t\tmacOS",
+        "ProductVersion:\t\t15.8.2",
+        "BuildVersion:\t\t24H232",
+        "arm64"
+      ],
+      "native_fixture_period_frames": 2048,
+      "application_quantum_frames": 256,
+      "strict_loopback_processes_passed": 40,
+      "asan_ubsan_loopback_processes_passed": 3,
+      "format_cases_per_linkage": 16,
+      "linkages": [
+        "static",
+        "shared"
+      ],
+      "artifact_file_sha256": {
+        "asan.log": "43307a46311b74cfee81e65bdeba125c3e433b4aaba7e11a640ee503e947fa04",
+        "fixture.json": "c20c8ca8552e140c7ba584b58308833e201a83afadbec7e0fcf52735bc0d1688",
+        "format-OFF-16000-1-1.log": "85223a936643cffa42e03d5768cc7d8d6e964033cab22d82c8a183286012a480",
+        "format-OFF-16000-1-2.log": "dfa224503be7fd0342727acefcb118f194f2dc205fc6c63535a102af2b13dbb8",
+        "format-OFF-16000-2-1.log": "53906f0f05fbd19b2717bb276ce61abfd9dddc9e9057ce718f6eacfa8b138de3",
+        "format-OFF-16000-2-2.log": "14a15cfca3bd1a42d5f97e21aad786e9ee5e1a7fff08abd84d9e8771424e3a12",
+        "format-OFF-24000-1-1.log": "e75256d312ee280b0d3e112d1aa250fcfd498e334ac5bd42cef6c0da87117033",
+        "format-OFF-24000-1-2.log": "c4fad3f53b4affa3e72a89d7ae0fef0815356d526aa9a9c602c81e6308d49572",
+        "format-OFF-24000-2-1.log": "87b459572e38cbba6640d9a1bbf4e59dbb6e00ed95a04e439d0d67dbd89e30f4",
+        "format-OFF-24000-2-2.log": "672a3d7d899b9d580939065aa8d35daa104ab6d9dc22ba93648aee88f80a1b63",
+        "format-OFF-44100-1-1.log": "234b61979af064f65c62148853113c1a9c8a1ff0e65f6a36395311493e5fb51c",
+        "format-OFF-44100-1-2.log": "931ea8ea12fbf861201b1f2b91dfa68bc9760363926a2f811ceccc2d543f11e4",
+        "format-OFF-44100-2-1.log": "e8efb11efc3cf443d90dd6eac5a0ebf71dead8c36df4efcede701867f5a7f6fa",
+        "format-OFF-44100-2-2.log": "859637c2cb1ea88c7cf388a00e491b04cc420c730248c10e82d493e776fe5320",
+        "format-OFF-48000-1-1.log": "88a4d78911272fb8bbcd1ac436fb573b4b689de513a0a410d897137f2b2f3691",
+        "format-OFF-48000-1-2.log": "239bfebee5b41a0beafcc4c96448b0cfaa0ad732f20178bcadb7892f599a6467",
+        "format-OFF-48000-2-1.log": "7d95fbac71f34ce076b7ee1d86f3d65184c61b29dbea3f781644c3a896f23fbd",
+        "format-OFF-48000-2-2.log": "6d27e0d95e024353e4a0cbc386d37fce7d4d222bdbde41f48eb4d35db0092db4",
+        "format-ON-16000-1-1.log": "e3f01af1c62ae54b68c7d2a508cb8d944f520634e7b488ca2fc6bc6a934f6306",
+        "format-ON-16000-1-2.log": "c88472dfabb51af47a4020d74593dc70d9b34a038d4f9d918db3b6e31d5cf7ff",
+        "format-ON-16000-2-1.log": "3d1860b390ed21811e77d3ef58e414fa1432254a7b346b53ba85fa487a4bfce6",
+        "format-ON-16000-2-2.log": "7fefbc0636f84aad3012a54bb854b4be6b5e9e27ac7005b48ba755772e207fa2",
+        "format-ON-24000-1-1.log": "03a089a973c1a2061ba8b491b96f5b8000d0b361ed4d80a370ea22fbd70c0dc7",
+        "format-ON-24000-1-2.log": "3629d9a5298f9cf78c178c834bfa3578a26b4569ed34e59f2f6c3ab83028f629",
+        "format-ON-24000-2-1.log": "c9b34185dab46acd40048915bc4bd81e4a96dbf1d24a3369e3acc728bccb9f26",
+        "format-ON-24000-2-2.log": "6c941479de491493f14ddb547a1c34020ace257ea0497c4a9e0f8952ac5f8bdb",
+        "format-ON-44100-1-1.log": "261e10a40a1be4e1ecc6cfd2dd83ec10c007d393ec5e30aace77a21646510a25",
+        "format-ON-44100-1-2.log": "60c4ba1af203a82d83cc6cf083b6167438620b85c59be9f2f0858ce436cf32fb",
+        "format-ON-44100-2-1.log": "3d3ca3c48614a477f55462d3e8258ad98145f04f03d6705b6ff6c07b56e1e802",
+        "format-ON-44100-2-2.log": "e0b2f1131a8792acd9cadadb597f4fbea28a5922177500ed9c5c4e3573be23fd",
+        "format-ON-48000-1-1.log": "3765a6161e251eab42f4a3defa30772d81eaa5e1edc3cbeecb77227e30879ddb",
+        "format-ON-48000-1-2.log": "032a8da9f2b1d03b019e4d6741d723bd779baa8abf9274862e283da41e62cd93",
+        "format-ON-48000-2-1.log": "85fd7f46ad4dd9e2edc00e9855d652c252a63eb8eccb669d236553f916916157",
+        "format-ON-48000-2-2.log": "1624f07bddcd0648ad71beca77249dc265a444dca64ef096b56c8f0fbe2a4a93",
+        "permission-cost-OFF.log": "62f37a44df55ddcc3cba84c6cd8660fb32b8bf3d60fc5d96f27f4b06488192a6",
+        "permission-cost-ON.log": "903f721ce651e831e741912cf375d2038c027a0423e52fdf02afce0c538fd73a",
+        "platform.txt": "babc1bddfaa8b71a6b41f457cede8cf815ed10db1b4465fd8b451ba686427663",
+        "repeat-OFF.log": "0852dd3fe133cfa0707d10c5658de474931e69fb70be1e8fe8b7eae9ed28afc0",
+        "repeat-ON.log": "2d78e5356f3e82b93e9cb35f7173cc996476908a44597039ecc0e1ed8acf9935",
+        "tests-OFF.log": "0a51d3b24a28f557e7236b5591e42de91fc834ae24178e3b275a403b53c39722",
+        "tests-ON.log": "03add5e17de5a3c85ece11c46e5f3e1fc33267fdb8c51082dcec3b4a8624269c"
+      },
+      "scope": "Hosted BlackHole software fixture; strict PCM/clock checks retained; no physical latency or Windows hardware claim."
+    },
+    {
+      "id": 44171136350,
+      "url": "https://github.com/artalis-io/hail/actions/runs/44171136350",
+      "source_commit": "4e2d61f635cb8ba9923f4ccdcb45b2ac95ac4fd2",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "name": "blackhole",
+          "conclusion": "success",
+          "url": "https://github.com/artalis-io/hail/actions/runs/44171136350/job/134350229807"
+        }
+      ],
+      "runner": "macos-26",
+      "platform": [
+        "ProductName:\t\tmacOS",
+        "ProductVersion:\t\t26.7.2",
+        "BuildVersion:\t\t25G332",
+        "arm64"
+      ],
+      "native_fixture_period_frames": 2048,
+      "application_quantum_frames": 256,
+      "strict_loopback_processes_passed": 40,
+      "asan_ubsan_loopback_processes_passed": 3,
+      "format_cases_per_linkage": 16,
+      "linkages": [
+        "static",
+        "shared"
+      ],
+      "artifact_file_sha256": {
+        "asan.log": "79cb7e90f4f20cbf8aac0a146c04a035c3174776db4de45fe589397ae1a9f020",
+        "fixture.json": "701cbe4d4ffb72c84e86fcc1d9ef63c95175368467d4843ea674493082186442",
+        "format-OFF-16000-1-1.log": "39305d59685bda1cfa12ea920a05792af683c657c9d055d6a8241fe43be5001e",
+        "format-OFF-16000-1-2.log": "8f2b5c493be10fa5be77ecd34768c3784df76570b3cd8ed3682b6492e8d35cd5",
+        "format-OFF-16000-2-1.log": "d80c85ea7853066133433b8eedf5f480469d18826ff5093461686f6829f4216f",
+        "format-OFF-16000-2-2.log": "4690b71b897af26dac3bdbf4ef0dd342ddff728fe57ea8e9e505ef7aadfd0d6c",
+        "format-OFF-24000-1-1.log": "44244af8cce536a6fab85a5a365b33b9ff121d35d964304e3f520595e0f9d264",
+        "format-OFF-24000-1-2.log": "547c30fadf13fb8eb82f856a972dc063b2b983dc1ef5f11abc59d7d1fadcbcf5",
+        "format-OFF-24000-2-1.log": "5654c414d2421829a1e8d60c400a0fd264ccbd070e8d230f7335624a3ce89d9a",
+        "format-OFF-24000-2-2.log": "073b4f7984e402d31e589518b303f53b94eac1207ffc1873a48360e7abf171c5",
+        "format-OFF-44100-1-1.log": "53ddac2b8383f57eb40a65d6c037b8bea17736cf3a81d1fa253c89888ef08df6",
+        "format-OFF-44100-1-2.log": "59248e6ebe5b95894b65c47c40ce8ada2bbaf02c0233d7e9789e649a12a90643",
+        "format-OFF-44100-2-1.log": "e96bd895779de4153b2ce0656eff9f715ed12a3b00eb9aa82fe1889dbcc910c5",
+        "format-OFF-44100-2-2.log": "6718c9dabc981732cb49599f99d6749e0446c886026e13bea3b199e14a093524",
+        "format-OFF-48000-1-1.log": "b17b12d181067451386123b3216d459254c464b0b3682dc96429c82aeac3e522",
+        "format-OFF-48000-1-2.log": "3418111237339aafd891f4e9199e4febcf7df3d64db45117cc652587a960e8d6",
+        "format-OFF-48000-2-1.log": "c40a389d74c782c928bde6f31f8befb2d39e68c65d780c8e1bdb4d02769c5c83",
+        "format-OFF-48000-2-2.log": "9ddb6e771bdfe1a4dadd6b46062a7f88e4a3ca10e579a333814e1a56a14e1fb5",
+        "format-ON-16000-1-1.log": "41c1d6e15a99f724673ac303a1003ac5ec791091a86d70589e3a5a0920943fc1",
+        "format-ON-16000-1-2.log": "e026a3664c702a2b65985efa802a47dde66234535cdc70b1ba9d06df82dbc1fb",
+        "format-ON-16000-2-1.log": "1452394b2b1d5082934d31b6d726e47fe3bdc149ddb1bc71857c46be450ba6c3",
+        "format-ON-16000-2-2.log": "9ba4e52514cb7fdbaa91d4f82792302a13c6d71365f94869f659f51e33821451",
+        "format-ON-24000-1-1.log": "235fe519f3c13364526e9e3edb7a24182850362b86c684f28b1bf2984789c560",
+        "format-ON-24000-1-2.log": "8417ad2d8dec62c2fcf7a00d92fcac6d204715a7f8490c867e3679531516542f",
+        "format-ON-24000-2-1.log": "e196cdcf4473b109797a96d1285028131614df85b0765fd98213619705ec5563",
+        "format-ON-24000-2-2.log": "dc44e6efab4163b826a62a10bc466ae1e9db45f16a893183e47096d6161a5388",
+        "format-ON-44100-1-1.log": "a13f8d10b3333ee03e2b4a5317ad7155d874bdb371798826080d4465525a7733",
+        "format-ON-44100-1-2.log": "5d28090e2a907cce9d176e4ccea44a62f58c5e57c92446a738940b100cae2dbc",
+        "format-ON-44100-2-1.log": "2bda1ad6c41212533d123c524513ba7d7c25100e49e9da73a2e1ba7039542a54",
+        "format-ON-44100-2-2.log": "5669cca868ec3a0b303b80457b92f48473c1ca26ff7bb2cf0c6f2d7447ea0f23",
+        "format-ON-48000-1-1.log": "19d6aadc05347c82133e76d7d98a311f11236111b2614cc73e9ae0c1c4d5c966",
+        "format-ON-48000-1-2.log": "1bcd621e238b97e2dcf8a901d5850ac6a7a48e8c555ce700576097a331bee628",
+        "format-ON-48000-2-1.log": "bc0263fbaa471ade81bb52f4dddc49753b1ed7603ceb5e2ebe3a23361c331bf3",
+        "format-ON-48000-2-2.log": "3bb23eba74278cf63ce5b9c2b065557afa1a568b729ac3f0c086ec9c543cb279",
+        "permission-cost-OFF.log": "e86c79fc7852e6d2fda349e941f127a1c4d412b7a2bcbf333c1231b12da5e5f2",
+        "permission-cost-ON.log": "10cd88d622c4ca1c53f2f610d1e64dc85f33f81afd4902c1c0e26cf7228376ae",
+        "platform.txt": "52122e0a97c84f74c3ae13fd939e3fe85d832554aed5288cf40cb1cde239ee4e",
+        "repeat-OFF.log": "2948e43549639ad1470c7bb92eb6d5db2a9f50942ef2adf8fe353da7cb57bf71",
+        "repeat-ON.log": "86a37b1d01cfd1bd23ac5d5ff2a4ffcf7ac503e9efe4ded3d447d65fe09c96b7",
+        "tests-OFF.log": "d1a5e807563786a0fcbd7fdf57e3190dabfb9a150b2a302bea45429cedd8f728",
+        "tests-ON.log": "4968ab75f4685d539b905055029410f3182e1a4e8a09ab553774a2692d273f07"
+      },
+      "scope": "Hosted BlackHole software fixture; strict PCM/clock checks retained; no physical latency or Windows hardware claim."
+    }
+  ],
+  "source_sha256": {
+    "CMakeLists.txt": "ba01b1fa026a64c614717a16d23718dd488ed347edc92415087cace2ac7e5348",
+    "src/backend_alsa.c": "3bfd75e2a92670636aac2b0269a51510a28b43930c5401193d5ed25e77435372",
+    "src/backend_coreaudio.c": "1ff31657b5cd23f8273fa1d8372f80cde1b9e7eac7b63d75140c22ac1ee90822",
+    "src/backend_pipewire.c": "b8f4342202c03c335b2a0ebbc26927c1ef495bd9edce8e2109119fa0188930c8",
+    "src/backend_wasapi.c": "5116ef1e9454458be80f926522321517b5166843ae974da01ecafcb146e55b88",
+    "src/core.c": "9bae6020e7db25f9883797ee15906029caa2935f9bdc38fcbce6067e66294589",
+    "src/coreaudio_diagnostics.h": "0840bfef7e8beae9fafcacce5628ea9a72d1d54a9ec43f904ea089aec5c54ea8",
+    "src/coreaudio_permission.m": "b822108e4bd3ba615c8a585c8e8b8e87cd4242db40a7205854bab484db0a16fb",
+    "src/hail_internal.h": "c368083233430d664c9f4d27617a836e746d2ea5e14de76ea5fe99143eda2d8b",
+    "src/hosted.c": "0920c557a6a478c26b630c0585f8b2931813d6a6e046f0f81ce51988dea0561a",
+    "src/native.c": "40102a208bd0e57522a00e81546494893504ed274b74fb444a34f83981e60fed",
+    "src/queue.c": "c307d8780acfe7ad0fb0568bcc07f91e9791164a1a0830f258bb4a061ff808d0",
+    "src/virtual.c": "c1ca8841150b36992b93e56dae952f6653a4a5a0b7986e45e40ecb00ffe6eb86",
+    "include/hail/virtual.h": "f18c176831a5f11fc71f6e7846db824f8fdad6c9b2c9483c43c21e8ff10d7b25",
+    "include/hail.h": "d54b4ed757e801f702b33b1949c0809a9b9b79ae1983137b892d63ef86188a88",
+    "tests/alsa_faults.c": "f8065fd0199a47dac383ef33747b1ab9da1db509b21f3036b353b3fc2a9174d5",
+    "tests/wasapi_retirement.c": "a32eddc9391f6639779ff169fdb96c50855b0f67026d4d45b40547b9ee6aeaa1",
+    "tests/backend_axes.c": "db726676e1cf26c09ee8691d4ee1c2acab80e3e098aa225cbf69aeb4f9e96c16",
+    "tests/pipewire_buffers.c": "7e3093768a426d04ccde40758c1d8c0ca6b225390a3a161e048b7bc0a21a33b2",
+    "tests/retirement.c": "2d23b3855d7c3389837910392aa4fa95a68012df0972f085a36c62892a9cdb53",
+    "tests/coreaudio_loopback.c": "f8be13905b22b671b740a0deecff10ec41c665dba59fff7adab8f7921ecc52e1",
+    "tests/coreaudio_permission_worker.c": "4e11f8f68a7c9e6f55503d0376154595b8023e8664f0dfd589272d83dcda806f",
+    "tests/native_handoff.c": "61631aa25a837c6bfe569276a5a0e59657a2e5edbcab41bd79edca6ff5d392c8",
+    "tools/check_contracts.py": "abc05ab55bfdb2245ea48cf15a29b066ff8f2d5adde4d3c551602919666e1e71",
+    ".github/workflows/ci.yml": "4bf7b084c4e4f484b87faf56e0ca240e2c79204dcc114d77ad528a3f2d6d69ce",
+    ".github/workflows/coreaudio-loopback.yml": "27ccf9b72d6d54690564e51d11122b65b531f5e8d3aae35bd9db0ed3020544db"
+  },
+  "remaining": "Native Windows microphone/render/duplex, capture-preserving interruption and endpoint-loss qualification per docs/native-windows-goal.md."
+}

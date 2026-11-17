@@ -13,6 +13,20 @@ Source hashes, tool versions and per-target results are recorded in
 
 ## Current executed evidence
 
+The published audit/separation fixes at `4e2d61f` passed all eleven jobs in
+[CI run 44171083719](https://github.com/artalis-io/hail/actions/runs/44171083719).
+Windows static executed all seven CTests, including `wasapi_retirement` and
+`backend_axes`; Windows static/shared installed consumers passed separately.
+These device-free tests establish fault/ownership behavior, not WASAPI streaming.
+The complete CoreAudio fixture workflows also passed on
+[macOS 15](https://github.com/artalis-io/hail/actions/runs/44171131139) and
+[macOS 26](https://github.com/artalis-io/hail/actions/runs/44171136350): each ran
+40 strict native loopback processes and three ASan/UBSan processes at the
+declared 2,048-frame fixture period. The [evidence snapshot](evidence/audit-ci-2026-11-17.json)
+records the checked source and artifact hashes. See the
+[C audit resolutions](c-audit-2026-11-17.md) and [axis audit](axis-audit.md).
+Native Windows physical/duplex qualification remains outstanding.
+
 On Linux x86-64 with GCC 13.3 and Clang 18.1.3, the portable CTest executables
 cover C/C++ record boundaries, eight grouped deterministic conformance scenarios,
 concurrent capture reader/playback writer/reference reader with flush/close,

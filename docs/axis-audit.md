@@ -32,14 +32,26 @@ Validation of this pass:
 | Linux GCC shared with ALSA/PipeWire | 6/6 passed; 27 public symbols |
 | Linux freestanding virtual / backend-free compile | 4/4 passed / compile passed; 27 / 22 public symbols |
 | macOS/Linux Clang analysis of portable and applicable native sources | No diagnostics |
-| Windows x64 cross-build, including `backend_axes` and `wasapi_retirement` | Compiled/linked; execution still requires Windows |
+| Windows x64 cross-build, then hosted Windows ClangCL static/shared CI | Passed; static CTest executed `backend_axes` and `wasapi_retirement` (7/7 tests), plus 2/2 installed-consumer tests |
+
+Published source `4e2d61f` passed all 11 jobs in
+[general CI](https://github.com/artalis-io/hail/actions/runs/44171083719), plus
+the complete CoreAudio workflows on
+[macOS 15](https://github.com/artalis-io/hail/actions/runs/44171131139) and
+[macOS 26](https://github.com/artalis-io/hail/actions/runs/44171136350).
+Each CoreAudio workflow passed 40 strict loopback processes and 3 ASan/UBSan
+processes with the declared 2,048-frame native fixture period. The
+[CI evidence snapshot](evidence/audit-ci-2026-11-17.json) records job links,
+Windows pass markers, platform details and source/artifact hashes.
 
 The public headers and function signatures are unchanged; requested allocation
 sizes correctly reflect the new private layout. No physical audio was opened.
 Existing physical qualification evidence describes its original source/layout;
 this pass adds transport, ownership and memory evidence without relabeling those
 measurements. Native Windows duplex qualification remains the next platform
-task, rather than an unresolved axis-separation finding.
+task, rather than an unresolved axis-separation finding. Hosted Windows fault
+tests have now executed; they do not open native audio devices or qualify
+Windows duplex operation.
 
 ## 2026-11-17 initial pass (before separation fixes)
 
