@@ -16,6 +16,8 @@ and physical latency measurements remain outstanding. The ABI remains provisiona
 - [Build and integration guide](docs/build.md)
 - [CoreAudio virtual-device qualification](docs/coreaudio-qualification.md)
 - [WASAPI paired-endpoint test design](docs/wasapi-loopback-design.md)
+- [Native macOS goal and handoff prompt](docs/native-macos-goal.md)
+- [Native Windows goal and handoff prompt](docs/native-windows-goal.md)
 - [Native software-loopback qualification](docs/loopback-qualification.md)
 - [Native backend contracts and limitations](docs/native-backends.md)
 - [Backend authoring boundary](docs/backend-authoring.md)
