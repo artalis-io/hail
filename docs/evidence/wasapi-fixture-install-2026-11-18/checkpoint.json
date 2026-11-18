@@ -1,0 +1,24 @@
+{
+  "checkpoint_utc": "2026-11-18T08:54:06.2471718+00:00",
+  "owner_authorization": "User: ok do it, following explanation that the remaining paired criterion uses the staged VB-CABLE fixture",
+  "evaluation_only": true,
+  "professional_license_purchase": "Not performed; future professional deployment requires applicable licensing",
+  "installation_procedure": "Standalone signed vendor installer under normal Windows administrator consent; user saves work and reboots after installation",
+  "approved_package_sha256": "BC44E8974191A5A2427D6C979E2DAB08DBB09925F3F435DFA2F0BA3E45B6EB90",
+  "installer": "C:\\Users\\Mark\\artalis.io\\src\\hail\\build-wasapi-fixture\\pack46\\VBCABLE_Setup_x64.exe",
+  "installer_signature": "Valid",
+  "source_head": "c1b2de4774740dba20ad62fd9e93c74350b9e855",
+  "branch": "test/wasapi-paired-fixture",
+  "os": {
+    "Caption": "Microsoft Windows 11 Pro",
+    "Version": "10.0.26300",
+    "BuildNumber": "26300",
+    "LastBootUpTime": "2026-11-17T16:50:51.070049+01:00"
+  },
+  "original_shure_capture_settings": {
+    "gain": 0.209999993,
+    "muted": true
+  },
+  "security_changes": "None authorized or performed: no signing, Secure Boot, privacy or memory-integrity bypass",
+  "status": "Pre-install checkpoint; installer not yet launched"
+}
