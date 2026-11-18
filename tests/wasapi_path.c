@@ -52,7 +52,8 @@ static void open_tap(tap *t,IMMDeviceEnumerator *e,const char *key,unsigned repr
     w.dwChannelMask=3; w.SubFormat=representation==HA_PCM_F32?floating:integer;
     SDK(IAudioClient_Initialize(t->client,AUDCLNT_SHAREMODE_SHARED,AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM|AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY|
         (loopback?AUDCLNT_STREAMFLAGS_LOOPBACK:0),200000,0,&w.Format,NULL));
-    SDK(IAudioClient_GetBufferSize(t->client,&t->capacity)); SDK(IAudioClient_GetService(t->client,&cap,(void **)&t->capture));
+    SDK(IAudioClient_GetBufferSize(t->client,&t->capacity)); REQUIRE(t->capacity && t->capacity<=HA_MAX_QUANTUM);
+    SDK(IAudioClient_GetService(t->client,&cap,(void **)&t->capture));
     t->pcm=representation; IMMDevice_Release(d);
 }
 static void observe(observation *o,const void *data,unsigned representation,unsigned frames,unsigned silent,int expected) {
@@ -100,11 +101,12 @@ static int self_test(void) {
 int main(int argc,char **argv) {
     static const int levels[]={0,8192,16384,24576,30000,32000,32700,0};
     ha_context_config cc=HA_INIT(ha_context_config); ha_stream_config sc=HA_INIT(ha_stream_config);
-    IMMDeviceEnumerator *e=NULL; tap taps[3]; unsigned phase,j; LARGE_INTEGER f; uint64_t deadline; ha_result r;
+    IMMDeviceEnumerator *e=NULL; tap taps[3]; unsigned phase,j,condition=0; LARGE_INTEGER f; uint64_t deadline; ha_result r;
     if(argc==2 && !strcmp(argv[1],"--self-test")) return self_test();
-    REQUIRE(argc==4 && (!strcmp(argv[3],"f32") || !strcmp(argv[3],"s16"))); pcm=!strcmp(argv[3],"f32")?HA_PCM_F32:HA_PCM_S16;
+    if(argc==5) { REQUIRE(!strcmp(argv[4],"--condition") && !strcmp(argv[3],"f32")); condition=1; }
+    REQUIRE((argc==4 || argc==5) && (!strcmp(argv[3],"f32") || !strcmp(argv[3],"s16"))); pcm=!strcmp(argv[3],"f32")?HA_PCM_F32:HA_PCM_S16;
     /* Exact local cable identities are deliberately supplied; no default fallback. */
-    REQUIRE(QueryPerformanceFrequency(&f) && f.QuadPart>0); frequency=(uint64_t)f.QuadPart;
+    REQUIRE(QueryPerformanceFrequency(&f) && f.QuadPart>0); frequency=(uint64_t)f.QuadPart; REQUIRE(frequency<=UINT64_MAX/10u);
     SDK(CoInitializeEx(NULL,COINIT_MULTITHREADED)); SDK(CoCreateInstance(&cls,NULL,CLSCTX_ALL,&en,(void **)&e));
     memset(taps,0,sizeof(taps)); open_tap(&taps[0],e,argv[2],HA_PCM_F32,1); open_tap(&taps[1],e,argv[1],HA_PCM_F32,0); open_tap(&taps[2],e,argv[1],HA_PCM_S16,0);
     cc.backend=HA_BACKEND_WASAPI; cc.max_devices=HA_MAX_DEVICES; cc.max_streams=1; cc.event_capacity=64;
@@ -117,7 +119,7 @@ int main(int argc,char **argv) {
     for(j=0;j<3;++j) SDK(IAudioClient_Start(taps[j].client));
     REQUIRE(ha_stream_start(stream)==HA_PENDING); await_state(HA_RUNNING);
     printf("diagnostic=constant-s16-grid levels=8 phase_ms=1500 settle_ms=600 hail_pcm=%u oracle_tolerance=0 qualification=0\n",pcm);
-    for(phase=0;phase<sizeof(levels)/sizeof(levels[0]);++phase) {
+    for(phase=0;phase<(condition?1u:sizeof(levels)/sizeof(levels[0]));++phase) {
         observation o[5]; uint64_t start=ticks(); memset(o,0,sizeof(o));
         while(ticks()-start<frequency*3/2) { unsigned measured=ticks()-start>=frequency*3/5;
             progress(); hail_io(&o[4],&o[0],levels[phase],measured);
@@ -125,6 +127,7 @@ int main(int argc,char **argv) {
         }
         for(j=0;j<5;++j) { REQUIRE(o[j].frames>24000); printf("level=%d stage=%s frames=%llu mismatches=%llu nonzero=%llu max_error_s16_units=%.17g flags=%llu\n",
             levels[phase],names[j],(unsigned long long)o[j].frames,(unsigned long long)o[j].mismatches,(unsigned long long)o[j].nonzero,o[j].max_error,(unsigned long long)o[j].flags); }
+        if(condition) { REQUIRE(!o[0].mismatches && !o[1].mismatches && !o[2].mismatches && !o[4].mismatches); }
     }
     REQUIRE(ha_stream_stop(stream)==HA_PENDING); await_state(HA_STOPPED);
     for(j=0;j<3;++j) { SDK(IAudioClient_Stop(taps[j].client)); taps[j].capture->lpVtbl->Release(taps[j].capture); IAudioClient_Release(taps[j].client); }
@@ -132,5 +135,6 @@ int main(int argc,char **argv) {
     do { progress(); r=ha_stream_close_finish(&stream); REQUIRE(r==HA_OK || r==HA_PENDING); REQUIRE(ticks()<deadline); Sleep(1); } while(r==HA_PENDING);
     deadline=ticks()+5*frequency;
     do { r=ha_context_destroy(&context); REQUIRE(r==HA_OK || r==HA_PENDING); REQUIRE(ticks()<deadline); Sleep(1); } while(r==HA_PENDING);
-    IMMDeviceEnumerator_Release(e); CoUninitialize(); puts("COMPLETE diagnostic only; mismatches remain failures of transparency, not accepted conversion"); return 0;
+    IMMDeviceEnumerator_Release(e); CoUninitialize();
+    puts(condition?"CONDITIONED exact F32 silence observed at reference, render loopback, native cable and Hail capture; no qualification claim":"COMPLETE diagnostic only; mismatches remain failures of transparency, not accepted conversion"); return 0;
 }

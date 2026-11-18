@@ -34,3 +34,14 @@ old-tail frame counts, and gives that tail no verified-frame credit. Continuity
 becomes mandatory at the first C frame; any subsequent B or C counter skip
 fails. Independent negative tests cover both those failures and corrupt tail
 samples. Nominal and render-flush continuity requirements are unchanged.
+
+Fixture conditioning is a separate preflight before each trial. Failed tests
+may terminate with nonzero samples still queued downstream in the cable;
+opening fresh Hail clients does not clear that external storage. The path helper
+therefore drives F32 silence and requires at least 24,001 measured exact-zero
+frames at Hail reference, native render loopback, native cable F32 and Hail
+capture before closing. Its 600 ms setup interval and 900 ms measured interval
+are outside the qualification trial. The dynamic oracle starts fresh afterward
+with unchanged marker-regression rejection and verified-frame minima. An
+unconditioned post-S16 failure and the first failed sustained attempt remain
+retained as setup failures, not silently retried passing evidence.

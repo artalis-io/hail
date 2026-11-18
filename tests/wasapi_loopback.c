@@ -173,7 +173,10 @@ static void verify_frame(double left,double right)
         ++bad; return;
     }
     value=(uint32_t)(left*32768.0); marker=value/span; code=value&(span-1u);
-    if(marker<1 || marker>3 || (seen && marker<last_marker)) { ++bad; return; }
+    if(marker<1 || marker>3 || (seen && marker<last_marker)) {
+        if(bad<8) printf("oracle_marker_failure phase=%u marker=%u previous_marker=%u code=%u\n",atomic_load(&phase),marker,last_marker,code);
+        ++bad; return;
+    }
     if(restart_target && marker<restart_target) {
         ++restart_tail_frames; seen=1; last_marker=marker; last_code=code; return;
     }
@@ -533,6 +536,7 @@ int main(int argc,char **argv)
         printf("flush_capture_metadata_gaps=%llu flush_capture_epoch_changes=%llu\n",(unsigned long long)flush_gaps,(unsigned long long)flush_clocks);
         if(!instrumented) CHECK(!flush_gaps && !flush_clocks);
         if(!physical) {
+            printf("oracle_before_restart verified_A=%llu verified_B=%llu bad=%llu\n",(unsigned long long)verified[1],(unsigned long long)verified[2],(unsigned long long)bad);
             CHECK(verified[1]>rate/3u && verified[2]>rate/3u);
             if(!instrumented) CHECK(!metadata_gaps && !clock_changes);
         }
