@@ -1,5 +1,15 @@
 # Audio architecture axis audit
 
+The [marker-stream SDK-boundary work](wasapi-marker-results.md) confirms that
+the native capture lease already contains the flush ramp before transport
+copying, with an exact submitted render grid. Diagnostic records belong to the
+stream worker and are read only after retirement; no PCM conversion, arbitrary
+callback or public type moved into the adapter/core boundary. Their default-off
+private backend prefix is included in that build's exact allocation plan.
+Independent clients and their separate static rings remain test-owned, and
+their passes do not override the two failed matrices. No particular Windows
+engine/driver/cable implementation or physical latency is inferred.
+
 The [stage-isolation follow-up](wasapi-path-results.md) now distinguishes Hail's
 render reference from native render loopback and independent native F32/S16 cable
 capture. The observed numerical changes require no DSP in Hail: a separate exact

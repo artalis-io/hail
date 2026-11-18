@@ -129,7 +129,7 @@ Implementation, execution and hardware qualification are distinct support levels
 | Target | Implementation and current evidence | Remaining qualification |
 | --- | --- | --- |
 | macOS / CoreAudio | Native static/shared; scoped M1 Max physical duplex; arm64 macOS 15/26 strict BlackHole matrix and sanitizers | Broader devices/transports and calibrated physical latency; hosted profile uses a 2,048-frame native period |
-| Windows / WASAPI | Shared-mode backend; ClangCL builds/consumers, Shure streaming, USB loss/reopen, ASan and independent native stage diagnostics | [Exact paired transitions remain unqualified](docs/wasapi-path-results.md); S16 conversion and calibrated physical timing remain open |
+| Windows / WASAPI | Shared-mode backend; ClangCL builds/consumers, Shure streaming, USB loss/reopen, ASan and SDK buffer-boundary diagnostics | [Exact paired transitions remain unqualified](docs/wasapi-marker-results.md); S16 conversion and calibrated physical timing remain open |
 | Linux / PipeWire and ALSA | Native static/shared; isolated PipeWire loopback, ALSA null, fault tests and sanitizers | Real devices, including intended Raspberry Pi configurations |
 | Freestanding / virtual | Fixed-arena example, deterministic conformance and backend-free compile | No FreeRTOS, UEFI or bare-metal audio adapter yet |
 | Android / iOS | Future platform work | Dedicated native adapters and device qualification |

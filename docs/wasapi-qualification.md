@@ -1,5 +1,12 @@
 # Windows native qualification harness
 
+The [marker-stream investigation](wasapi-marker-results.md) now locates the
+fractional native-flush ramp in SDK capture data before Hail copying. Both
+predeclared matrices retain one failure; exact paired transition qualification
+remains open. `tools/run_wasapi_marker_matrix.ps1` reproduces the declared cells
+and preserves every result. `HA_WASAPI_DIAGNOSTICS=ON` is an off-by-default,
+static/native-test-only buffer observer, not a normal production build.
+
 Implemented on 2026-11-18, with [owner-authorized Shure native execution](native-windows-physical-results.md)
 now covering the format/startup matrix, ten-minute duplex, real USB loss/reopen
 and ASan. The installed VB-CABLE's [first paired campaign](native-windows-paired-results.md)

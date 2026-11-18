@@ -38,6 +38,16 @@ transport loss but failed its numerical frame minimum, and the second attempt
 was not started because the short-case precondition failed. No complete paired
 transition or sustained numerical pass is claimed.
 
+The [marker-stream follow-up](wasapi-marker-results.md) then executed all 24
+ordinary observer cells and all 16 SDK-boundary cells, once each. Each matrix
+retains one failure. The failing SDK capture lease already contains 478
+fractional frames while the submitted render buffer has none; eight captured
+examples exactly match Hail's output. All 7,012,128 aligned pairs in the
+extra-client passing cases match, but they do not reproduce or excuse the
+failure. Default builds, SDK-boundary builds, consumers/exports and native ASan
+diagnostics pass their separate checks; full exact native-transition
+qualification remains open at the Windows/virtual-cable path.
+
 On 2026-11-18, native Windows ClangCL static Debug/Release each passed nine
 device-free CTests; shared Debug/Release each passed five, and all four installed
 C/C++ consumer configurations passed. PE/COFF symbol checks matched the 27 public

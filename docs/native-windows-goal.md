@@ -14,6 +14,11 @@ goal remains open for the full paired matrix and S16 numerical qualification.
 A later conditioned low-grid unprimed trial failed on fractional samples at
 native flush; the ten-minute attempt failed its final numerical assertion.
 Passing short/ASan samples therefore do not certify complete paired transitions.
+The subsequent [marker-stream matrices](wasapi-marker-results.md) locate the
+ramp in SDK capture data before Hail copying, while the actual submitted render
+buffer is exactly on-grid. This resolves the transport-copy question; it does
+not make the Windows/cable path transparent or turn either failed matrix into
+a passing qualification.
 Physical timing is uncalibrated; no physical
 latency or audible-tail bound is claimed.
 

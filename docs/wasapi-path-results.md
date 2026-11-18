@@ -1,5 +1,13 @@
 # WASAPI stage isolation and exact low-grid follow-up, 2026-11-18
 
+Follow-up: the [marker-stream matrices](wasapi-marker-results.md) now reproduce
+the fractional ramp in the actual SDK capture buffer before Hail copying,
+while the submitted render buffer remains exactly on-grid. Eight SDK/Hail
+examples match by position, timestamp and value. This resolves the earlier
+uncertainty about Hail's capture copy; the particular Windows/driver/cable
+stage remains unidentified. Both matrix failures remain failures of exact
+native-transition qualification.
+
 The [original qualification failures](native-windows-paired-results.md) were
 isolated with independent native Windows clients. High-level changes are
 already present at Windows render-loopback output, before the cable capture

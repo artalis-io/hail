@@ -521,8 +521,14 @@ int main(int argc,char **argv)
     }
     directions=(capture_key?HA_CAPTURE:0u)|(playback_key?HA_PLAYBACK:0u);
     CHECK(!marker_trace || (!physical && low_grid && pcm==HA_PCM_F32 && rate==48000 && channels==2 && capture_key && playback_key));
+#if HA_WASAPI_DIAGNOSTICS
+    CHECK(!physical && low_grid && pcm==HA_PCM_F32 && rate==48000 && channels==2 && capture_key && playback_key);
+#endif
     trace_capture_key=capture_key; trace_playback_key=playback_key;
     printf("numerical_profile=%s\n",low_grid?"transparent-s16-grid-low-v1":"transparent-s16-grid");
+#if HA_WASAPI_DIAGNOSTICS
+    puts("diagnostic_profile=wasapi-sdk-boundary opt_in_static_build=1 no_extra_clients=1 numerical_tolerance=0");
+#endif
     CHECK(directions && (physical || directions==(HA_CAPTURE|HA_PLAYBACK)));
     sc.directions=directions; sc.negotiation=HA_EXACT_APPLICATION;
     sc.quantum_frames=Q; sc.capture_slots=capture_key?32u:0u; sc.playback_slots=playback_key?playback_slots:0u; sc.reference_slots=playback_key?64:0;
