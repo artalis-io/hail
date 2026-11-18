@@ -28,10 +28,14 @@ static ha_context *context;
 static ha_stream *stream;
 static uint32_t rate=48000, channels=2, pcm=HA_PCM_F32, directions=HA_CAPTURE|HA_PLAYBACK;
 static unsigned seconds=5, physical, unprimed, instrumented;
+static unsigned lifecycle_cycles;
 static atomic_uint quit, write_generation, hold_capture, io_failed, io_ready, expect_loss;
 static atomic_ullong captured;
 /* The I/O thread owns all plain fields below until it has joined. */
-static uint64_t verified[4], zero_frames, nonzero_frames, bad, metadata_gaps, clock_changes;
+static uint64_t verified[4], zero_frames, nonzero_frames, bad;
+static atomic_ullong metadata_gaps, clock_changes;
+static atomic_uint phase;
+static uint64_t host_valid_blocks, device_valid_blocks, silent_blocks, unknown_gap_blocks;
 static uint64_t last_frame, last_epoch, last_raw, last_host, capture_blocks, reference_frames, reference_silence;
 static uint32_t last_flags, last_marker, last_code, seen, gap_credit;
 static uint64_t poll_hist[1024], io_hist[1024], poll_calls, poll_max, io_max;
@@ -110,15 +114,16 @@ static void describe(const char *key,uint32_t direction)
     CHECK(SUCCEEDED(hr));
     printf("native direction=%u mix_rate=%lu mix_channels=%u mix_bits=%u mix_tag=%u period_100ns=%lld minimum_100ns=%lld physical_format=unknown\n",
         direction,(unsigned long)mix->nSamplesPerSec,mix->nChannels,mix->wBitsPerSample,mix->wFormatTag,(long long)normal,(long long)minimum);
+    CHECK(SUCCEEDED(IMMDevice_Activate(d,&vol,CLSCTX_ALL,NULL,(void **)&volume)));
+    CHECK(SUCCEEDED(IAudioEndpointVolume_GetMasterVolumeLevelScalar(volume,&gain)));
+    CHECK(SUCCEEDED(IAudioEndpointVolume_GetMute(volume,&mute)));
+    printf("endpoint direction=%u master_gain=%.9g muted=%u\n",direction,(double)gain,(unsigned)mute);
     if(!physical) {
-        CHECK(mix->nSamplesPerSec==rate && mix->nChannels==channels);
-        CHECK(SUCCEEDED(IMMDevice_Activate(d,&vol,CLSCTX_ALL,NULL,(void **)&volume)));
-        CHECK(SUCCEEDED(IAudioEndpointVolume_GetMasterVolumeLevelScalar(volume,&gain)) && gain==1.0f);
-        CHECK(SUCCEEDED(IAudioEndpointVolume_GetMute(volume,&mute)) && !mute);
+        CHECK(mix->nSamplesPerSec==rate && mix->nChannels==channels && gain==1.0f && !mute);
         { UINT channel_count=0,j; CHECK(SUCCEEDED(IAudioEndpointVolume_GetChannelCount(volume,&channel_count)));
           for(j=0;j<channel_count;++j) CHECK(SUCCEEDED(IAudioEndpointVolume_GetChannelVolumeLevelScalar(volume,j,&gain)) && gain==1.0f); }
-        IAudioEndpointVolume_Release(volume);
     }
+    IAudioEndpointVolume_Release(volume);
     memset(&w,0,sizeof(w)); w.Format.wFormatTag=WAVE_FORMAT_EXTENSIBLE;
     w.Format.nChannels=(WORD)channels; w.Format.nSamplesPerSec=rate; w.Format.wBitsPerSample=pcm==HA_PCM_S16?16:32;
     w.Format.nBlockAlign=(WORD)(channels*w.Format.wBitsPerSample/8u); w.Format.nAvgBytesPerSec=rate*w.Format.nBlockAlign;
@@ -184,7 +189,16 @@ static void read_capture(void)
             if(b.clock_epoch==last_epoch && (b.flags&last_flags&HA_TIME_DEVICE_VALID) && b.device_position!=last_raw && !marked) ++bad;
             if(b.clock_epoch==last_epoch && (b.flags&last_flags&HA_TIME_HOST_VALID) && b.host_time_ns<last_host) ++bad;
             if(marked) gap_credit=1;
+            if(marked || b.first_frame!=last_frame || b.clock_epoch!=last_epoch)
+                printf("capture_transition phase=%u logical=%llu expected_logical=%llu epoch=%llu previous_epoch=%llu raw=%llu expected_raw=%llu host_ns=%llu previous_host_ns=%llu flags=%u lost=%llu\n",
+                    atomic_load(&phase),(unsigned long long)b.first_frame,(unsigned long long)last_frame,
+                    (unsigned long long)b.clock_epoch,(unsigned long long)last_epoch,(unsigned long long)b.device_position,
+                    (unsigned long long)last_raw,(unsigned long long)b.host_time_ns,(unsigned long long)last_host,b.flags,(unsigned long long)b.lost_frames);
         }
+        if(b.flags&HA_TIME_HOST_VALID) ++host_valid_blocks;
+        if(b.flags&HA_TIME_DEVICE_VALID) ++device_valid_blocks;
+        if(b.flags&HA_BLOCK_SILENCE) ++silent_blocks;
+        if(b.flags&HA_BLOCK_UNKNOWN_GAP) ++unknown_gap_blocks;
         ++capture_blocks; last_frame=b.first_frame+n; last_epoch=b.clock_epoch;
         last_raw=b.device_position+n; last_host=b.host_time_ns; last_flags=b.flags;
         atomic_fetch_add(&captured,n);
@@ -312,7 +326,7 @@ static int loss_trial(const char *prefix,const ha_stream_config *config,const ha
     HANDLE ready=loss_event(prefix,"ready"),closed=loss_event(prefix,"closed"),restored=loss_event(prefix,"restored");
     ha_stream_status s=HA_INIT(ha_stream_status); ha_stream_info replacement=HA_INIT(ha_stream_info);
     uint64_t deadline; uint32_t count,i; ha_device_info items[HA_MAX_DEVICES];
-    CHECK(!physical && directions==(HA_CAPTURE|HA_PLAYBACK));
+    CHECK(directions==(HA_CAPTURE|HA_PLAYBACK));
     CHECK(ha_stream_start(stream)==HA_PENDING); await_state(HA_RUNNING);
     launch_io(1); run_for(1000); atomic_store(&expect_loss,1); CHECK(SetEvent(ready)); deadline=now_ns()+30u*NS;
     do {
@@ -331,12 +345,47 @@ static int loss_trial(const char *prefix,const ha_stream_config *config,const ha
     CHECK(replacement.capture_clock_domain!=original->capture_clock_domain && replacement.playback_clock_domain!=original->playback_clock_domain);
     CHECK(!bad);
     capture_blocks=0; seen=0; gap_credit=0; memset(verified,0,sizeof(verified)); atomic_store(&expect_loss,0);
-    CHECK(ha_stream_start(stream)==HA_PENDING); await_state(HA_RUNNING); launch_io(1); run_for(1000); join_io();
-    CHECK(!bad && verified[1]>rate/3u); close_stream();
+    { uint64_t previous_nonzero=nonzero_frames;
+      CHECK(ha_stream_start(stream)==HA_PENDING); await_state(HA_RUNNING); launch_io(1); run_for(1000); join_io();
+      CHECK(!bad && (physical?nonzero_frames-previous_nonzero>rate/3u:verified[1]>rate/3u)); }
+    close_stream();
     CHECK(ha_context_destroy(&context)==HA_OK && allocations==frees && !live_bytes);
     CHECK(CloseHandle(ready) && CloseHandle(closed) && CloseHandle(restored));
     printf("PASS explicit loss/reopen capture_id=%llu render_id=%llu allocations=%llu frees=%llu\n",
         (unsigned long long)replacement.capture_device_id,(unsigned long long)replacement.playback_device_id,
+        (unsigned long long)allocations,(unsigned long long)frees); return 0;
+}
+static int lifecycle_trial(const ha_stream_config *config)
+{
+    unsigned i;
+    for(i=0;i<lifecycle_cycles;++i) {
+        uint64_t old_generation=status().playback_generation,flush_generation=0;
+        CHECK(ha_stream_start(stream)==HA_PENDING); progress();
+        if(i%3u==2u) {
+            await_state(HA_RUNNING);
+            if(directions&HA_PLAYBACK) {
+                CHECK(ha_stream_flush_playback(stream,HA_FLUSH_NATIVE_REQUIRED,&flush_generation)==HA_PENDING);
+                progress();
+            }
+        }
+        if(i%3u!=1u) {
+            CHECK(ha_stream_stop(stream)==HA_PENDING); await_state(HA_STOPPED);
+            CHECK(status().playback_generation>old_generation);
+            if(directions&HA_PLAYBACK) {
+                pcm_buffer p; uint32_t n=99; pattern(&p,1,0);
+                CHECK(ha_stream_write(stream,&p,Q,old_generation,&n)==HA_STALE_GENERATION && !n);
+                if(flush_generation) CHECK(status().flush_completed_generation==flush_generation &&
+                    (status().flush_result==HA_CANCELLED || status().flush_result==HA_OK));
+            }
+        }
+        close_stream();
+        printf("lifecycle_cycle=%u transition=%s balanced_stream_bytes=%llu\n",i,
+            i%3u==0u?"stop-during-start":i%3u==1u?"close-during-start":"stop-during-flush",
+            (unsigned long long)live_bytes);
+        if(i+1u<lifecycle_cycles) CHECK(ha_stream_open(context,config,&stream)==HA_OK);
+    }
+    CHECK(ha_context_destroy(&context)==HA_OK && ha_context_destroy(&context)==HA_OK && allocations==frees && !live_bytes);
+    printf("PASS lifecycle_cycles=%u allocations=%llu frees=%llu ledger_bytes=0\n",lifecycle_cycles,
         (unsigned long long)allocations,(unsigned long long)frees); return 0;
 }
 int main(int argc,char **argv)
@@ -346,10 +395,12 @@ int main(int argc,char **argv)
     ha_stream_info info=HA_INIT(ha_stream_info); ha_diagnostic diagnostic=HA_INIT(ha_diagnostic);
     const char *capture_key=NULL,*playback_key=NULL,*loss_events=NULL; unsigned i,list=0; uint32_t generation=1;
     uint64_t open_allocations,begin,flush_ns=0,flush_request_ns=0,capture_at_flush=0,flush_capture_progress=0;
+    uint64_t baseline_gaps,baseline_clocks,steady_gaps,steady_clocks,preflush_gaps,preflush_clocks,flush_gaps=0,flush_clocks=0;
     ha_stream_status baseline,after,starved,overflow; LARGE_INTEGER f; PROCESS_MEMORY_COUNTERS memory;
     FILETIME create,exit_time,kernel0,user0,kernel1,user1; uint64_t cpu0,cpu1;
     CHECK(QueryPerformanceFrequency(&f) && f.QuadPart>0); frequency=(uint64_t)f.QuadPart;
     CHECK(frequency<=UINT64_MAX/NS);
+    CHECK(setvbuf(stdout,NULL,_IONBF,0)==0);
     if(argc==2 && !strcmp(argv[1],"--self-test")) return oracle_self_test();
     for(i=1;i<(unsigned)argc;++i) {
         if(!strcmp(argv[i],"--list")) list=1;
@@ -362,6 +413,7 @@ int main(int argc,char **argv)
             else if(!strcmp(argv[i],"--playback")) playback_key=argv[++i];
             else if(!strcmp(argv[i],"--loss-events")) loss_events=argv[++i];
             else if(!strcmp(argv[i],"--seconds")) seconds=number(argv[++i],1,3600);
+            else if(!strcmp(argv[i],"--lifecycle-cycles")) lifecycle_cycles=number(argv[++i],1,256);
             else if(!strcmp(argv[i],"--rate")) rate=number(argv[++i],8000,192000);
             else if(!strcmp(argv[i],"--channels")) channels=number(argv[++i],1,2);
             else if(!strcmp(argv[i],"--pcm")) { ++i; CHECK(!strcmp(argv[i],"s16") || !strcmp(argv[i],"f32")); pcm=!strcmp(argv[i],"s16")?HA_PCM_S16:HA_PCM_F32; }
@@ -381,7 +433,7 @@ int main(int argc,char **argv)
     directions=(capture_key?HA_CAPTURE:0u)|(playback_key?HA_PLAYBACK:0u);
     CHECK(directions && (physical || directions==(HA_CAPTURE|HA_PLAYBACK)));
     sc.directions=directions; sc.negotiation=HA_EXACT_APPLICATION;
-    sc.quantum_frames=Q; sc.capture_slots=32; sc.playback_slots=32; sc.reference_slots=playback_key?64:0;
+    sc.quantum_frames=Q; sc.capture_slots=capture_key?32u:0u; sc.playback_slots=playback_key?32u:0u; sc.reference_slots=playback_key?64:0;
     { ha_format format=HA_FORMAT_INIT(rate,channels,pcm); sc.capture_format=format; sc.playback_format=format; }
     if(capture_key) { sc.capture_device=select_key(capture_key,HA_CAPTURE); describe(capture_key,HA_CAPTURE); }
     if(playback_key) { sc.playback_device=select_key(playback_key,HA_PLAYBACK); describe(playback_key,HA_PLAYBACK); }
@@ -389,20 +441,32 @@ int main(int argc,char **argv)
     CHECK(ha_stream_plan(context,&sc,&sp)==HA_OK);
     { ha_result r=ha_stream_open(context,&sc,&stream); if(r!=HA_OK) fprintf(stderr,"open_result=%d native=%lld\n",r,(long long)diagnostic.native_code); CHECK(r==HA_OK); }
     CHECK(ha_stream_get_info(stream,&info)==HA_OK && info.allocated_bytes==sp.bytes && live_bytes==cp.bytes+sp.bytes);
+    for(i=0;i<2;++i) if(directions&(i?HA_PLAYBACK:HA_CAPTURE)) {
+        const ha_probe_info *negotiated=i?&info.playback_negotiated:&info.capture_negotiated;
+        printf("negotiated direction=%u app_rate=%u app_channels=%u app_pcm=%u engine_valid=%u engine_rate=%u engine_channels=%u engine_pcm=%u physical_valid=%u conversion=%u\n",
+            i?HA_PLAYBACK:HA_CAPTURE,negotiated->application_format.sample_rate,negotiated->application_format.channels,
+            negotiated->application_format.sample_format,negotiated->backend_format_valid,negotiated->backend_format.sample_rate,
+            negotiated->backend_format.channels,negotiated->backend_format.sample_format,negotiated->device_format_valid,negotiated->conversion);
+    }
     printf("profile=%s physical=%u rate=%u channels=%u pcm=%u quantum=%u capture_slots=%u playback_slots=%u reference_slots=%u seconds=%u unprimed=%u conversion_capture=%u conversion_playback=%u clock_relationship=%u capture_domain=%llu render_domain=%llu\n",
         instrumented?"instrumented":"strict",physical,rate,channels,pcm,Q,info.capture_slots,info.playback_slots,info.reference_slots,seconds,unprimed,
         info.capture_negotiated.conversion,info.playback_negotiated.conversion,info.clock_relationship,
         (unsigned long long)info.capture_clock_domain,(unsigned long long)info.playback_clock_domain);
     open_allocations=allocations;
     if(loss_events) return loss_trial(loss_events,&sc,&info);
+    if(lifecycle_cycles) return lifecycle_trial(&sc);
     if(playback_key && !unprimed) for(i=0;i<8;++i) { pcm_buffer p; uint32_t n; pattern(&p,1,i*Q);
         if(!i) marker_write_ns[1]=now_ns(); CHECK(ha_stream_write(stream,&p,Q,1,&n)==HA_OK && n==Q); }
     CHECK(ha_stream_start(stream)==HA_PENDING); await_state(HA_RUNNING);
     if(unprimed && playback_key) Sleep(60);
     launch_io(playback_key?1u:0u); run_for(1000); baseline=status();
+    atomic_store(&phase,1); baseline_gaps=atomic_load(&metadata_gaps); baseline_clocks=atomic_load(&clock_changes);
     if(unprimed && playback_key) CHECK(baseline.playback_underrun_frames>0);
     CHECK(GetProcessTimes(GetCurrentProcess(),&create,&exit_time,&kernel0,&user0)); begin=now_ns();
     run_for(seconds*1000u); after=status();
+    steady_gaps=atomic_load(&metadata_gaps)-baseline_gaps; steady_clocks=atomic_load(&clock_changes)-baseline_clocks;
+    printf("sustained_capture_metadata_gaps=%llu sustained_capture_epoch_changes=%llu startup_underruns=%llu\n",
+        (unsigned long long)steady_gaps,(unsigned long long)steady_clocks,(unsigned long long)baseline.playback_underrun_frames);
     CHECK(GetProcessTimes(GetCurrentProcess(),&create,&exit_time,&kernel1,&user1));
     cpu0=(((uint64_t)kernel0.dwHighDateTime<<32)|kernel0.dwLowDateTime)+(((uint64_t)user0.dwHighDateTime<<32)|user0.dwLowDateTime);
     cpu1=(((uint64_t)kernel1.dwHighDateTime<<32)|kernel1.dwLowDateTime)+(((uint64_t)user1.dwHighDateTime<<32)|user1.dwLowDateTime);
@@ -410,10 +474,11 @@ int main(int argc,char **argv)
         (unsigned long long)(now_ns()-begin),(unsigned long long)(after.capture_lost_frames-baseline.capture_lost_frames),
         (unsigned long long)(after.playback_underrun_frames-baseline.playback_underrun_frames),
         (unsigned long long)(after.reference_lost_frames-baseline.reference_lost_frames),(unsigned long long)((cpu1-cpu0)*100u));
-    if(!instrumented) CHECK(after.capture_lost_frames==baseline.capture_lost_frames && after.playback_underrun_frames==baseline.playback_underrun_frames && after.reference_lost_frames==baseline.reference_lost_frames);
+    if(!instrumented) CHECK(after.capture_lost_frames==baseline.capture_lost_frames && after.playback_underrun_frames==baseline.playback_underrun_frames && after.reference_lost_frames==baseline.reference_lost_frames && !steady_gaps && !steady_clocks);
     if(playback_key) {
         uint64_t new_generation,deadline=now_ns()+5u*NS;
         begin=now_ns(); flush_request_ns=begin; capture_at_flush=atomic_load(&captured);
+        atomic_store(&phase,2); preflush_gaps=atomic_load(&metadata_gaps); preflush_clocks=atomic_load(&clock_changes);
         CHECK(ha_stream_flush_playback(stream,HA_FLUSH_NATIVE_REQUIRED,&new_generation)==HA_PENDING);
         while(status().flush_completed_generation!=new_generation) { CHECK(now_ns()<deadline); progress(); Sleep(1); }
         flush_ns=now_ns()-begin; CHECK(status().flush_result==HA_OK && new_generation==2);
@@ -422,6 +487,9 @@ int main(int argc,char **argv)
         if(capture_key) CHECK(flush_capture_progress>rate/3u);
         /* Join before testing stale writes on the one application writer role. */
         join_io(); { pcm_buffer p; uint32_t n=99; pattern(&p,1,0); CHECK(ha_stream_write(stream,&p,Q,1,&n)==HA_STALE_GENERATION && n==0); }
+        flush_gaps=atomic_load(&metadata_gaps)-preflush_gaps; flush_clocks=atomic_load(&clock_changes)-preflush_clocks;
+        printf("flush_capture_metadata_gaps=%llu flush_capture_epoch_changes=%llu\n",(unsigned long long)flush_gaps,(unsigned long long)flush_clocks);
+        if(!instrumented) CHECK(!flush_gaps && !flush_clocks);
         if(!physical) {
             CHECK(verified[1]>rate/3u && verified[2]>rate/3u);
             if(!instrumented) CHECK(!metadata_gaps && !clock_changes);
@@ -430,13 +498,20 @@ int main(int argc,char **argv)
     CHECK(ha_stream_stop(stream)==HA_PENDING); await_state(HA_STOPPED);
     generation=(uint32_t)status().playback_generation;
     last_frame=last_epoch=last_raw=last_host=0; capture_blocks=0; seen=0; gap_credit=0;
+    atomic_store(&phase,3);
     CHECK(ha_stream_start(stream)==HA_PENDING); await_state(HA_RUNNING); launch_io(playback_key?generation:0u); run_for(1000);
     if(playback_key) { atomic_store(&write_generation,0); run_for(400); }
     starved=status();
     if(playback_key) CHECK(starved.playback_underrun_frames>after.playback_underrun_frames);
+    atomic_store(&phase,4);
     if(capture_key) { atomic_store(&hold_capture,1); run_for(32u*Q*1000u/rate+200u); atomic_store(&hold_capture,0); run_for(500); }
     overflow=status(); if(capture_key) CHECK(overflow.capture_lost_frames>starved.capture_lost_frames);
     join_io();
+    printf("injected_capture_loss_frames=%llu injected_playback_underrun_frames=%llu host_valid_blocks=%llu device_valid_blocks=%llu native_silent_blocks=%llu unknown_gap_blocks=%llu meaningful_capture_minus90dbfs=%u\n",
+        (unsigned long long)(overflow.capture_lost_frames-starved.capture_lost_frames),
+        (unsigned long long)(starved.playback_underrun_frames-after.playback_underrun_frames),
+        (unsigned long long)host_valid_blocks,(unsigned long long)device_valid_blocks,(unsigned long long)silent_blocks,
+        (unsigned long long)unknown_gap_blocks,capture_peak>=0.00003162277660168379?1u:0u);
     CHECK(allocations==open_allocations);
     memory.cb=sizeof(memory); CHECK(GetProcessMemoryInfo(GetCurrentProcess(),&memory,sizeof(memory)));
     printf("capture_frames=%llu nonzero=%llu zeros=%llu peak=%.9g rms=%.9g verified_A=%llu verified_B=%llu verified_C=%llu bad=%llu metadata_gaps=%llu clock_changes=%llu reference_frames=%llu reference_silence=%llu flush_ack_ns=%llu capture_frames_during_flush_trial=%llu poll_calls=%llu poll_max_ns=%llu io_max_ns=%llu hail_peak_bytes=%llu working_set=%llu peak_working_set=%llu\n",

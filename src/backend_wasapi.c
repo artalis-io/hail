@@ -62,7 +62,7 @@ typedef struct wa_stream {
     ha_stream *owner;
     HANDLE thread, request, reply, audio[2];
     atomic_uint command, done;
-    uint32_t pending, started[2], frames[2];
+    uint32_t pending, started[2], frames[2], capture_engine_rate;
     ha_result result;
     HRESULT native_result;
     WCHAR keys[2][1024];
@@ -391,12 +391,18 @@ static HRESULT wa_clients_open(wa_stream *a)
     uint32_t i; HRESULT hr;
     hr = CoCreateInstance(&CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, &IID_IMMDeviceEnumerator, (void **)&enumerator);
     for (i = 0; SUCCEEDED(hr) && i < 2; ++i) if (a->keys[i][0]) {
-        IMMDevice *device = NULL; WAVEFORMATEXTENSIBLE w;
+        IMMDevice *device = NULL; WAVEFORMATEXTENSIBLE w; WAVEFORMATEX *mix = NULL;
         const ha_format *f = i ? &a->owner->info.playback_format : &a->owner->info.capture_format;
         wave_format(f, &w);
         hr = IMMDeviceEnumerator_GetDevice(enumerator, a->keys[i], &device);
         if (SUCCEEDED(hr)) hr = IMMDevice_Activate(device, &IID_IAudioClient, CLSCTX_ALL, NULL, (void **)&a->client[i]);
         if (device) IMMDevice_Release(device);
+        if (SUCCEEDED(hr) && !i) {
+            hr = IAudioClient_GetMixFormat(a->client[i], &mix);
+            if (SUCCEEDED(hr) && (!mix || !mix->nSamplesPerSec)) hr = E_FAIL;
+            if (SUCCEEDED(hr)) a->capture_engine_rate = mix->nSamplesPerSec;
+            if (mix) CoTaskMemFree(mix);
+        }
         if (SUCCEEDED(hr)) hr = IAudioClient_Initialize(a->client[i], AUDCLNT_SHAREMODE_SHARED,
             AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM | AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY,
             200000, 0, &w.Format, NULL);
@@ -424,18 +430,25 @@ static void wa_capture(wa_stream *a)
         {
             uint32_t offset = 0;
             while (offset < frames) {
-                uint32_t n = frames - offset, valid = flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR ? 0u : HA_TIME_DEVICE_VALID;
+                uint32_t n = frames - offset, valid = 0;
+                int converted_rate = a->capture_engine_rate != s->info.capture_format.sample_rate;
                 uint64_t host = 0;
                 ha_result r;
+                /* Shared-engine resampling retains engine-rate packet positions.
+                 * They cannot be compared with application frame counts, and
+                 * startup filter delay prevents a lossless integer rescaling.
+                 * Preserve the SDK host correlation as an estimate instead. */
+                if (!(flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) && !converted_rate) valid |= HA_TIME_DEVICE_VALID;
                 if (n > s->info.quantum_frames) n = s->info.quantum_frames;
                 if (!(flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) && qpc <= UINT64_MAX / 100u) {
                     uint64_t delta = (uint64_t)offset * UINT64_C(1000000000) / s->info.capture_format.sample_rate;
                     if (qpc * 100u <= UINT64_MAX - delta) { host = qpc * 100u + delta; valid |= HA_TIME_HOST_VALID; }
                 }
+                if (converted_rate && (valid & HA_TIME_HOST_VALID)) valid |= HA_TIME_ESTIMATED;
                 if (!offset && (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY)) valid |= HA_BLOCK_UNKNOWN_GAP;
                 if (flags & AUDCLNT_BUFFERFLAGS_SILENT) valid |= HA_BLOCK_SILENCE;
                 r = hail_native_capture(s, flags & AUDCLNT_BUFFERFLAGS_SILENT ? a->silence : data + (size_t)offset * s->capture.bytes_per_frame,
-                                        n, host, pos <= UINT64_MAX - offset ? pos + offset : 0, UINT64_MAX,
+                                        n, host, !converted_rate && pos <= UINT64_MAX - offset ? pos + offset : 0, UINT64_MAX,
                                         pos <= UINT64_MAX - offset ? valid : valid & ~HA_TIME_DEVICE_VALID);
                 if (r != HA_OK) { hail_rt_error(s, 0, r, 0); break; }
                 offset += n;

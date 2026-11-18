@@ -64,6 +64,7 @@ static void setup(void)
     atomic_init(&stream.state,HA_RUNNING); hail_rt_init(&stream); hail_rt_open(&stream,0); hail_rt_open(&stream,1);
     adapter.owner=&stream; adapter.capture=&capture_client; adapter.render=&render_client;
     adapter.client[0]=&clients[0]; adapter.client[1]=&clients[1]; adapter.frames[0]=4; adapter.frames[1]=4;
+    adapter.capture_engine_rate=48000;
     clients[0].lpVtbl=&client_ops; clients[1].lpVtbl=&client_ops;
     atomic_init(&adapter.command,0); atomic_init(&adapter.done,0);
     packet_frames=4; packet_flags=0; packets=1; released=0; padding=0; packet_data=NULL;
@@ -109,6 +110,10 @@ int main(void)
     CHECK((b.flags & (HA_TIME_HOST_VALID|HA_TIME_DEVICE_VALID))==(HA_TIME_HOST_VALID|HA_TIME_DEVICE_VALID));
     CHECK(b.device_position==100 && b.host_time_ns==20000 && pcm[0]==0 && pcm[3]==0);
     CHECK(hail_ring_read(&stream.capture,pcm,2,&b)==2 && b.device_position==102 && (b.flags & HA_BLOCK_SILENCE));
+    setup(); stream.info.capture_format.sample_rate=16000; packet_flags=AUDCLNT_BUFFERFLAGS_SILENT; wa_capture(&adapter);
+    CHECK(hail_ring_read(&stream.capture,pcm,2,&b)==2 && !(b.flags&HA_TIME_DEVICE_VALID));
+    CHECK((b.flags&(HA_TIME_HOST_VALID|HA_TIME_ESTIMATED))==(HA_TIME_HOST_VALID|HA_TIME_ESTIMATED));
+    CHECK(!b.device_position && b.frame_time_denominator==16000);
     setup(); get_result=AUDCLNT_S_BUFFER_EMPTY; packet_frames=0; wa_capture(&adapter);
     CHECK(!released && !atomic_load(&stream.rt[0].error));
     setup(); packet_frames=5; packet_flags=AUDCLNT_BUFFERFLAGS_SILENT; wa_capture(&adapter);
