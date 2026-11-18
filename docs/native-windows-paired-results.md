@@ -1,5 +1,12 @@
 # VB-CABLE paired qualification, 2026-11-18
 
+Follow-up: [independent stage isolation](wasapi-path-results.md) locates the
+high-level change at render-loopback output and S16 noise in native capture.
+A separately predeclared low-grid F32 profile passes the short/ASan trials after
+a demonstrated harness boundary correction. The original results below remain
+failed and retained; this follow-up does not certify original-profile or S16
+exact transparency.
+
 The installed fixture was exercised through both Hail WASAPI legs. **All four
 48 kHz stereo strict PCM cases failed.** The signed-driver/endpoint validator
 passed, but this configuration does not satisfy `transparent-s16-grid`.

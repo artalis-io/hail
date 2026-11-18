@@ -1,5 +1,19 @@
 # Audio architecture axis audit
 
+The [stage-isolation follow-up](wasapi-path-results.md) now distinguishes Hail's
+render reference from native render loopback and independent native F32/S16 cable
+capture. The observed numerical changes require no DSP in Hail: a separate exact
+low-grid signal passes F32 short paired trials, while S16 exact transparency
+remains failed. One test-only stop/reset tail-continuity assertion was corrected
+with negative oracle tests; no production axis, public selector or ABI changed.
+Built-in render loopback remains diagnostic-only and does not replace the
+passing profile's actual Hail capture leg.
+Subsequent conditioned native flush still produced an unresolved fractional
+sample ramp, so the low-grid subset is not a complete transition qualification.
+The first measured ten-minute phase had zero transport loss but failed its
+numerical assertion. Cross-trial residual cable PCM now requires an explicit
+separate silence-conditioning preflight; oracle regressions remain failures.
+
 The subsequent [signed VB-CABLE paired campaign](native-windows-paired-results.md)
 opened both real WASAPI legs but failed all four strict 48 kHz stereo PCM cases.
 No core/backend-axis change was made: numerical-path diagnosis remains open,

@@ -51,12 +51,19 @@ foreach ($rate in 16000,24000,44100,48000) {
     }
 }
 $fixture=$fixtures[0]
-Invoke-Condition $fixture 'sustained'
-$arguments = @('--capture',$fixture.capture.key,'--playback',$fixture.playback.key,
-    '--rate',"$($fixture.sample_rate)",'--channels',"$($fixture.channels)",'--pcm','f32','--seconds',"$SustainedSeconds")
-if ($fixture.profile -eq 'transparent-s16-grid-low-v1') { $arguments += '--low-grid' }
-& $Executable @arguments 2>&1 | Tee-Object -FilePath (Join-Path $OutputDirectory 'sustained.log')
-if ($LASTEXITCODE -ne 0) { $failures.Add('sustained') }
+$selected="$($fixture.sample_rate)-$($fixture.channels)-f32"
+if ($failures.Contains("$selected-primed") -or $failures.Contains("$selected-unprimed")) {
+    'BLOCKED: selected F32 profile failed a short startup case; no sustained trial attempted.' |
+        Set-Content -LiteralPath (Join-Path $OutputDirectory 'sustained.blocked.txt')
+    $failures.Add('sustained-precondition')
+} else {
+    Invoke-Condition $fixture 'sustained'
+    $arguments = @('--capture',$fixture.capture.key,'--playback',$fixture.playback.key,
+        '--rate',"$($fixture.sample_rate)",'--channels',"$($fixture.channels)",'--pcm','f32','--seconds',"$SustainedSeconds")
+    if ($fixture.profile -eq 'transparent-s16-grid-low-v1') { $arguments += '--low-grid' }
+    & $Executable @arguments 2>&1 | Tee-Object -FilePath (Join-Path $OutputDirectory 'sustained.log')
+    if ($LASTEXITCODE -ne 0) { $failures.Add('sustained') }
+}
 [ordered]@{completed_utc=[DateTimeOffset]::UtcNow.ToString('o'); failures=@($failures);
     endpoint_disable_reenable='not executed by this harness; provisioner-controlled lifecycle trial required';
     physical_audio='not exercised by paired virtual fixture'; physical_latency='not measured'} |

@@ -22,12 +22,13 @@ static const GUID cap={0xc8adbd64,0xe71e,0x48a0,{0xa4,0xde,0x18,0x5c,0x39,0x5c,0
 static const GUID integer={1,0,0x10,{0x80,0,0,0xaa,0,0x38,0x9b,0x71}};
 static const GUID floating={3,0,0x10,{0x80,0,0,0xaa,0,0x38,0x9b,0x71}};
 typedef union pcm_buffer { float f[Q*2]; int16_t s[Q*2]; } pcm_buffer;
-typedef struct observation { uint64_t frames,mismatches,nonzero,flags; double max_error; } observation;
+typedef struct observation { uint64_t frames,mismatches,nonzero,flags,fractional; double max_error,first_left,first_right; } observation;
 typedef struct tap { IAudioClient *client; IAudioCaptureClient *capture; unsigned pcm; UINT32 capacity; } tap;
 static ha_context *context;
 static ha_stream *stream;
 static uint64_t frequency;
 static unsigned pcm;
+static uint64_t write_generation=1;
 static const char *names[]={"hail_reference","native_render_loopback_f32","native_cable_f32","native_cable_s16","hail_capture"};
 static uint64_t ticks(void) { LARGE_INTEGER t; REQUIRE(QueryPerformanceCounter(&t)); return (uint64_t)t.QuadPart; }
 static void progress(void) { uint32_t count; REQUIRE(ha_context_poll(context,NULL,0,&count)==HA_OK); }
@@ -58,14 +59,16 @@ static void open_tap(tap *t,IMMDeviceEnumerator *e,const char *key,unsigned repr
 }
 static void observe(observation *o,const void *data,unsigned representation,unsigned frames,unsigned silent,int expected) {
     unsigned i,c; const float *f=data; const int16_t *s=data;
-    for(i=0;i<frames;++i) { unsigned mismatch=0,nonzero=0;
+    for(i=0;i<frames;++i) { unsigned mismatch=0,nonzero=0,fractional=0; double pair[2];
         for(c=0;c<2;++c) { double actual=silent?0:(representation==HA_PCM_F32?(double)f[i*2+c]*32768.0:(double)s[i*2+c]);
+            pair[c]=actual; if(isfinite(actual) && actual!=floor(actual)) fractional=1;
             double error=fabs(actual-(c?-expected:expected));
             if(!isfinite(actual)) { mismatch=1; o->max_error=HUGE_VAL; }
             else { if(error!=0) mismatch=1; if(error>o->max_error) o->max_error=error; }
             if(actual!=0) nonzero=1;
         }
         ++o->frames; o->mismatches+=mismatch; o->nonzero+=nonzero;
+        if(fractional) { if(!o->fractional) { o->first_left=pair[0]; o->first_right=pair[1]; } ++o->fractional; }
     }
 }
 static void drain_tap(tap *t,observation *o,int expected,unsigned measured) {
@@ -87,7 +90,7 @@ static void hail_io(observation *capture,observation *reference,int expected,uns
         if(measured) { reference->flags|=b.flags; observe(reference,&p,pcm,n,0,expected); }
     }
     for(i=0;i<Q*2;++i) { int v=(i&1)?-expected:expected; if(pcm==HA_PCM_F32) p.f[i]=(float)v/32768.0f; else p.s[i]=(int16_t)v; }
-    for(attempt=0;attempt<8;++attempt) { ha_result r=ha_stream_write(stream,&p,Q,1,&n); if(r==HA_WOULD_BLOCK || r==HA_BUSY) break; REQUIRE(r==HA_OK && n<=Q); }
+    for(attempt=0;attempt<8;++attempt) { ha_result r=ha_stream_write(stream,&p,Q,write_generation,&n); if(r==HA_WOULD_BLOCK || r==HA_BUSY || r==HA_STALE_GENERATION) break; REQUIRE(r==HA_OK && n<=Q); }
 }
 static int self_test(void) {
     observation o; float f[2]={0.25f,-0.25f}; int16_t s[2]={8192,-8192};
@@ -96,14 +99,15 @@ static int self_test(void) {
     s[1]=-8191; observe(&o,s,HA_PCM_S16,1,0,8192); REQUIRE(o.mismatches==1 && o.max_error==1);
     observe(&o,NULL,HA_PCM_F32,1,1,8192); REQUIRE(o.mismatches==2 && o.max_error==8192);
     f[0]=NAN; observe(&o,f,HA_PCM_F32,1,0,8192); REQUIRE(o.mismatches==3 && !isfinite(o.max_error));
+    f[0]=0.25001f; observe(&o,f,HA_PCM_F32,1,0,8192); REQUIRE(o.fractional==1 && o.mismatches==4);
     puts("PASS constant observer rejects LSB errors, zeros-only substitution and nonfinite PCM"); return 0;
 }
 int main(int argc,char **argv) {
     static const int levels[]={0,8192,16384,24576,30000,32000,32700,0};
     ha_context_config cc=HA_INIT(ha_context_config); ha_stream_config sc=HA_INIT(ha_stream_config);
-    IMMDeviceEnumerator *e=NULL; tap taps[3]; unsigned phase,j,condition=0; LARGE_INTEGER f; uint64_t deadline; ha_result r;
+    IMMDeviceEnumerator *e=NULL; tap taps[3]; unsigned phase,j,condition=0,flush=0,monitor=1; LARGE_INTEGER f; uint64_t deadline; ha_result r;
     if(argc==2 && !strcmp(argv[1],"--self-test")) return self_test();
-    if(argc==5) { REQUIRE(!strcmp(argv[4],"--condition") && !strcmp(argv[3],"f32")); condition=1; }
+    if(argc==5) { REQUIRE(!strcmp(argv[3],"f32")); condition=!strcmp(argv[4],"--condition"); flush=!strcmp(argv[4],"--flush") || !strcmp(argv[4],"--flush-no-loopback"); monitor=strcmp(argv[4],"--flush-no-loopback")!=0; REQUIRE(condition || flush); }
     REQUIRE((argc==4 || argc==5) && (!strcmp(argv[3],"f32") || !strcmp(argv[3],"s16"))); pcm=!strcmp(argv[3],"f32")?HA_PCM_F32:HA_PCM_S16;
     /* Exact local cable identities are deliberately supplied; no default fallback. */
     REQUIRE(QueryPerformanceFrequency(&f) && f.QuadPart>0); frequency=(uint64_t)f.QuadPart; REQUIRE(frequency<=UINT64_MAX/10u);
@@ -116,21 +120,31 @@ int main(int argc,char **argv) {
     { ha_format fmt=HA_FORMAT_INIT(48000,2,pcm); sc.capture_format=fmt; sc.playback_format=fmt; }
     sc.quantum_frames=Q; sc.capture_slots=32; sc.playback_slots=32; sc.reference_slots=64;
     REQUIRE(ha_stream_open(context,&sc,&stream)==HA_OK);
-    for(j=0;j<3;++j) SDK(IAudioClient_Start(taps[j].client));
+    for(j=monitor?0u:1u;j<3;++j) SDK(IAudioClient_Start(taps[j].client));
     REQUIRE(ha_stream_start(stream)==HA_PENDING); await_state(HA_RUNNING);
-    printf("diagnostic=constant-s16-grid levels=8 phase_ms=1500 settle_ms=600 hail_pcm=%u oracle_tolerance=0 qualification=0\n",pcm);
-    for(phase=0;phase<(condition?1u:sizeof(levels)/sizeof(levels[0]));++phase) {
-        observation o[5]; uint64_t start=ticks(); memset(o,0,sizeof(o));
+    printf("diagnostic=%s phase_ms=1500 settle_ms=600 hail_pcm=%u oracle_tolerance=0 qualification=0 render_monitor_active=%u\n",flush?"constant-native-flush":"constant-s16-grid",pcm,monitor);
+    for(phase=0;phase<(condition?1u:(flush?3u:sizeof(levels)/sizeof(levels[0])));++phase) {
+        /* Odd amplitude exposes fractional gain ramps that a power-of-two
+         * constant could hide on an integer sample grid. */
+        observation o[5]; uint64_t start=ticks(),new_generation=0; unsigned requested=0,completed=0; int level=flush?(phase==1?8193:0):levels[phase]; memset(o,0,sizeof(o));
         while(ticks()-start<frequency*3/2) { unsigned measured=ticks()-start>=frequency*3/5;
-            progress(); hail_io(&o[4],&o[0],levels[phase],measured);
-            for(j=0;j<3;++j) drain_tap(&taps[j],&o[j+1],levels[phase],measured); Sleep(1);
+            progress();
+            if(flush && phase==1 && !requested && ticks()-start>=frequency*4/5) {
+                REQUIRE(ha_stream_flush_playback(stream,HA_FLUSH_NATIVE_REQUIRED,&new_generation)==HA_PENDING); requested=1;
+            }
+            if(requested && !completed) { ha_stream_status s=HA_INIT(ha_stream_status); REQUIRE(ha_stream_get_status(stream,&s)==HA_OK);
+                if(s.flush_completed_generation==new_generation) { REQUIRE(s.flush_result==HA_OK); completed=1; write_generation=new_generation; }
+            }
+            hail_io(&o[4],&o[0],level,measured);
+            for(j=monitor?0u:1u;j<3;++j) drain_tap(&taps[j],&o[j+1],level,measured); Sleep(1);
         }
-        for(j=0;j<5;++j) { REQUIRE(o[j].frames>24000); printf("level=%d stage=%s frames=%llu mismatches=%llu nonzero=%llu max_error_s16_units=%.17g flags=%llu\n",
-            levels[phase],names[j],(unsigned long long)o[j].frames,(unsigned long long)o[j].mismatches,(unsigned long long)o[j].nonzero,o[j].max_error,(unsigned long long)o[j].flags); }
+        if(flush && phase==1) REQUIRE(completed);
+        for(j=0;j<5;++j) { REQUIRE((!monitor && j==1) || o[j].frames>24000); printf("level=%d stage=%s frames=%llu mismatches=%llu nonzero=%llu max_error_s16_units=%.17g flags=%llu fractional_frames=%llu first_fractional_left=%.17g first_fractional_right=%.17g\n",
+            level,names[j],(unsigned long long)o[j].frames,(unsigned long long)o[j].mismatches,(unsigned long long)o[j].nonzero,o[j].max_error,(unsigned long long)o[j].flags,(unsigned long long)o[j].fractional,o[j].first_left,o[j].first_right); }
         if(condition) { REQUIRE(!o[0].mismatches && !o[1].mismatches && !o[2].mismatches && !o[4].mismatches); }
     }
     REQUIRE(ha_stream_stop(stream)==HA_PENDING); await_state(HA_STOPPED);
-    for(j=0;j<3;++j) { SDK(IAudioClient_Stop(taps[j].client)); taps[j].capture->lpVtbl->Release(taps[j].capture); IAudioClient_Release(taps[j].client); }
+    for(j=0;j<3;++j) { if(monitor || j) SDK(IAudioClient_Stop(taps[j].client)); taps[j].capture->lpVtbl->Release(taps[j].capture); IAudioClient_Release(taps[j].client); }
     REQUIRE(ha_stream_close_begin(stream)==HA_PENDING); deadline=ticks()+5*frequency;
     do { progress(); r=ha_stream_close_finish(&stream); REQUIRE(r==HA_OK || r==HA_PENDING); REQUIRE(ticks()<deadline); Sleep(1); } while(r==HA_PENDING);
     deadline=ticks()+5*frequency;

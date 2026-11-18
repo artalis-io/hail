@@ -38,7 +38,12 @@ shared container label is insufficient. Provisioner declarations about effects,
 routing, exclusivity and licensing remain assertions, not independent proofs.
 Native PCM verification is mandatory after manifest validation.
 
-The only implemented numerical profile is `transparent-s16-grid`. Application
+The numerical profiles are `transparent-s16-grid` and the separately predeclared
+[`transparent-s16-grid-low-v1`](wasapi-low-grid-profile.md). The latter uses an
+11-bit counter and values below one quarter scale; it is not evidence that the
+original near-full-scale profile passed. [Stage isolation](wasapi-path-results.md)
+records passing low-grid F32 short/ASan cases and independently observed S16
+conversion noise. Both profiles apply exact zero-tolerance checks. Application
 and engine rates/channels must match, endpoint/channel gains must be unity and
 mute disabled. Samples occupy an exactly representable S16 grid in S16 or F32.
 Left values encode marker A/B/C and a 13-bit frame sequence; stereo right is the
@@ -47,6 +52,14 @@ third of a second of verified nonzero frames. Zeros alone cannot pass. The
 sequence repeats after 8,192 frames; metadata independently checks logical/raw
 positions and epochs. Numerical resampling/conversion profiles are **not yet
 implemented** and cannot be qualified by relaxing this oracle.
+
+For the low-grid profile the sequence repeats after 2,048 frames and the left
+value is `marker * 2048 + sequence`, divided by 32,768. The example above about
+13-bit sequences describes the original profile. The runner selects the correct
+signal from the manifest's profile field; keep campaigns in separate output
+directories. Stop/reset may discard queued old-generation data: the oracle
+records and validates residual old tail separately, then requires strict
+continuity for the new generation and rejects old-after-new samples.
 
 ```powershell
 ./tools/run_wasapi_qualification.ps1 `
@@ -61,7 +74,18 @@ manifest. The full matrix needs matching approved manifests for 16/24/44.1/48 kH
 mono/stereo. Pass these as a PowerShell string array to `-Manifest`. Missing
 profiles produce retained `*.unqualified.txt` records and a failing aggregate
 result. A single 48 kHz stereo fixture does not pass the whole format matrix.
-No failed run is retried automatically.
+No failed run is retried automatically. Before every trial the sibling
+`hail_wasapi_path.exe` performs a separate exact F32-silence preflight through
+the selected cable to clear downstream content left by prior failed trials.
+Supply `-ConditioningExecutable` if it has a different path. A failed F32
+primed/unprimed short case blocks the sustained attempt; an S16 failure still
+fails the aggregate even when the separate F32 subset passes.
+
+The current [follow-up](wasapi-path-results.md) retains a later conditioned
+unprimed failure on fractional flush samples. Earlier passing F32 short/ASan
+samples and a zero-loss measured phase therefore do not establish a complete
+transition or sustained numerical pass. `tests/wasapi_runner.ps1` tests the
+sustained gate with device-free mock processes; it never opens audio devices.
 
 The manually dispatched `WASAPI provisioned paired-endpoint qualification`
 workflow requires the `self-hosted, Windows, X64, hail-wasapi-loopback` labels and

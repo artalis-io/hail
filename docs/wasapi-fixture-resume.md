@@ -3,8 +3,14 @@
 Resumed after installation and reboot on 2026-11-18. See the
 [paired execution report](native-windows-paired-results.md): driver/endpoint
 validation passed, but all four strict 48 kHz stereo PCM trials failed.
-This checkpoint is historical; the next step is numerical-path diagnosis,
-not another installation or an assumed passing qualification.
+This checkpoint is historical. The subsequent [stage-isolation work](wasapi-path-results.md)
+locates render-side high-level processing and native S16 conversion noise;
+separate exact low-grid F32 short/ASan trials pass. Remaining qualification
+requires honest profile-specific results, not another installation or an
+assumed passing original/S16 matrix.
+The current follow-up still has a fractional native-flush failure; do not treat
+the earlier passing F32 short cases or zero-loss measured phase as a complete
+paired pass. Condition downstream cable storage explicitly before fresh trials.
 
 The owner authorized proceeding with the staged standalone VB-CABLE evaluation
 on 2026-11-18. Package 46, driver 3.5.2.0, has the verified hashes/signatures in

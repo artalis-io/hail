@@ -6,7 +6,14 @@ now passes the 32-case format/startup matrix, simplex/duplex, lifecycle stress,
 fix. Owner-coordinated USB removal/reopen also passes with fresh endpoint IDs
 and clock domains. The signed VB-CABLE pair was subsequently exercised, but all
 four strict 48 kHz stereo cases [failed the PCM oracle](native-windows-paired-results.md).
-The complete goal remains open for successful paired qualification.
+The [stage-isolation follow-up](wasapi-path-results.md) then passes a separately
+predeclared exact low-grid F32 profile in primed/unprimed short and ASan trials.
+S16 changes are also present in native SDK capture, and the high-level change
+is observable before cable capture in native render loopback. The complete
+goal remains open for the full paired matrix and S16 numerical qualification.
+A later conditioned low-grid unprimed trial failed on fractional samples at
+native flush; the ten-minute attempt failed its final numerical assertion.
+Passing short/ASan samples therefore do not certify complete paired transitions.
 Physical timing is uncalibrated; no physical
 latency or audible-tail bound is claimed.
 

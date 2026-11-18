@@ -26,6 +26,18 @@ and balanced teardown. No microphone PCM was retained. The installed
 48 kHz stereo PCM cases. Controlled paired-fixture correctness, physical
 timestamp accuracy and calibrated latency remain unqualified.
 
+The subsequent [stage-isolation follow-up](wasapi-path-results.md) passes the
+separately predeclared low-grid F32 primed/unprimed short and native ASan cases.
+Independent SDK paths locate high-level render processing and S16 conversion
+noise; a demonstrated test-only old-tail continuity assertion was corrected
+with independent negative tests. These F32 subset results do not qualify the
+full original-profile/S16/rate/channel paired matrix.
+In particular, a later conditioned unprimed low-grid case failed on 479
+fractional flush-phase samples. The first ten-minute attempt had zero measured
+transport loss but failed its numerical frame minimum, and the second attempt
+was not started because the short-case precondition failed. No complete paired
+transition or sustained numerical pass is claimed.
+
 On 2026-11-18, native Windows ClangCL static Debug/Release each passed nine
 device-free CTests; shared Debug/Release each passed five, and all four installed
 C/C++ consumer configurations passed. PE/COFF symbol checks matched the 27 public

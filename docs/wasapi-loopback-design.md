@@ -4,6 +4,13 @@ Status: artifacts implemented; [paired-fixture execution](native-windows-paired-
 failed the exact PCM oracle in all four 48 kHz stereo cases. Physical Shure
 execution is recorded separately in [native results](native-windows-physical-results.md). See
 [harness setup](wasapi-qualification.md) and [local results](native-windows-results.md).
+The [stage-isolation follow-up](wasapi-path-results.md) distinguishes native
+render processing and S16 conversion from Hail transport, and records passing
+exact low-grid F32 short/ASan trials. This separate profile does not certify the
+original near-full-scale or S16 exact-transparent matrix.
+Later conditioned flush failed with fractional samples; full low-grid transition
+qualification also remains open. A completed measured ten-minute phase with
+zero transport loss failed its numerical assertion and is retained separately.
 Hail's shared WASAPI adapter builds and its
 context/enumeration, portable suite and installed consumers pass Windows CI.
 The headless runner in [run 43919570772](https://github.com/artalis-io/hail/actions/runs/43919570772)
