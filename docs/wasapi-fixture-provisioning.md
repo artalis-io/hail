@@ -26,7 +26,7 @@ No license purchase or unattended deployment permission has been assumed.
   `build-wasapi-fixture/pack46/VBCABLE_Setup_x64.exe`.
 
 [Candidate hashes/signers](evidence/wasapi-fixture-candidate-2026-11-18/candidate.json)
-and [kernel verification](evidence/wasapi-fixture-candidate-2026-11-18/signature-verification.log)
+and [kernel verification](evidence/wasapi-fixture-candidate-2026-11-18/signature-verification.zip)
 are committed; vendor binaries remain outside the repository.
 
 ## Owner provisioning checkpoint
