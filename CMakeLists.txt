@@ -112,6 +112,7 @@ if(HA_SANITIZER)
     endif()
     set(HA_SAN_FLAGS /fsanitize=address /Oy-)
     if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8 OR
+       NOT CMAKE_C_COMPILER_ARCHITECTURE_ID STREQUAL "x64" OR
        (CMAKE_MSVC_RUNTIME_LIBRARY AND NOT CMAKE_MSVC_RUNTIME_LIBRARY MATCHES "DLL"))
       message(FATAL_ERROR "ClangCL ASan qualification currently requires x64 and the DLL CRT")
     endif()
