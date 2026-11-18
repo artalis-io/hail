@@ -527,7 +527,7 @@ int main(int argc,char **argv)
     trace_capture_key=capture_key; trace_playback_key=playback_key;
     printf("numerical_profile=%s\n",low_grid?"transparent-s16-grid-low-v1":"transparent-s16-grid");
 #if HA_WASAPI_DIAGNOSTICS
-    puts("diagnostic_profile=wasapi-sdk-boundary opt_in_static_build=1 no_extra_clients=1 numerical_tolerance=0");
+    printf("diagnostic_profile=wasapi-sdk-boundary opt_in_static_build=1 sdk_observer_opens_clients=0 marker_tap_clients=%u numerical_tolerance=0\n",marker_taps);
 #endif
     CHECK(directions && (physical || directions==(HA_CAPTURE|HA_PLAYBACK)));
     sc.directions=directions; sc.negotiation=HA_EXACT_APPLICATION;

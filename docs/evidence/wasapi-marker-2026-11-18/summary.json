@@ -7738,7 +7738,7 @@
   ],
   "raw_archive": {
     "path": "raw.zip",
-    "sha256": "14D0CA143E5263EDFC36FE08CBB4F28FA68533EA9E71C44BBE8E889336629F8F",
+    "sha256": "248F03293AE1DCDE324D212F78C9AFFE73884466A1BCD536CCA9E75B7FC6E5E7",
     "entries": [
       {
         "path": "build-wasapi-marker/checks/asan-both-condition.log",
@@ -7768,7 +7768,7 @@
       {
         "path": "build-wasapi-marker/checks/provenance.json",
         "bytes": 2180,
-        "sha256": "BB2E6D739131D375D48C1D5422E9A4A78BA9BD37AC7B1BC44130669AC5FBF298"
+        "sha256": "734D6AE8364097656C6B0F13019AA5A2329F84E7AE6CBB2D9E6E1C836C02FD45"
       },
       {
         "path": "build-wasapi-marker/checks/runner-gates.log",
@@ -7799,6 +7799,11 @@
         "path": "build-wasapi-marker/checks/sdk-asan-native.log",
         "bytes": 14903,
         "sha256": "B99C160779E830B4E26535893C643B0FD0640321EBA27518D251E896B80BBAC0"
+      },
+      {
+        "path": "build-wasapi-marker/checks/sdk-banner-build.log",
+        "bytes": 142,
+        "sha256": "C414D89ECB317D674085D6DEAB26EBD4DD2003AF253603F607B1B681A0981554"
       },
       {
         "path": "build-wasapi-marker/checks/sdk-final-build.log",
