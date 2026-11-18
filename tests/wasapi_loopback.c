@@ -30,6 +30,7 @@ static uint32_t rate=48000, channels=2, pcm=HA_PCM_F32, directions=HA_CAPTURE|HA
 static unsigned seconds=5, physical, unprimed, instrumented;
 static unsigned lifecycle_cycles;
 static unsigned low_grid;
+static unsigned playback_slots=32,flush_delay_ms;
 /* Stop/reset discards pending PCM. Only the new generation has a continuity
  * contract after restart; validate residual older samples, but do not assume
  * their old sequence survived a deliberate stop/reset. I/O-owner state. */
@@ -101,6 +102,7 @@ static ha_device_selector select_key(const char *key,uint32_t direction)
     CHECK(matches==1); s.kind=HA_SELECT_PERSISTENT_KEY; s.key_bytes=(uint32_t)strlen(key);
     memcpy(s.key,key,s.key_bytes+1u); return s;
 }
+#include "wasapi_marker_trace.h"
 static void describe(const char *key,uint32_t direction)
 {
     static const GUID cls={0xbcde0395,0xe52f,0x467c,{0x8e,0x3d,0xc4,0x57,0x92,0x91,0x69,0x2e}};
@@ -236,6 +238,12 @@ static void read_capture(void)
         }
         for(i=0;i<n;++i) {
             double left=sample(&p,i*channels), right=channels==2?sample(&p,i*channels+1u):-left;
+            if(marker_trace) {
+                uint64_t host=b.host_time_ns+(uint64_t)i*NS/rate;
+                trace_observe(TRACE_HAIL,left,right,host,b.device_position+i,b.flags);
+                if(marker_taps && (b.flags&(HA_TIME_HOST_VALID|HA_TIME_DEVICE_VALID))==(HA_TIME_HOST_VALID|HA_TIME_DEVICE_VALID))
+                    trace_pair(0,b.device_position+i,host,(float)left,(float)right);
+            }
             verify_frame(left,right);
         }
     }
@@ -250,6 +258,7 @@ static void drain_reference(void)
         if(r==HA_INVALID_STATE && atomic_load(&expect_loss)) return;
         if(r!=HA_OK || !n || n>Q) { atomic_store(&io_failed,1); return; }
         reference_frames+=n;
+        if(marker_trace) for(i=0;i<n;++i) trace_observe(TRACE_REFERENCE,sample(&p,i*channels),sample(&p,i*channels+1u),b.host_time_ns+(uint64_t)i*NS/rate,b.first_frame+i,b.flags);
         if(b.flags&HA_BLOCK_SILENCE) for(i=0;i<n;++i) if(sample(&p,i*channels)==0) ++reference_silence;
         if(b.flags&HA_TIME_DEVICE_VALID) ++bad; /* WASAPI render does not report DAC frames. */
     }
@@ -270,10 +279,12 @@ static void pattern(pcm_buffer *p,uint32_t marker,uint32_t position)
 static DWORD WINAPI io_worker(void *unused)
 {
     uint32_t generation=1,position=unprimed?0u:8u*Q; uint64_t previous=now_ns(); (void)unused;
+    trace_start();
     atomic_store(&io_ready,1);
     while(!atomic_load(&quit)) {
         unsigned attempt; uint32_t wanted=atomic_load(&write_generation); uint64_t current=now_ns(),elapsed=current-previous;
         previous=current; ++io_hist[elapsed/1000000u<1023?elapsed/1000000u:1023]; if(elapsed>io_max) io_max=elapsed;
+        trace_drain();
         if((directions&HA_CAPTURE) && !atomic_load(&hold_capture)) read_capture();
         if(directions&HA_PLAYBACK) drain_reference();
         if(wanted && (directions&HA_PLAYBACK)) {
@@ -290,6 +301,7 @@ static DWORD WINAPI io_worker(void *unused)
         }
         Sleep(1);
     }
+    trace_stop();
     return 0;
 }
 static void launch_io(uint32_t generation)
@@ -302,6 +314,7 @@ static void join_io(void)
 {
     atomic_store(&quit,1); CHECK(WaitForSingleObject(io_thread,5000)==WAIT_OBJECT_0);
     CHECK(CloseHandle(io_thread)); io_thread=NULL; CHECK(!atomic_load(&io_failed));
+    trace_report();
 }
 static void run_for(unsigned ms)
 {
@@ -445,6 +458,7 @@ int main(int argc,char **argv)
     CHECK(setvbuf(stdout,NULL,_IONBF,0)==0);
     if(argc==2 && !strcmp(argv[1],"--self-test")) return oracle_self_test();
     if(argc==2 && !strcmp(argv[1],"--self-test-low-grid")) { low_grid=1; return oracle_self_test(); }
+    if(argc==2 && !strcmp(argv[1],"--self-test-marker-trace")) return trace_self_test();
     for(i=1;i<(unsigned)argc;++i) {
         if(!strcmp(argv[i],"--list")) list=1;
         else if(!strcmp(argv[i],"--physical")) physical=1;
@@ -458,6 +472,13 @@ int main(int argc,char **argv)
             else if(!strcmp(argv[i],"--loss-events")) loss_events=argv[++i];
             else if(!strcmp(argv[i],"--seconds")) seconds=number(argv[++i],1,3600);
             else if(!strcmp(argv[i],"--lifecycle-cycles")) lifecycle_cycles=number(argv[++i],1,256);
+            else if(!strcmp(argv[i],"--playback-slots")) { playback_slots=number(argv[++i],8,32); CHECK(playback_slots==8 || playback_slots==32); }
+            else if(!strcmp(argv[i],"--flush-delay-ms")) flush_delay_ms=number(argv[++i],0,1000);
+            else if(!strcmp(argv[i],"--marker-taps")) {
+                const char *mode=argv[++i]; marker_trace=1;
+                CHECK(!strcmp(mode,"none") || !strcmp(mode,"capture") || !strcmp(mode,"both"));
+                marker_taps=!strcmp(mode,"both")?2u:!strcmp(mode,"capture")?1u:0u;
+            }
             else if(!strcmp(argv[i],"--rate")) rate=number(argv[++i],8000,192000);
             else if(!strcmp(argv[i],"--channels")) channels=number(argv[++i],1,2);
             else if(!strcmp(argv[i],"--pcm")) { ++i; CHECK(!strcmp(argv[i],"s16") || !strcmp(argv[i],"f32")); pcm=!strcmp(argv[i],"s16")?HA_PCM_S16:HA_PCM_F32; }
@@ -475,10 +496,12 @@ int main(int argc,char **argv)
         CHECK(ha_context_destroy(&context)==HA_OK); CHECK(!live_bytes && allocations==frees); return 0;
     }
     directions=(capture_key?HA_CAPTURE:0u)|(playback_key?HA_PLAYBACK:0u);
+    CHECK(!marker_trace || (!physical && low_grid && pcm==HA_PCM_F32 && rate==48000 && channels==2 && capture_key && playback_key));
+    trace_capture_key=capture_key; trace_playback_key=playback_key;
     printf("numerical_profile=%s\n",low_grid?"transparent-s16-grid-low-v1":"transparent-s16-grid");
     CHECK(directions && (physical || directions==(HA_CAPTURE|HA_PLAYBACK)));
     sc.directions=directions; sc.negotiation=HA_EXACT_APPLICATION;
-    sc.quantum_frames=Q; sc.capture_slots=capture_key?32u:0u; sc.playback_slots=playback_key?32u:0u; sc.reference_slots=playback_key?64:0;
+    sc.quantum_frames=Q; sc.capture_slots=capture_key?32u:0u; sc.playback_slots=playback_key?playback_slots:0u; sc.reference_slots=playback_key?64:0;
     { ha_format format=HA_FORMAT_INIT(rate,channels,pcm); sc.capture_format=format; sc.playback_format=format; }
     if(capture_key) { sc.capture_device=select_key(capture_key,HA_CAPTURE); describe(capture_key,HA_CAPTURE); }
     if(playback_key) { sc.playback_device=select_key(playback_key,HA_PLAYBACK); describe(playback_key,HA_PLAYBACK); }
@@ -522,6 +545,8 @@ int main(int argc,char **argv)
     if(!instrumented) CHECK(after.capture_lost_frames==baseline.capture_lost_frames && after.playback_underrun_frames==baseline.playback_underrun_frames && after.reference_lost_frames==baseline.reference_lost_frames && !steady_gaps && !steady_clocks);
     if(playback_key) {
         uint64_t new_generation,deadline=now_ns()+5u*NS;
+        uint64_t delay_begin=now_ns(); run_for(flush_delay_ms);
+        printf("flush_setup playback_slots=%u requested_delay_ms=%u observed_delay_ns=%llu marker_taps=%u\n",playback_slots,flush_delay_ms,(unsigned long long)(now_ns()-delay_begin),marker_taps);
         begin=now_ns(); flush_request_ns=begin; capture_at_flush=atomic_load(&captured);
         atomic_store(&phase,2); preflush_gaps=atomic_load(&metadata_gaps); preflush_clocks=atomic_load(&clock_changes);
         CHECK(ha_stream_flush_playback(stream,HA_FLUSH_NATIVE_REQUIRED,&new_generation)==HA_PENDING);
