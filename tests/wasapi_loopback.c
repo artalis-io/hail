@@ -16,6 +16,24 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#if HA_WASAPI_DIAGNOSTICS
+#include "hail_internal.h"
+#include "wasapi_diagnostics.h"
+static hail_wa_diag sdk_trace;
+static void report_sdk_trace(void)
+{
+    unsigned leg,i;
+    for(leg=0;leg<2;++leg) {
+        hail_wa_diag_leg *t=&sdk_trace.leg[leg];
+        printf("sdk_boundary=%s frames=%llu fractional=%llu asymmetric=%llu nonfinite=%llu\n",leg?"render_buffer_before_release":"capture_buffer_before_hail",
+            (unsigned long long)t->frames,(unsigned long long)t->fractional,(unsigned long long)t->asymmetric,(unsigned long long)t->nonfinite);
+        for(i=0;i<t->examples;++i) {
+            hail_wa_diag_example *e=&t->example[i];
+            printf("sdk_example leg=%u host_ns=%llu position=%llu left_s16=%.17g right_s16=%.17g\n",leg,(unsigned long long)e->host_ns,(unsigned long long)e->position,(double)e->left*32768.0,(double)e->right*32768.0);
+        }
+    }
+}
+#endif
 
 #define Q 256u
 #define NS UINT64_C(1000000000)
@@ -330,7 +348,13 @@ static void close_stream(void)
 {
     uint64_t deadline=now_ns()+5u*NS; ha_result r;
     CHECK(ha_stream_close_begin(stream)==HA_PENDING);
-    do { progress(); r=ha_stream_close_finish(&stream); CHECK(r==HA_OK || r==HA_PENDING); CHECK(now_ns()<deadline); Sleep(1); } while(r==HA_PENDING);
+    do {
+        progress();
+#if HA_WASAPI_DIAGNOSTICS
+        if(stream->retire_ready) sdk_trace=*(const hail_wa_diag *)stream->backend_state;
+#endif
+        r=ha_stream_close_finish(&stream); CHECK(r==HA_OK || r==HA_PENDING); CHECK(now_ns()<deadline); Sleep(1);
+    } while(r==HA_PENDING);
     CHECK(!stream && ha_stream_close_finish(&stream)==HA_OK);
 }
 static unsigned number(const char *s,unsigned min,unsigned max)
@@ -606,10 +630,13 @@ int main(int argc,char **argv)
         printf("last_A_capture_read_relative_to_flush_request_ns=%lld downstream_software_path_only=1\n",
             (long long)((int64_t)marker_last_capture_ns[1]-(int64_t)flush_request_ns));
     }
+#if HA_WASAPI_DIAGNOSTICS
+    close_stream(); report_sdk_trace();
+#endif
     if(!physical) CHECK(verified[3]>rate/3u);
     CHECK(!bad); if(capture_key) CHECK(nonzero_frames>rate/3u);
     if(playback_key) CHECK(reference_silence>0);
-    close_stream(); CHECK(ha_context_destroy(&context)==HA_OK && !context);
+    if(stream) close_stream(); CHECK(ha_context_destroy(&context)==HA_OK && !context);
     CHECK(ha_context_destroy(&context)==HA_OK && allocations==frees && !live_bytes);
     printf("PASS allocations=%llu frees=%llu ledger_bytes=%llu\n",(unsigned long long)allocations,(unsigned long long)frees,(unsigned long long)live_bytes);
     return 0;

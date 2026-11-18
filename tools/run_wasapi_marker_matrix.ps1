@@ -3,7 +3,8 @@ param(
     [Parameter(Mandatory)][string]$Manifest,
     [string]$Executable='build-windows-validation/OFF-Release/hail_wasapi_loopback.exe',
     [string]$ConditioningExecutable='build-windows-validation/OFF-Release/hail_wasapi_path.exe',
-    [Parameter(Mandatory)][string]$OutputDirectory
+    [Parameter(Mandatory)][string]$OutputDirectory,
+    [switch]$SdkBoundaryMatrix
 )
 $ErrorActionPreference='Stop'
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
@@ -13,10 +14,12 @@ $executablePath=(Resolve-Path $Executable).Path
 $conditioningPath=(Resolve-Path $ConditioningExecutable).Path
 $fixture=& "$PSScriptRoot/validate_wasapi_fixture.ps1" -Manifest $Manifest -Executable $executablePath -OutputDirectory "$output/validation"
 if($fixture.profile -ne 'transparent-s16-grid-low-v1' -or $fixture.sample_rate -ne 48000 -or $fixture.channels -ne 2){throw 'This predeclared matrix requires the low-grid 48 kHz stereo fixture'}
-$plan=@(foreach($tap in 'none','capture','both'){foreach($startup in 'primed','unprimed'){foreach($slots in 8,32){foreach($delay in 0,7){
+$tapModes=if($SdkBoundaryMatrix){@('none')}else{@('none','capture','both')}
+$delays=if($SdkBoundaryMatrix){@(0,3,7,11)}else{@(0,7)}
+$plan=@(foreach($tap in $tapModes){foreach($startup in 'primed','unprimed'){foreach($slots in 8,32){foreach($delay in $delays){
     [ordered]@{name="$tap-$startup-$slots-$delay";tap=$tap;startup=$startup;slots=$slots;delay_ms=$delay;seconds=5}
 }}}})
-[ordered]@{declared_utc=[DateTimeOffset]::UtcNow.ToString('o');source=(git rev-parse HEAD);working_tree=@(git status --short);executable_sha256=(Get-FileHash $executablePath).Hash;conditioning_sha256=(Get-FileHash $conditioningPath).Hash;fixture=$fixture;cases=$plan;retry='none';sample_tolerance=0;clock_pair_alignment_ns=100} |
+[ordered]@{declared_utc=[DateTimeOffset]::UtcNow.ToString('o');source=(git rev-parse HEAD);working_tree=@(git status --short);sdk_boundary_matrix=[bool]$SdkBoundaryMatrix;executable_sha256=(Get-FileHash $executablePath).Hash;conditioning_sha256=(Get-FileHash $conditioningPath).Hash;fixture=$fixture;cases=$plan;retry='none';sample_tolerance=0;clock_pair_alignment_ns=100} |
     ConvertTo-Json -Depth 10 | Set-Content "$output/plan.json" -Encoding utf8
 function Invoke-Observed([string]$Program,[string[]]$Arguments,[string]$Name,[int]$TimeoutSeconds) {
     $start=[DateTimeOffset]::UtcNow
