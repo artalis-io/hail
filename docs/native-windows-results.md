@@ -1,5 +1,18 @@
 # Native Windows implementation and evidence, 2026-11-18
 
+## Owner-authorized physical follow-up
+
+The [Shure execution report](native-windows-physical-results.md) supersedes the
+implementation-only status below. All 32 strict format/startup cases, standalone
+capture/playback, static/shared Debug/Release samples, 30 lifecycle cycles and a
+600.009 s strict duplex trial passed after correcting converted capture clock
+facts. Matching LLVM 23 ASan now passes device-free and native trials; LLVM 19's
+startup failure is preserved. Input settings were restored and no PCM retained.
+Controlled paired-fixture, real hotplug/reopen and calibrated physical timing
+evidence remain outstanding; full production qualification is not claimed.
+
+## Initial implementation-only pass (before physical authorization)
+
 **WASAPI streaming remains unqualified.** This pass implements the qualification
 artifacts and fixes source-confirmed defects. No native capture/playback stream
 was opened. Physical endpoint/level selection and an approved signed fixture

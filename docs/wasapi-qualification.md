@@ -1,7 +1,9 @@
 # Windows native qualification harness
 
-Implemented on 2026-11-18; native audio execution is still unqualified. See
-[local results](native-windows-results.md) for checks actually run and blockers.
+Implemented on 2026-11-18, with [owner-authorized Shure native execution](native-windows-physical-results.md)
+now covering the format/startup matrix, ten-minute duplex and ASan. Approved
+paired-fixture, actual hotplug and calibrated physical timing remain open. See
+[local results](native-windows-results.md) for historical evidence and blockers.
 The [design](wasapi-loopback-design.md) remains the acceptance contract.
 
 `HA_BUILD_NATIVE_TESTS=ON` and `HA_BACKEND_WASAPI=ON`, with tests enabled, build
@@ -129,14 +131,40 @@ counters; acoustic PCM does not use the cable's exact-value oracle. It does not
 certify that a human heard playback. Confirm endpoint and output level before
 running. Stop devices at the end of each trial; no PCM recording is retained.
 
+`tools/run_wasapi_physical.ps1` automates this execution with separate raw logs,
+per-second process observations and hashes. Use `-Mode matrix -Seconds 1` for all
+32 duplex format/startup cases, `capture`/`playback` for simplex, `lifecycle` for
+30 transition/destruction cycles, or `duplex -Seconds 600` for sustained operation.
+`-TestCaptureGain 0.5` explicitly opts into temporary capture gain/unmute on the
+selected capture endpoint. `hail_wasapi_endpoint_level` reads/saves the original
+settings and the runner restores them in `finally`, including failed trials.
+This helper has its own COM owner, cannot change playback gain, opens no audio
+client and is outside the library. Ordinary runs do not alter levels.
+
+`tools/run_wasapi_physical_hotplug.ps1` prepares the same-context loss/reopen
+trial with human USB unplug/reconnect instead of administrative fixture scripts.
+Run only after coordinating the ready signal with the owner; do not unplug during
+another audio trial. Real hotplug remains unexecuted in this report.
+
+The measured-phase capture timing histogram reports nonnegative SDK host
+correlation ages in 100 microsecond buckets and counts future correlations
+separately. Use the explicitly conditional quantiles from the summary tool.
+Unknown uncertainty and future values prevent physical latency interpretation;
+do not silently turn them into zero or omit them from a timing report.
+
 ClangCL x64 with the DLL CRT can now build `-DHA_SANITIZER=address` in an isolated
 tree. This is ASan only; POSIX address mode still means ASan+UBSan. CMake locates
 the matching compiler resource runtime/import library/thunk; put its
 `lib/windows` directory on the test process PATH. Follow the
 [Clang runtime linking requirements](https://clang.llvm.org/docs/UsersManual.html#finding-clang-runtime-libraries).
 The local ClangCL 19.1.5 runtime fails during interceptor initialization on
-Windows build 26300: no ASan test execution or clean memory claim is made.
-Keep that failure; use a supported compiler/runtime/OS combination and verify it
-before claiming sanitizer coverage. No Windows TSan/UBSan/LSan result is implied.
+Windows build 26300; that failure is preserved. Matching LLVM 23.1.6 now passes
+9/9 device-free tests and native F32/S16 duplex on this host. Configure with an
+explicit ClangCL 23 path in `CMAKE_C_COMPILER` and `CMAKE_CXX_COMPILER`, select
+`HA_SANITIZER=address`, build and add that compiler's `lib/windows` resource path
+to the test process PATH. `tools/probes/windows_asan_runtime.c` provides a clean
+probe and an intentional `--overflow` negative control; only the negative probe
+must fail with ASan. Keep the earlier failure and record compiler/runtime hashes;
+do not substitute unmatched runtimes. No Windows TSan/UBSan/LSan result is implied.
 Application Verifier is installed locally but requires elevated per-image
 configuration; it was not enabled or counted as executed diagnostics.

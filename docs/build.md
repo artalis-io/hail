@@ -233,6 +233,9 @@ endpoint keys; the paired runner requires approved signed fixture manifests.
 ClangCL x64 DLL-CRT builds accept `HA_SANITIZER=address` (ASan only), with matching
 compiler runtime libraries. The local LLVM 19 runtime fails before test entry on
 Windows build 26300; see the retained [results](native-windows-results.md).
+Matching LLVM 23 now passes device-free and native ASan profiles on that host;
+select its compiler explicitly and use its matching runtime resource directory.
+See [Shure execution](native-windows-physical-results.md) for exact evidence.
 
 ## Opt-in physical CoreAudio qualification
 

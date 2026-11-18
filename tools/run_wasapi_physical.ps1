@@ -73,12 +73,13 @@ foreach ($case in $cases) {
         }
         $process.Refresh()
         $text=Get-Content -LiteralPath $stdout -Raw
+        $signal=if ($text -match 'meaningful_capture_minus90dbfs=([01])') { $Matches[1] -eq '1' } else { $null }
         $results+=@{name=$name; exit_code=$process.ExitCode; started_utc=$start.ToString('o');
             finished_utc=[DateTimeOffset]::UtcNow.ToString('o'); parameters=$case; process_samples=$samples;
-            meaningful_signal=($text -match 'meaningful_capture_minus90dbfs=1');
+            meaningful_signal=$signal;
             executable_sha256=(Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash}
         $results | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $output 'summary.json') -Encoding utf8
-        Write-Output "$name exit=$($process.ExitCode) meaningful_signal=$($text -match 'meaningful_capture_minus90dbfs=1')"
+        Write-Output "$name exit=$($process.ExitCode) meaningful_signal=$signal"
     } finally { if (!$process.HasExited) { Stop-Process -Id $process.Id } }
 }
 if (@($results | Where-Object exit_code -NE 0).Count) { throw 'Physical trials failed; all observations are retained in summary.json and raw logs.' }

@@ -13,6 +13,16 @@ Source hashes, tool versions and per-target results are recorded in
 
 ## Current executed evidence
 
+Owner-authorized [Shure Windows execution](native-windows-physical-results.md)
+now passes 32 strict duplex format/startup cases, standalone capture/playback,
+all static/shared Debug/Release samples, 30 native lifecycle cycles and a
+600.009 s strict duplex phase with zero sustained xruns or capture continuity
+changes. A real converted-capture clock-fact defect was fixed; all failed
+lower-rate cases are preserved. Matching LLVM 23 ASan passes device-free and
+native trials, including an independent intentional-overrun runtime check.
+No microphone PCM was retained. Controlled paired-fixture, real hotplug/reopen,
+physical timestamp accuracy and calibrated latency remain unqualified.
+
 On 2026-11-18, native Windows ClangCL static Debug/Release each passed nine
 device-free CTests; shared Debug/Release each passed five, and all four installed
 C/C++ consumer configurations passed. PE/COFF symbol checks matched the 27 public

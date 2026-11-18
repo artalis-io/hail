@@ -8,11 +8,12 @@ See [verification](verification.md), [CoreAudio loopback results](coreaudio-qual
 and the [WASAPI qualification design](wasapi-loopback-design.md) for exact evidence
 and remaining tests.
 
-The [Windows qualification harness](wasapi-qualification.md) now implements
-explicit-key physical/paired tests, fixture validation and a provisioned workflow.
-[Local Windows results](native-windows-results.md) add device-free regression,
-static/shared and installed-consumer evidence; native WASAPI streaming remains
-unqualified pending actual authorized endpoint/fixture runs.
+The [Windows qualification harness](wasapi-qualification.md) implements explicit-key
+physical/paired tests, fixture validation and a provisioned workflow. The
+[Shure native execution](native-windows-physical-results.md) now covers the full
+application format/startup matrix, standalone/duplex operation, a ten-minute strict
+duplex trial, lifecycle cycles and ASan. Approved paired-fixture, actual hotplug
+and calibrated physical latency qualification remain open.
 
 ## Selection and discovery
 
@@ -80,6 +81,11 @@ and WASAPI capture device/QPC timestamps retain their validity conditions. ALSA
 delay and PipeWire graph/queue correlations, and WASAPI render predictions, are
 estimates marked HA_TIME_ESTIMATED with unknown uncertainty (UINT64_MAX).
 Unknown physical latency is never presented as a measured bound.
+
+WASAPI capture with a converted application rate leaves engine-rate raw device
+position invalid and marks the SDK host correlation estimated; engine positions
+cannot be compared with application frame counts or rescaled without accounting
+for resampler startup delay. Matching-rate capture retains native validity flags.
 
 Raw position discontinuities or exact host-clock reversal create a new epoch.
 An estimated host correlation that reverses loses validity and reports a clock

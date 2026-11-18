@@ -1,0 +1,45 @@
+{
+  "source_revision": "1586244aec5e369726d5c3a7f1ef3d7ccbc71d8e",
+  "started_profile": "strict physical duplex 48000 Hz stereo F32, 600 seconds",
+  "source_hashes": [
+    {
+      "path": "src/backend_wasapi.c",
+      "sha256": "8B52B25D53C0FD30AB8D10C31F34ACDFA78147EFF46BAE2CD2700F9D4480E717"
+    },
+    {
+      "path": "src/core.c",
+      "sha256": "30EAEAB541EC06EC1A83FB479FD09DD0AF9310C33C2350FF381A0651C57EBEA3"
+    },
+    {
+      "path": "src/native.c",
+      "sha256": "AAD95A9C8479456F8F899C8B3004D9ED9D2AA5A84BBED9F215C40B2434A90752"
+    },
+    {
+      "path": "src/queue.c",
+      "sha256": "9E6B906F136C844365F43D950C6195A8D250DE09AC6B084E239BE6B97E297C81"
+    },
+    {
+      "path": "tests/wasapi_loopback.c",
+      "sha256": "7C73F7B468F48915E85159124CE3E7A90F3D5DD55184FFC1A64950469836A888"
+    },
+    {
+      "path": "tools/run_wasapi_physical.ps1",
+      "sha256": "727AA18D074F9E672B56034827E4BE75AC7914EC2458D9527C1A2B2E45DE1285"
+    }
+  ],
+  "executable_sha256": "146F7A8C702FBC59A742CD005D1287AFAEFE1BEF867E521C48F2720FC3280F0A",
+  "os": {
+    "Caption": "Microsoft Windows 11 Pro",
+    "Version": "10.0.26300",
+    "BuildNumber": "26300"
+  },
+  "power": [
+    "Power Scheme GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c  (High performance)"
+  ],
+  "capture_key": "{0.0.1.00000000}.{bf16f049-5379-4d2e-a4d9-a15a142424d8}",
+  "playback_key": "{0.0.0.00000000}.{6e8c8429-b7e1-4431-b05c-86a29ef73477}",
+  "capture_gain_requested": 0.5,
+  "playback_peak_dbfs": -36.26,
+  "thread_policy": "Ordinary priority; no MMCSS, timer-resolution, affinity or power changes",
+  "concurrent_work": "Source review, documentation and Clang static analysis; no other Hail audio trials during sustained run"
+}

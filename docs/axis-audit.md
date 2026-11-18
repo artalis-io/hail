@@ -1,5 +1,32 @@
 # Audio architecture axis audit
 
+## 2026-11-18 Shure native execution follow-up
+
+Owner-authorized physical capture/playback/duplex now exercises the WASAPI COM
+workers and public application queues. The format matrix exposed a concrete
+cross-axis error: engine-frame position units were treated as application-frame
+position units after native resampling. The fix stays in the adapter: capture
+engine rate is discovered/retained on the client owner, converted raw position
+is invalid, and the SDK host correlation is estimated. Capture/render domains,
+content generations and core lifecycle remain separate. No numerical conversion,
+native type or additional policy moved into the transport/core/public ABI.
+
+All 32 strict format/startup cases pass after the fix, with no steady/flush
+capture epoch or logical-position changes. The 30 real lifecycle cycles preserve
+application/native retirement ownership and balanced allocation. ASan now has
+supported matching-LLVM-23 device-free and native execution; the earlier LLVM 19
+runtime crash and failed conversion campaign remain retained. Native reset
+acknowledgement is still distinct from audible delivery: the physical test has
+no independent known-PCM return path and cannot replace the signed paired oracle.
+
+The capture-level helper and physical runner own temporary authorized test
+settings outside the library. The callback/worker transport still calls no
+application audio code and performs no DSP. Test-only timing observations must
+state SDK estimate/uncertainty and exclude physical latency claims. See
+[physical results](native-windows-physical-results.md) for the support boundary;
+actual removal/reopen, approved paired-fixture and physical latency evidence
+remain outstanding. The earlier artifact-only pass below is retained as history.
+
 ## 2026-11-18 Windows qualification artifacts
 
 Applied [axis-audit](../.claude/skills/axis-audit/SKILL.md) to the WASAPI fixes,

@@ -36,6 +36,8 @@ static uint64_t verified[4], zero_frames, nonzero_frames, bad;
 static atomic_ullong metadata_gaps, clock_changes;
 static atomic_uint phase;
 static uint64_t host_valid_blocks, device_valid_blocks, silent_blocks, unknown_gap_blocks;
+static uint64_t capture_age_hist[4096], capture_age_count, capture_age_estimated, capture_age_future;
+static uint64_t capture_age_min=UINT64_MAX, capture_age_max;
 static uint64_t last_frame, last_epoch, last_raw, last_host, capture_blocks, reference_frames, reference_silence;
 static uint32_t last_flags, last_marker, last_code, seen, gap_credit;
 static uint64_t poll_hist[1024], io_hist[1024], poll_calls, poll_max, io_max;
@@ -203,6 +205,16 @@ static void read_capture(void)
         last_raw=b.device_position+n; last_host=b.host_time_ns; last_flags=b.flags;
         atomic_fetch_add(&captured,n);
         observation_ns=now_ns();
+        if(atomic_load(&phase)==1u && (b.flags&HA_TIME_HOST_VALID)) {
+            if(observation_ns<b.host_time_ns) ++capture_age_future;
+            else {
+                uint64_t age=observation_ns-b.host_time_ns, bucket=age/100000u;
+                ++capture_age_count; ++capture_age_hist[bucket<4095?bucket:4095];
+                if(b.flags&HA_TIME_ESTIMATED) ++capture_age_estimated;
+                if(age<capture_age_min) capture_age_min=age;
+                if(age>capture_age_max) capture_age_max=age;
+            }
+        }
         for(i=0;i<n;++i) {
             double left=sample(&p,i*channels), right=channels==2?sample(&p,i*channels+1u):-left;
             verify_frame(left,right);
@@ -521,6 +533,10 @@ int main(int argc,char **argv)
         (unsigned long long)flush_ns,(unsigned long long)flush_capture_progress,(unsigned long long)poll_calls,(unsigned long long)poll_max,(unsigned long long)io_max,
         (unsigned long long)peak_bytes,(unsigned long long)memory.WorkingSetSize,(unsigned long long)memory.PeakWorkingSetSize);
     for(i=0;i<1024;++i) if(poll_hist[i] || io_hist[i]) printf("hist_ms=%u poll=%llu io=%llu\n",i,(unsigned long long)poll_hist[i],(unsigned long long)io_hist[i]);
+    printf("capture_delivery phase=sustained correlation_blocks=%llu estimated_blocks=%llu future_correlations=%llu min_ns=%llu max_ns=%llu bucket_ns=100000 physical_latency_claim=0\n",
+        (unsigned long long)capture_age_count,(unsigned long long)capture_age_estimated,(unsigned long long)capture_age_future,
+        (unsigned long long)(capture_age_count?capture_age_min:0),(unsigned long long)capture_age_max);
+    for(i=0;i<4096;++i) if(capture_age_hist[i]) printf("capture_delivery_bucket=%u count=%llu\n",i,(unsigned long long)capture_age_hist[i]);
     if(!physical) {
         for(i=1;i<=3;++i) {
             CHECK(marker_write_ns[i] && marker_capture_ns[i]>=marker_write_ns[i]);
