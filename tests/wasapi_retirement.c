@@ -13,6 +13,19 @@ static unsigned acknowledge, thread_waits;
 static DWORD join_result;
 static HANDLE reply_handle;
 static atomic_uint *completion;
+static unsigned event_calls, event_failure, thread_calls;
+static char event_tokens[4];
+static HANDLE WINAPI test_event(LPSECURITY_ATTRIBUTES attributes, BOOL manual, BOOL initial, LPCWSTR name)
+{
+    (void)attributes; (void)manual; (void)initial; (void)name;
+    ++event_calls; return event_calls==event_failure ? NULL : &event_tokens[event_calls-1u];
+}
+static HANDLE WINAPI test_thread(LPSECURITY_ATTRIBUTES attributes, SIZE_T stack, LPTHREAD_START_ROUTINE entry,
+                                 LPVOID argument, DWORD flags, LPDWORD id)
+{
+    (void)attributes; (void)stack; (void)entry; (void)argument; (void)flags; (void)id;
+    ++thread_calls; return NULL;
+}
 static DWORD WINAPI test_wait(HANDLE handle, DWORD timeout)
 {
     (void)timeout;
@@ -31,6 +44,8 @@ static BOOL WINAPI test_close(HANDLE handle)
 #define SetEvent test_signal
 #define ResetEvent test_reset
 #define CloseHandle test_close
+#define CreateEventW test_event
+#define CreateThread test_thread
 #define hail_wasapi_backend hail_test_wasapi_backend
 #include "../src/backend_wasapi.c"
 #undef hail_wasapi_backend
@@ -38,6 +53,8 @@ static BOOL WINAPI test_close(HANDLE handle)
 #undef SetEvent
 #undef ResetEvent
 #undef WaitForSingleObject
+#undef CreateEventW
+#undef CreateThread
 #define CHECK(x) do { if (!(x)) { fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, #x); abort(); } } while (0)
 int main(void)
 {
@@ -74,6 +91,30 @@ int main(void)
     CHECK(wa_context_free(&c) == HA_STREAM_FAILED && p.thread && closes == 6);
     thread_waits = 0; join_result = WAIT_OBJECT_0;
     CHECK(wa_context_free(&c) == HA_OK && !p.thread && closes == 9 && signals == 6);
+    /* Every partial event acquisition and failed thread creation must be
+     * safely retired/freed exactly once, without starting COM workers. */
+    acknowledge=0; wait_result=WAIT_OBJECT_0;
+    for (event_failure=1; event_failure<=4; ++event_failure) {
+        unsigned before=closes;
+        memset(&a,0,sizeof(a)); event_calls=thread_calls=0;
+        CHECK(wa_open(&s)==HA_RESOURCE_EXHAUSTED && !thread_calls);
+        CHECK(wa_retire(&s)==HA_OK); wa_stream_free(&s); wa_stream_free(&s);
+        CHECK(closes==before+3);
+    }
+    { unsigned before=closes;
+      event_failure=0; event_calls=thread_calls=0;
+      CHECK(wa_open(&s)==HA_RESOURCE_EXHAUSTED && thread_calls==1);
+      CHECK(wa_retire(&s)==HA_OK); wa_stream_free(&s); CHECK(closes==before+4); }
+    for (event_failure=1; event_failure<=2; ++event_failure) {
+        unsigned before=closes;
+        memset(&p,0,sizeof(p)); event_calls=thread_calls=0;
+        CHECK(wa_context_init(&c)==HA_RESOURCE_EXHAUSTED && !thread_calls);
+        CHECK(wa_context_free(&c)==HA_OK && wa_context_free(&c)==HA_OK && closes==before+1);
+    }
+    { unsigned before=closes;
+      event_failure=0; event_calls=thread_calls=0;
+      CHECK(wa_context_init(&c)==HA_RESOURCE_EXHAUSTED && thread_calls==1);
+      CHECK(wa_context_free(&c)==HA_OK && closes==before+2); }
     puts("WASAPI failed waits/signals retain resources until worker exit proof");
     return 0;
 }

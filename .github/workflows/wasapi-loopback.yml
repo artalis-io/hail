@@ -1,0 +1,55 @@
+name: WASAPI provisioned paired-endpoint qualification
+on:
+  workflow_dispatch:
+    inputs:
+      manifests:
+        description: JSON array of absolute paths to approved fixture manifests
+        type: string
+        required: true
+jobs:
+  qualify:
+    runs-on: [self-hosted, Windows, X64, hail-wasapi-loopback]
+    concurrency:
+      group: hail-wasapi-exclusive-fixture
+      cancel-in-progress: false
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        shared: [OFF, ON]
+        config: [Debug, Release]
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure native ClangCL
+        run: cmake -S . -B build -T ClangCL -DHA_BUILD_NATIVE_TESTS=ON -DHA_BUILD_SHARED=${{ matrix.shared }}
+      - run: cmake --build build --config ${{ matrix.config }} --parallel
+      - name: Device-free checks
+        run: ctest --test-dir build -C ${{ matrix.config }} --output-on-failure
+      - run: cmake --install build --config ${{ matrix.config }} --prefix "$pwd/installed"
+      - name: Installed C/C++ consumers
+        run: |
+          $env:PATH = "$pwd/installed/bin;$env:PATH"
+          cmake -S tests/consumer -B build-consumer -T ClangCL -DCMAKE_PREFIX_PATH="$pwd/installed"
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cmake --build build-consumer --config ${{ matrix.config }} --parallel
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          ctest --test-dir build-consumer -C ${{ matrix.config }} --output-on-failure
+      - name: Validate preprovisioned fixture and execute qualification
+        env:
+          HAIL_FIXTURE_MANIFESTS: ${{ inputs.manifests }}
+        run: |
+          $manifests = @($env:HAIL_FIXTURE_MANIFESTS | ConvertFrom-Json)
+          ./tools/run_wasapi_qualification.ps1 -Manifest $manifests -Executable "$pwd/build/${{ matrix.config }}/hail_wasapi_loopback.exe" -OutputDirectory "$pwd/build/evidence"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wasapi-${{ matrix.shared }}-${{ matrix.config }}
+          path: |
+            build/evidence
+            build/CMakeCache.txt
+            build/Testing/Temporary
+            build-consumer/Testing/Temporary

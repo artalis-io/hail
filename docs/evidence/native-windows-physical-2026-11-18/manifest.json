@@ -1,0 +1,42 @@
+{
+  "head_at_collection": "1586244aec5e369726d5c3a7f1ef3d7ccbc71d8e",
+  "working_tree_at_collection": [
+    " M docs/axis-audit.md",
+    " M docs/build.md",
+    " M docs/c-audit-2026-11-18.md",
+    " M docs/native-backends.md",
+    " M docs/native-windows-goal.md",
+    " M docs/native-windows-results.md",
+    " M docs/roadmap.md",
+    " M docs/verification.md",
+    " M docs/wasapi-loopback-design.md",
+    " M docs/wasapi-qualification.md",
+    " M tests/wasapi_loopback.c",
+    " M tools/run_wasapi_physical.ps1",
+    "?? docs/evidence/native-windows-physical-2026-11-18/",
+    "?? docs/native-windows-physical-results.md",
+    "?? tools/package_wasapi_physical.py",
+    "?? tools/summarize_wasapi_physical.py"
+  ],
+  "source_sha256": {
+    "CMakeLists.txt": "7cebe87736c1008974d8d86214d8eb961591bdbf45a7e2efce5b9ed108d7823a",
+    "src/backend_wasapi.c": "8b52b25d53c0fd30ab8d10c31f34acdfa78147eff46bae2cd2700f9d4480e717",
+    "src/native.c": "aad95a9c8479456f8f899c8b3004d9ed9d2aa5a84bbed9f215c40b2434a90752",
+    "src/core.c": "30eaeab541ec06ec1a83fb479fd09dd0af9310c33c2350ff381a0651c57ebea3",
+    "src/queue.c": "9e6b906f136c844365f43d950c6195a8d250de09ac6b084e239be6b97e297c81",
+    "tests/wasapi_loopback.c": "45033dc2a1865d061753610a383edc39c0470d1d85f5026a4af5bd5d6154d3a6",
+    "tests/wasapi_buffers.c": "1488c47725a9967d5812c4ca505cc3b0cfab84623c84c91282da4d1ff637bbf3",
+    "tests/wasapi_retirement.c": "4497973c66aa3071d016cda621cff8478b5a862999f910bad0b2ee3cf0eed6bc",
+    "tests/wasapi_endpoint_level.c": "7353e568c54b44694537106a6d64e09aab3a8e3b01703d59efa964b8ded738cb",
+    "tools/run_wasapi_physical.ps1": "a0e4ed2d9ed28d810745fdfae0c4c074fe0f2d4cd7d51c911dcb8d53e091ca61",
+    "tools/run_wasapi_physical_hotplug.ps1": "a59a8ad8faa1aa8df91b5c7fd9738870be6a180e97361bff086daf7132bef881",
+    "tools/probes/windows_asan_runtime.c": "3ea5c6ce4f8bea98d8604a27a034c688b8bdb1b020bfa8ded8c97eb5e7f135b1",
+    "tools/summarize_wasapi_physical.py": "57ea406765b92fa9f695058a632806b042c8cec8e5c5d554b6c892dfb4350025",
+    "tools/package_wasapi_physical.py": "87926a10fe407f6f39190c5c712a1d6c0a49fc1f3c2a3717961b8f1b47989c69"
+  },
+  "archive_sha256": "71ed20f4d9b435c6a5d23e65bb6233222ff920f4572553868f5d9e25c11c78be",
+  "raw_files": 248,
+  "native_microphone_pcm_saved": false,
+  "physical_hotplug": "Not executed; owner coordination required",
+  "paired_fixture": "Not executed; approved signed fixture manifest required"
+}

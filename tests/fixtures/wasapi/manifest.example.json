@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "profile": "transparent-s16-grid",
+  "origin": "REPLACE: official fixture source URL",
+  "version": "REPLACE: installed DriverVersion",
+  "pnp_instance_id": "REPLACE: exact fixture owner PnP instance",
+  "owner_approved": false,
+  "license_automation_approved": false,
+  "license_terms": "REPLACE: reviewed license/automation terms",
+  "installation_procedure": "REPLACE: owner-approved image/install procedure",
+  "reboot_record": "REPLACE: reboot requirement and completed boot identity",
+  "exclusive": false,
+  "reservation_owner": "REPLACE: job/run owner",
+  "reservation_expires_utc": "2000-01-01T00:00:00Z",
+  "unity_gain": false,
+  "effects_disabled": false,
+  "sample_rate": 48000,
+  "channels": 2,
+  "package": { "path": "REPLACE", "sha256": "REPLACE" },
+  "driver": { "path": "REPLACE", "sha256": "REPLACE", "signer_thumbprint": "REPLACE", "inf_name": "REPLACE" },
+  "capture": { "key": "REPLACE", "pnp_instance_id": "REPLACE" },
+  "playback": { "key": "REPLACE", "pnp_instance_id": "REPLACE" }
+}

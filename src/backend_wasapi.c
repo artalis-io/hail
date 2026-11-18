@@ -62,8 +62,9 @@ typedef struct wa_stream {
     ha_stream *owner;
     HANDLE thread, request, reply, audio[2];
     atomic_uint command, done;
-    uint32_t pending, started[2], frames[2];
+    uint32_t pending, started[2], frames[2], capture_engine_rate;
     ha_result result;
+    HRESULT native_result;
     WCHAR keys[2][1024];
     IAudioClient *client[2];
     IAudioCaptureClient *capture;
@@ -285,8 +286,10 @@ static DWORD WINAPI wa_context_worker(void *user)
 }
 static ha_result wa_context_request(wa_context *p, uint32_t command)
 {
-    ResetEvent(p->reply); atomic_store_explicit(&p->done, 0, memory_order_relaxed);
-    atomic_store_explicit(&p->command, command, memory_order_release); SetEvent(p->request);
+    if (!ResetEvent(p->reply)) return HA_STREAM_FAILED;
+    atomic_store_explicit(&p->done, 0, memory_order_relaxed);
+    atomic_store_explicit(&p->command, command, memory_order_release);
+    if (!SetEvent(p->request)) return HA_STREAM_FAILED;
     for (;;) {
         DWORD wait = WaitForSingleObject(p->reply, INFINITE);
         if (wait != WAIT_OBJECT_0) return HA_STREAM_FAILED;
@@ -388,12 +391,18 @@ static HRESULT wa_clients_open(wa_stream *a)
     uint32_t i; HRESULT hr;
     hr = CoCreateInstance(&CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, &IID_IMMDeviceEnumerator, (void **)&enumerator);
     for (i = 0; SUCCEEDED(hr) && i < 2; ++i) if (a->keys[i][0]) {
-        IMMDevice *device = NULL; WAVEFORMATEXTENSIBLE w;
+        IMMDevice *device = NULL; WAVEFORMATEXTENSIBLE w; WAVEFORMATEX *mix = NULL;
         const ha_format *f = i ? &a->owner->info.playback_format : &a->owner->info.capture_format;
         wave_format(f, &w);
         hr = IMMDeviceEnumerator_GetDevice(enumerator, a->keys[i], &device);
         if (SUCCEEDED(hr)) hr = IMMDevice_Activate(device, &IID_IAudioClient, CLSCTX_ALL, NULL, (void **)&a->client[i]);
         if (device) IMMDevice_Release(device);
+        if (SUCCEEDED(hr) && !i) {
+            hr = IAudioClient_GetMixFormat(a->client[i], &mix);
+            if (SUCCEEDED(hr) && (!mix || !mix->nSamplesPerSec)) hr = E_FAIL;
+            if (SUCCEEDED(hr)) a->capture_engine_rate = mix->nSamplesPerSec;
+            if (mix) CoTaskMemFree(mix);
+        }
         if (SUCCEEDED(hr)) hr = IAudioClient_Initialize(a->client[i], AUDCLNT_SHAREMODE_SHARED,
             AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM | AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY,
             200000, 0, &w.Format, NULL);
@@ -414,31 +423,39 @@ static void wa_capture(wa_stream *a)
     while (iterations++ < 64u && SUCCEEDED(hr = IAudioCaptureClient_GetNextPacketSize(a->capture, &packet)) && packet) {
         BYTE *data = NULL; UINT32 frames = 0; DWORD flags = 0; UINT64 pos = 0, qpc = 0;
         hr = IAudioCaptureClient_GetBuffer(a->capture, &data, &frames, &flags, &pos, &qpc);
-        if (FAILED(hr)) break;
-        if (frames > HA_MAX_QUANTUM || (!data && !(flags & AUDCLNT_BUFFERFLAGS_SILENT))) {
+        if (FAILED(hr) || hr == AUDCLNT_S_BUFFER_EMPTY) break;
+        if (!frames || frames > a->frames[0] || frames > HA_MAX_QUANTUM || (!data && !(flags & AUDCLNT_BUFFERFLAGS_SILENT))) {
             IAudioCaptureClient_ReleaseBuffer(a->capture, frames); hr = E_FAIL; break;
         }
         {
             uint32_t offset = 0;
             while (offset < frames) {
-                uint32_t n = frames - offset, valid = flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR ? 0u : HA_TIME_DEVICE_VALID;
+                uint32_t n = frames - offset, valid = 0;
+                int converted_rate = a->capture_engine_rate != s->info.capture_format.sample_rate;
                 uint64_t host = 0;
                 ha_result r;
+                /* Shared-engine resampling retains engine-rate packet positions.
+                 * They cannot be compared with application frame counts, and
+                 * startup filter delay prevents a lossless integer rescaling.
+                 * Preserve the SDK host correlation as an estimate instead. */
+                if (!(flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) && !converted_rate) valid |= HA_TIME_DEVICE_VALID;
                 if (n > s->info.quantum_frames) n = s->info.quantum_frames;
                 if (!(flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) && qpc <= UINT64_MAX / 100u) {
                     uint64_t delta = (uint64_t)offset * UINT64_C(1000000000) / s->info.capture_format.sample_rate;
                     if (qpc * 100u <= UINT64_MAX - delta) { host = qpc * 100u + delta; valid |= HA_TIME_HOST_VALID; }
                 }
+                if (converted_rate && (valid & HA_TIME_HOST_VALID)) valid |= HA_TIME_ESTIMATED;
                 if (!offset && (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY)) valid |= HA_BLOCK_UNKNOWN_GAP;
+                if (flags & AUDCLNT_BUFFERFLAGS_SILENT) valid |= HA_BLOCK_SILENCE;
                 r = hail_native_capture(s, flags & AUDCLNT_BUFFERFLAGS_SILENT ? a->silence : data + (size_t)offset * s->capture.bytes_per_frame,
-                                        n, host, pos <= UINT64_MAX - offset ? pos + offset : 0, UINT64_MAX,
+                                        n, host, !converted_rate && pos <= UINT64_MAX - offset ? pos + offset : 0, UINT64_MAX,
                                         pos <= UINT64_MAX - offset ? valid : valid & ~HA_TIME_DEVICE_VALID);
                 if (r != HA_OK) { hail_rt_error(s, 0, r, 0); break; }
                 offset += n;
             }
         }
         hr = IAudioCaptureClient_ReleaseBuffer(a->capture, frames);
-        if (atomic_load_explicit(&s->rt[0].error, memory_order_relaxed)) break;
+        if (FAILED(hr) || atomic_load_explicit(&s->rt[0].error, memory_order_relaxed)) break;
     }
     if (FAILED(hr)) hail_rt_error(s, 0, wa_result(hr), hr);
     hail_rt_leave(s, 0);
@@ -454,6 +471,10 @@ static void wa_render(wa_stream *a)
         BYTE *buffer = NULL; uint32_t n = available > s->info.quantum_frames ? s->info.quantum_frames : available;
         UINT64 pos = 0, qpc = 0, frequency = 0; uint64_t host = 0; uint32_t flags = 0;
         hr = IAudioRenderClient_GetBuffer(a->render, n, &buffer); if (FAILED(hr)) break;
+        if (!buffer) {
+            (void)IAudioRenderClient_ReleaseBuffer(a->render, n, AUDCLNT_BUFFERFLAGS_SILENT);
+            hr = E_POINTER; break;
+        }
         if (a->clock && SUCCEEDED(IAudioClock_GetPosition(a->clock, &pos, &qpc)) && qpc <= UINT64_MAX / 100u &&
             SUCCEEDED(IAudioClock_GetFrequency(a->clock, &frequency))) {
             uint64_t delta = (uint64_t)padding * UINT64_C(1000000000) / s->info.playback_format.sample_rate;
@@ -473,8 +494,10 @@ static HRESULT wa_command(wa_stream *a, uint32_t command)
     if (command == WA_FLUSH) {
         int running = a->started[1] != 0;
         if (running) result = IAudioClient_Stop(a->client[1]);
+        if (SUCCEEDED(result)) a->started[1] = 0;
         if (SUCCEEDED(result)) result = IAudioClient_Reset(a->client[1]);
         if (SUCCEEDED(result) && running) result = IAudioClient_Start(a->client[1]);
+        if (SUCCEEDED(result) && running) a->started[1] = 1;
         return result;
     }
     for (i = 0; i < 2; ++i) if (a->client[i]) {
@@ -483,13 +506,13 @@ static HRESULT wa_command(wa_stream *a, uint32_t command)
             hr = IAudioClient_Start(a->client[i]); if (SUCCEEDED(hr)) a->started[i] = 1;
         } else if (command != WA_START) {
             if (a->started[i]) hr = IAudioClient_Stop(a->client[i]);
-            a->started[i] = 0;
+            if (SUCCEEDED(hr)) a->started[i] = 0;
             if (SUCCEEDED(hr)) hr = IAudioClient_Reset(a->client[i]);
         }
-        if (FAILED(hr)) result = hr;
+        if (FAILED(hr) && SUCCEEDED(result)) result = hr;
     }
     if (FAILED(result) && command == WA_START) for (i = 0; i < 2; ++i) if (a->client[i] && a->started[i]) {
-        (void)IAudioClient_Stop(a->client[i]); a->started[i] = 0;
+        if (SUCCEEDED(IAudioClient_Stop(a->client[i]))) a->started[i] = 0;
     }
     return result;
 }
@@ -499,7 +522,7 @@ static DWORD WINAPI wa_stream_worker(void *user)
     HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
     int initialized = SUCCEEDED(hr);
     if (initialized) hr = wa_clients_open(a);
-    a->result = wa_result(hr);
+    a->native_result = hr; a->result = wa_result(hr);
     atomic_store_explicit(&a->done, 1, memory_order_release); SetEvent(a->reply);
     handles[0] = a->request; handles[1] = a->audio[0]; handles[2] = a->audio[1];
     if (SUCCEEDED(hr)) for (;;) {
@@ -507,7 +530,8 @@ static DWORD WINAPI wa_stream_worker(void *user)
         if (event == WAIT_OBJECT_0) {
             uint32_t command = atomic_exchange_explicit(&a->command, 0, memory_order_acquire);
             if (command == WA_EXIT) break;
-            a->result = wa_result(wa_command(a, command));
+            a->native_result = wa_command(a, command);
+            a->result = wa_result(a->native_result);
             atomic_store_explicit(&a->done, 1, memory_order_release); SetEvent(a->reply);
         } else if (event == WAIT_OBJECT_0 + 1u) wa_capture(a);
         else if (event == WAIT_OBJECT_0 + 2u) wa_render(a);
@@ -548,23 +572,29 @@ static ha_result wa_request(ha_stream *s, uint32_t command)
 {
     wa_stream *a = s->backend_state;
     if (a->pending) {
+        uint32_t completed = a->pending;
         if (!atomic_load_explicit(&a->done, memory_order_acquire)) return HA_PENDING;
         a->pending = 0;
-        if (atomic_load_explicit(&a->command, memory_order_relaxed) == command) return a->result;
-        /* The worker consumes command to zero. Track completion by pending ID. */
+        /* A superseding stop must observe a failed start/flush, rather than
+         * silently discarding the failure when issuing the next command. */
+        if (completed == command || a->result != HA_OK) {
+            if (a->result != HA_OK) s->status.diagnostic.native_code = a->native_result;
+            return a->result;
+        }
     }
     a->pending = command;
     atomic_store_explicit(&a->done, 0, memory_order_relaxed);
-    atomic_store_explicit(&a->command, command, memory_order_release); SetEvent(a->request);
+    atomic_store_explicit(&a->command, command, memory_order_release);
+    if (!SetEvent(a->request)) return HA_STREAM_FAILED;
     return HA_PENDING;
 }
 static ha_result wa_progress(ha_stream *s, uint32_t command)
 {
     wa_stream *a = s->backend_state;
-    DWORD code = STILL_ACTIVE;
-    if (GetExitCodeThread(a->thread, &code) && code != STILL_ACTIVE)
-        return command == WA_STOP ? HA_OK : HA_STREAM_FAILED;
+    DWORD wait = WaitForSingleObject(a->thread, 0);
+    if (wait != WAIT_TIMEOUT) return HA_STREAM_FAILED;
     if (a->pending == command && atomic_load_explicit(&a->done, memory_order_acquire)) {
+        if (a->result != HA_OK) s->status.diagnostic.native_code = a->native_result;
         a->pending = 0; return a->result;
     }
     return wa_request(s, command);

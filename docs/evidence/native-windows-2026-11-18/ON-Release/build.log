@@ -1,0 +1,8 @@
+[1/8] Linking C shared library hail.dll
+[2/8] Linking CXX executable hail_headers.exe
+[3/8] Linking C executable hail_conformance.exe
+[4/8] Linking CXX executable hail_concurrency.exe
+[5/8] Linking C executable hail_native_example.exe
+[6/8] Linking C executable hail_virtual_example.exe
+[7/8] Building C object CMakeFiles\hail_wasapi_loopback.dir\tests\wasapi_loopback.c.obj
+[8/8] Linking C executable hail_wasapi_loopback.exe

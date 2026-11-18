@@ -1,0 +1,596 @@
+{
+  "collected_utc": "2026-11-17T23:30:53.4905649+00:00",
+  "base_revision": "dbfbc27bccbd002495197cc0423fdde2a04a33da",
+  "branch": "feat/native-windows-qualification",
+  "working_tree": [
+    "A  .github/workflows/wasapi-loopback.yml",
+    "M  CMakeLists.txt",
+    "M  docs/axis-audit.md",
+    "M  docs/build.md",
+    "A  docs/c-audit-2026-11-18.md",
+    "A  docs/evidence/native-windows-2026-11-18/OFF-Debug/build.log",
+    "A  docs/evidence/native-windows-2026-11-18/OFF-Debug/configure.log",
+    "A  docs/evidence/native-windows-2026-11-18/OFF-Debug/consumer-ctest.log",
+    "A  docs/evidence/native-windows-2026-11-18/OFF-Debug/contracts.log",
+    "A  docs/evidence/native-windows-2026-11-18/OFF-Debug/ctest.log",
+    "A  docs/evidence/native-windows-2026-11-18/OFF-Debug/endpoints.jsonl",
+    "A  docs/evidence/native-windows-2026-11-18/OFF-Release/build.log",
+    "A  docs/evidence/native-windows-2026-11-18/OFF-Release/configure.log",
+    "A  docs/evidence/native-windows-2026-11-18/OFF-Release/consumer-ctest.log",
+    "A  docs/evidence/native-windows-2026-11-18/OFF-Release/contracts.log",
+    "A  docs/evidence/native-windows-2026-11-18/OFF-Release/ctest.log",
+    "A  docs/evidence/native-windows-2026-11-18/OFF-Release/endpoints.jsonl",
+    "A  docs/evidence/native-windows-2026-11-18/ON-Debug/build.log",
+    "A  docs/evidence/native-windows-2026-11-18/ON-Debug/configure.log",
+    "A  docs/evidence/native-windows-2026-11-18/ON-Debug/consumer-ctest.log",
+    "A  docs/evidence/native-windows-2026-11-18/ON-Debug/contracts.log",
+    "A  docs/evidence/native-windows-2026-11-18/ON-Debug/ctest.log",
+    "A  docs/evidence/native-windows-2026-11-18/ON-Debug/endpoints.jsonl",
+    "A  docs/evidence/native-windows-2026-11-18/ON-Release/build.log",
+    "A  docs/evidence/native-windows-2026-11-18/ON-Release/configure.log",
+    "A  docs/evidence/native-windows-2026-11-18/ON-Release/consumer-ctest.log",
+    "A  docs/evidence/native-windows-2026-11-18/ON-Release/contracts.log",
+    "A  docs/evidence/native-windows-2026-11-18/ON-Release/ctest.log",
+    "A  docs/evidence/native-windows-2026-11-18/ON-Release/endpoints.jsonl",
+    "A  docs/evidence/native-windows-2026-11-18/asan-initialization-failure.log",
+    "A  docs/evidence/native-windows-2026-11-18/environment-and-hashes.json",
+    "A  docs/evidence/native-windows-2026-11-18/static-analysis.log",
+    "M  docs/native-backends.md",
+    "M  docs/native-windows-goal.md",
+    "A  docs/native-windows-results.md",
+    "M  docs/verification.md",
+    "M  docs/wasapi-loopback-design.md",
+    "A  docs/wasapi-qualification.md",
+    "M  src/backend_wasapi.c",
+    "A  tests/fixtures/wasapi/manifest.example.json",
+    "A  tests/wasapi_buffers.c",
+    "A  tests/wasapi_loopback.c",
+    "M  tests/wasapi_retirement.c",
+    "M  tools/check_contracts.py",
+    "A  tools/check_windows_builds.ps1",
+    "AM tools/collect_windows_evidence.ps1",
+    "A  tools/run_wasapi_loss.ps1",
+    "A  tools/run_wasapi_qualification.ps1",
+    "A  tools/validate_wasapi_fixture.ps1",
+    "?? docs/evidence/native-windows-2026-11-18/OFF-Debug/CMakeCache.zip",
+    "?? docs/evidence/native-windows-2026-11-18/OFF-Release/CMakeCache.zip",
+    "?? docs/evidence/native-windows-2026-11-18/ON-Debug/CMakeCache.zip",
+    "?? docs/evidence/native-windows-2026-11-18/ON-Release/CMakeCache.zip",
+    "?? docs/evidence/native-windows-2026-11-18/asan-CMakeCache.zip"
+  ],
+  "source_hashes": [
+    {
+      "path": ".github\\workflows\\ci.yml",
+      "sha256": "E5ECDDC64D440251DAF31AB94498F728318168EAC75D8D1E93EE71C3DB8DD85C"
+    },
+    {
+      "path": ".github\\workflows\\coreaudio-loopback.yml",
+      "sha256": "2847C740382C49E6436645D05087A2D9726841A0383D2DC689ABAB079C2FCEAF"
+    },
+    {
+      "path": ".github\\workflows\\fuzz.yml",
+      "sha256": "0A2D23BC46E64B72A7C8A6DB470980B01B0C4602BFA9F505689F26650AA2108C"
+    },
+    {
+      "path": ".github\\workflows\\wasapi-loopback.yml",
+      "sha256": "D78C363556851C944509140399B58F5E8D75B8835797DDF0BEFEA932CC8CC7F7"
+    },
+    {
+      "path": "cmake\\exports.txt",
+      "sha256": "07E9A80AA8DE2D02AF56E770EC642D2225B657975C7B508D0EAB028B978A6011"
+    },
+    {
+      "path": "cmake\\hail.pc.in",
+      "sha256": "6D44D3D2A705D8108F2E36BBE4FC413165B89874BAE7B6016179266AE63EC11D"
+    },
+    {
+      "path": "cmake\\HailConfig.cmake.in",
+      "sha256": "B26FC8C6057DDA56F9B21646A25B0C38772660DECDAAC4BBBB99A5B669A59309"
+    },
+    {
+      "path": "include\\hail.h",
+      "sha256": "9E1725F5F712B409B829D56FE9C6F1C6E3B20F4729DCACA74FDF1C00EC51852E"
+    },
+    {
+      "path": "include\\hail\\virtual.h",
+      "sha256": "133CF2096D849BD455B51CF95F9C8F96A106B73B642A80568AB2A3049BA94585"
+    },
+    {
+      "path": "src\\backend_alsa.c",
+      "sha256": "12560731B04A8455D2C7686C20BAF2A27F897941E5C58089A34E6AE495F4ED39"
+    },
+    {
+      "path": "src\\backend_coreaudio.c",
+      "sha256": "B3DC7DA745BD7EA07A5B1A02412B9A58F2DCAFC45DFEA00B2188E7CCD91B1DAD"
+    },
+    {
+      "path": "src\\backend_pipewire.c",
+      "sha256": "866BAE8D63426D2E2E9B30CC70377938047EDACCE379D3F658DC501EA07C0D6C"
+    },
+    {
+      "path": "src\\backend_wasapi.c",
+      "sha256": "452A839884734EDF456AA177A47E1E0F596A21EB8D11FA33808CC34DA418EA25"
+    },
+    {
+      "path": "src\\core.c",
+      "sha256": "30EAEAB541EC06EC1A83FB479FD09DD0AF9310C33C2350FF381A0651C57EBEA3"
+    },
+    {
+      "path": "src\\coreaudio_diagnostics.h",
+      "sha256": "0FC8E95B91BA908B761DB1BF05A76230A0119EC9C2193228086C64C972A8E60E"
+    },
+    {
+      "path": "src\\coreaudio_permission.m",
+      "sha256": "8A78C46BCB3D49DB771E88368B5F68FB93986A85BF75675A33F146C440750B5E"
+    },
+    {
+      "path": "src\\hail_internal.h",
+      "sha256": "8A00F6883FFECF7CE6069A1F74CB174CCFA712D1261BDD5E7F9D3ECCB07F099C"
+    },
+    {
+      "path": "src\\hosted.c",
+      "sha256": "9F3532AB6C28BC1070A72C0A887E8720670F1889D1594BCD0DC2339B842B71E2"
+    },
+    {
+      "path": "src\\native.c",
+      "sha256": "AAD95A9C8479456F8F899C8B3004D9ED9D2AA5A84BBED9F215C40B2434A90752"
+    },
+    {
+      "path": "src\\queue.c",
+      "sha256": "9E6B906F136C844365F43D950C6195A8D250DE09AC6B084E239BE6B97E297C81"
+    },
+    {
+      "path": "src\\virtual.c",
+      "sha256": "62FC7AD6A5345B311169FA88602F235A41C878E51622E86AC213B350D3396F8E"
+    },
+    {
+      "path": "tests\\alsa_faults.c",
+      "sha256": "54A9252B2906C70C184ECF9EE8523AFA562FBA0C1A8F008CF5AEB211F75B03BD"
+    },
+    {
+      "path": "tests\\alsa_null.c",
+      "sha256": "C1DDEC0B97AE423E85EE9CA4AF5B94CD55EB6A38AB438A739F4028C1EAEF4C1B"
+    },
+    {
+      "path": "tests\\backend_axes.c",
+      "sha256": "34C20298B39245D155D0C3E86A0BFECA8179C4CC55B8A1B3DB01A83813632AE9"
+    },
+    {
+      "path": "tests\\concurrency.cpp",
+      "sha256": "06ADFBD3B26D3B4F82FD3080E0CE4867C18A312F0265BBCBBEEC8FBB61149C71"
+    },
+    {
+      "path": "tests\\conformance.c",
+      "sha256": "C05751851B0CCE5558A511E93D9E0654E2C0DF9F97B36F922D04CCA03CF0C11C"
+    },
+    {
+      "path": "tests\\consumer\\CMakeLists.txt",
+      "sha256": "1DE03AD156829DC9C6A8830D34FEE9BEF9E84A1DFCC64D6F219F4A25D4B79B2B"
+    },
+    {
+      "path": "tests\\consumer\\main.c",
+      "sha256": "1E57E0C97DA12F83D5BE291840ADB6C93A7FD114AEC2BE753A69AA769182A2BD"
+    },
+    {
+      "path": "tests\\coreaudio_authorize.m",
+      "sha256": "CE03CE22C001B13C5627E4842C686E6CD738223054E75F708B3DB56185A2A245"
+    },
+    {
+      "path": "tests\\coreaudio_faults.c",
+      "sha256": "7FA0BD825B06C050FA947236A949EAC8BB121E2505F2931DB95D275CAD10ABB1"
+    },
+    {
+      "path": "tests\\coreaudio_loopback.c",
+      "sha256": "7D8E8D9C5B857C265CDBB273F09787DB9C14A62F65D03B9722A4F16AD5BD850F"
+    },
+    {
+      "path": "tests\\coreaudio_permission_worker.c",
+      "sha256": "47D624ED1AE04D3419B70D5FDE5A2241890B616010748C97AE768AF02C780981"
+    },
+    {
+      "path": "tests\\coreaudio_permission.m",
+      "sha256": "F0890D5395BD324FA310460F6D03A7E745DA9C1A61C502B4DBF4B249660DF104"
+    },
+    {
+      "path": "tests\\coreaudio_physical.c",
+      "sha256": "7F74F4C9E817108C5643C68F47D7C2292E8CBA879C8D5B37D173C2271EE3AD26"
+    },
+    {
+      "path": "tests\\coreaudio_registry.c",
+      "sha256": "4C50C33FF000E33B9EC80FB18F76BD51B0F57DA7930FF6FA9D8FCAF28B2850D6"
+    },
+    {
+      "path": "tests\\fixtures\\coreaudio\\Info.plist",
+      "sha256": "93F0C009F5DC7DCA38694A5AC6FA75B134393142590FB21187692F1BC95161E0"
+    },
+    {
+      "path": "tests\\fixtures\\coreaudio\\PhysicalInfo.plist",
+      "sha256": "4EAB78726E42F564EBD7EEA72A8A1A4D29B5DEC756C5FD4EBC6F45ECF75B9BF2"
+    },
+    {
+      "path": "tests\\fixtures\\pipewire\\client.conf",
+      "sha256": "B6DE7371B03A1DC66AAED8364DB991726529D88AF9B28DBC8DA7FD98383438E7"
+    },
+    {
+      "path": "tests\\fixtures\\pipewire\\server.conf",
+      "sha256": "B200FDA04B09C558A803EEE8E16F9BDB1296FDACBA0FE0B9822F22FB75CBE0C9"
+    },
+    {
+      "path": "tests\\fixtures\\wasapi\\manifest.example.json",
+      "sha256": "AA37B59F94654B213668E09DB1CCF0FAC1A5F15E59F288E08AA2DC4BD6D222C6"
+    },
+    {
+      "path": "tests\\headers.cpp",
+      "sha256": "95F9551593DE4F3762CBE4062099C96498506B09F8B9D1E305EE28F65C553BC4"
+    },
+    {
+      "path": "tests\\native_handoff.c",
+      "sha256": "6299E9A93EA690589B3F6C6B6B04576CBAAEA970EF712F1CC9C886C79E7EF3E4"
+    },
+    {
+      "path": "tests\\pipewire_buffers.c",
+      "sha256": "BA6241EFE02CE1082E3CCB9FD2F5700F4D2E6DDE7CB99A1226661F753BD5CE1A"
+    },
+    {
+      "path": "tests\\pipewire_loopback.c",
+      "sha256": "39C558667900CFCDC857C5C6C88983ED5588ACAE8B596E10ED2222DAFEE4E9B8"
+    },
+    {
+      "path": "tests\\retirement.c",
+      "sha256": "E90D2FAEDD645A36185BCAF169BBB3F4BD91A993F4B84072286055B9FCBDE2EC"
+    },
+    {
+      "path": "tests\\wasapi_buffers.c",
+      "sha256": "71359DB724FC9A4B1CCD319585F5C27D957318CFEDB060F4050D16249E3FE9F7"
+    },
+    {
+      "path": "tests\\wasapi_loopback.c",
+      "sha256": "CE8BDD02317D19FD54C9B20F0D5B3A41FC076F20A484284864E12DC42AEB0D9C"
+    },
+    {
+      "path": "tests\\wasapi_retirement.c",
+      "sha256": "4497973C66AA3071D016CDA621CFF8478B5A862999F910BAD0B2EE3CF0EED6BC"
+    },
+    {
+      "path": "tools\\audit_namespace.py",
+      "sha256": "BC6ADD1603CA855308456D166D8703F11F5275F88AE2D854836A5AA51F407D08"
+    },
+    {
+      "path": "tools\\check_contracts.py",
+      "sha256": "8338634DF9CD8190FE53ED82D43D70612F5632C94F82C45784D5F7BD76545BFA"
+    },
+    {
+      "path": "tools\\check_windows_builds.ps1",
+      "sha256": "05A3A706A6EB4EF0D1B9E6D7A28ED020A52C0C6C44795FB0A812170E2F49E74B"
+    },
+    {
+      "path": "tools\\collect_windows_evidence.ps1",
+      "sha256": "821F8ADE276A466F5EC8BC84816BEFD8445E31E648EE6E38301D12538057A802"
+    },
+    {
+      "path": "tools\\probes\\coreaudio_permission_cost.m",
+      "sha256": "BDB6E6E494B0765FA8426205E9C5A90E6E03BB6AD308A9260DCB660005C87F1B"
+    },
+    {
+      "path": "tools\\probes\\pipewire_context.c",
+      "sha256": "00DC4FB251B4FFF261E757A62E2CEF22E7F326F0836BF945AEE148BB082C6B46"
+    },
+    {
+      "path": "tools\\probes\\pipewire_leaks.py",
+      "sha256": "67DDCED7A19DE37139DE2B34D2046E9B08F95EB921265547430F059BF5FA765A"
+    },
+    {
+      "path": "tools\\run_coreaudio_permission.py",
+      "sha256": "3B5F7B7630E35DD444893B0B4A746E158D54E38F90A33C7B91C28DD08B72B5A1"
+    },
+    {
+      "path": "tools\\run_coreaudio_physical.py",
+      "sha256": "9EB3B208DF05BED4A9265CB88B9F55A47F7FAB1019D74FDFFD1ED0107856C008"
+    },
+    {
+      "path": "tools\\run_fuzz.py",
+      "sha256": "55036F21AD1B9765033EB37C4BDE49E7913C368DC3BE9A7EB82B232ECF4607A3"
+    },
+    {
+      "path": "tools\\run_pipewire_loopback.py",
+      "sha256": "936B476ACD1652226D597396B04555CD8D5CDCCF4694EA33FBFBAFE2DCDF1B29"
+    },
+    {
+      "path": "tools\\run_wasapi_loss.ps1",
+      "sha256": "E97F06789FD307280AA4D0A023AF67445BF40B3484867BFC80D0B5C724DD929E"
+    },
+    {
+      "path": "tools\\run_wasapi_qualification.ps1",
+      "sha256": "AC5435D71FFFBE4E99C2E678CA05E9409096EF3C5211012CBC28F54F9E368292"
+    },
+    {
+      "path": "tools\\validate_wasapi_fixture.ps1",
+      "sha256": "C2FB06D3B0EB358E7D5C3680A9C1A2D1EB3049489D829BF56553A4C39A271B28"
+    }
+  ],
+  "artifact_hashes": [
+    {
+      "Path": "C:\\Users\\Mark\\artalis.io\\src\\hail\\build-windows-validation\\OFF-Debug\\hail_wasapi_loopback.exe",
+      "Hash": "1D555BA4F2E5531C2B6EA3369E0087EA524BB45A7F8F52EF1E9C63BF5CF0CC49"
+    },
+    {
+      "Path": "C:\\Users\\Mark\\artalis.io\\src\\hail\\build-windows-validation\\OFF-Debug\\hail.lib",
+      "Hash": "C2A52666F44DA16B67C7EF9ACE8E1D50E57E4E92C8C79335455E43FCF649220F"
+    },
+    {
+      "Path": "C:\\Users\\Mark\\artalis.io\\src\\hail\\build-windows-validation\\OFF-Release\\hail_wasapi_loopback.exe",
+      "Hash": "0C3DA3AFD575D3E5DD468C28FFC97B87109D3A12391A4A6DF7F8CA3DC14924E8"
+    },
+    {
+      "Path": "C:\\Users\\Mark\\artalis.io\\src\\hail\\build-windows-validation\\OFF-Release\\hail.lib",
+      "Hash": "8F0594D258C7507B8B77A32CD71BC55445D9F62AFED8FEDB253C3F9E602D42A6"
+    },
+    {
+      "Path": "C:\\Users\\Mark\\artalis.io\\src\\hail\\build-windows-validation\\ON-Debug\\hail_wasapi_loopback.exe",
+      "Hash": "DA515F3D877D748A1FE8D0C03668AFC12211EE7311F56FB46388A142924CB40C"
+    },
+    {
+      "Path": "C:\\Users\\Mark\\artalis.io\\src\\hail\\build-windows-validation\\ON-Debug\\hail.dll",
+      "Hash": "34F9AD3B047BAE17DD739DE7FD665DD5B7E7A3989CDA211C0F9E45574088350E"
+    },
+    {
+      "Path": "C:\\Users\\Mark\\artalis.io\\src\\hail\\build-windows-validation\\ON-Release\\hail_wasapi_loopback.exe",
+      "Hash": "3DA8B1D2A95C23A4EE49386A6DB60C91BCAFB2B478C2B89246E5836F29C5B2A8"
+    },
+    {
+      "Path": "C:\\Users\\Mark\\artalis.io\\src\\hail\\build-windows-validation\\ON-Release\\hail.dll",
+      "Hash": "253B257AA263DBE85AA0505B88248792C8085DB3FC2D4A8B184F98FB538D4429"
+    },
+    {
+      "Path": "C:\\Users\\Mark\\artalis.io\\src\\hail\\build-windows-asan\\hail_wasapi_buffers.exe",
+      "Hash": "B74AB7990ED15C0D5DC3AF94658D9E943DD299121078F2406C951A73AA26E922"
+    }
+  ],
+  "os": {
+    "Caption": "Microsoft Windows 11 Pro",
+    "Version": "10.0.26300",
+    "BuildNumber": "26300",
+    "OSArchitecture": "64-bit"
+  },
+  "cpu": {
+    "Name": "AMD Ryzen 9 5950X 16-Core Processor            ",
+    "NumberOfLogicalProcessors": 32
+  },
+  "compiler": [
+    "clang version 19.1.5",
+    "Target: x86_64-pc-windows-msvc",
+    "Thread model: posix",
+    "InstalledDir: C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\Llvm\\x64\\bin"
+  ],
+  "cmake": [
+    "cmake version 4.4.3",
+    "",
+    "CMake suite maintained and supported by Kitware (kitware.com/cmake)."
+  ],
+  "ninja": "1.13.2",
+  "power": [
+    "Power Scheme GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c  (High performance)"
+  ],
+  "audio_services": [
+    {
+      "Name": "AudioEndpointBuilder",
+      "Status": 4
+    },
+    {
+      "Name": "Audiosrv",
+      "Status": 4
+    }
+  ],
+  "endpoints": [
+    {
+      "Status": "OK",
+      "Class": "AudioEndpoint",
+      "FriendlyName": "Microphone (Steam Streaming Microphone)",
+      "InstanceId": "SWD\\MMDEVAPI\\{0.0.1.00000000}.{007426D2-00AF-4B76-B34B-03CA2B15EB0E}"
+    },
+    {
+      "Status": "OK",
+      "Class": "AudioEndpoint",
+      "FriendlyName": "MOTIV Mix Virtual Output (Shure Virtual Audio)",
+      "InstanceId": "SWD\\MMDEVAPI\\{0.0.1.00000000}.{32DA0CA2-3280-4999-9858-B2826FD04239}"
+    },
+    {
+      "Status": "OK",
+      "Class": "AudioEndpoint",
+      "FriendlyName": "Speakers (Steam Streaming Speakers)",
+      "InstanceId": "SWD\\MMDEVAPI\\{0.0.0.00000000}.{5E7D3E18-4987-4D5D-A10F-AF0BCDCBA10B}"
+    },
+    {
+      "Status": "OK",
+      "Class": "AudioEndpoint",
+      "FriendlyName": "Headphones (2- Shure MV7+)",
+      "InstanceId": "SWD\\MMDEVAPI\\{0.0.0.00000000}.{6E8C8429-B7E1-4431-B05C-86A29EF73477}"
+    },
+    {
+      "Status": "Unknown",
+      "Class": "AudioEndpoint",
+      "FriendlyName": "38GN950 (2- NVIDIA High Definition Audio)",
+      "InstanceId": "SWD\\MMDEVAPI\\{0.0.0.00000000}.{256018B9-C333-46D7-8159-70752E88DBF9}"
+    },
+    {
+      "Status": "Unknown",
+      "Class": "AudioEndpoint",
+      "FriendlyName": "Headphones (Beoplay H95)",
+      "InstanceId": "SWD\\MMDEVAPI\\{0.0.0.00000000}.{F76B690A-3679-45F9-B20A-54A5C4F3F9AC}"
+    },
+    {
+      "Status": "OK",
+      "Class": "AudioEndpoint",
+      "FriendlyName": "Headset Microphone (Oculus Virtual Audio Device)",
+      "InstanceId": "SWD\\MMDEVAPI\\{0.0.1.00000000}.{764DF5CA-F8D6-486D-8435-AD13F93B8105}"
+    },
+    {
+      "Status": "OK",
+      "Class": "AudioEndpoint",
+      "FriendlyName": "MOTIV Mix Virtual Input (Shure Virtual Audio)",
+      "InstanceId": "SWD\\MMDEVAPI\\{0.0.0.00000000}.{140F121A-9803-43BC-8295-174939BE1A2C}"
+    },
+    {
+      "Status": "Unknown",
+      "Class": "AudioEndpoint",
+      "FriendlyName": "Microphone (3- Sennheiser USB headset)",
+      "InstanceId": "SWD\\MMDEVAPI\\{0.0.1.00000000}.{1D636402-E189-4945-B995-6851E4BA06F6}"
+    },
+    {
+      "Status": "Unknown",
+      "Class": "AudioEndpoint",
+      "FriendlyName": "Speakers (3- Sennheiser USB headset)",
+      "InstanceId": "SWD\\MMDEVAPI\\{0.0.0.00000000}.{F4EC67B4-6DDE-477C-8AD4-78AEAD1C6990}"
+    },
+    {
+      "Status": "OK",
+      "Class": "AudioEndpoint",
+      "FriendlyName": "Headphones (Oculus Virtual Audio Device)",
+      "InstanceId": "SWD\\MMDEVAPI\\{0.0.0.00000000}.{81A6D660-02FB-4183-9930-2E72182F3F43}"
+    },
+    {
+      "Status": "Unknown",
+      "Class": "AudioEndpoint",
+      "FriendlyName": "Realtek HD Audio 2nd output (Realtek(R) Audio)",
+      "InstanceId": "SWD\\MMDEVAPI\\{0.0.0.00000000}.{A5A7BB6E-4F3E-4CC2-9326-6EBB11BA6D35}"
+    },
+    {
+      "Status": "OK",
+      "Class": "AudioEndpoint",
+      "FriendlyName": "Speakers (Steam Streaming Microphone)",
+      "InstanceId": "SWD\\MMDEVAPI\\{0.0.0.00000000}.{0462FFF5-EBB6-47FE-982D-1A1114CB76C8}"
+    },
+    {
+      "Status": "OK",
+      "Class": "AudioEndpoint",
+      "FriendlyName": "Microphone (2- Shure MV7+)",
+      "InstanceId": "SWD\\MMDEVAPI\\{0.0.1.00000000}.{BF16F049-5379-4D2E-A4D9-A15A142424D8}"
+    }
+  ],
+  "audio_drivers": [
+    {
+      "DeviceName": "Shure Virtual Audio",
+      "DeviceID": "ROOT\\SHUREWINVADXDEVICE\\0000",
+      "DriverVersion": "7.5.49.340",
+      "InfName": "oem43.inf",
+      "IsSigned": true,
+      "Signer": "Microsoft Windows Hardware Compatibility Publisher"
+    },
+    {
+      "DeviceName": "Oculus Virtual Audio Device",
+      "DeviceID": "ROOT\\MEDIA\\0000",
+      "DriverVersion": "1.19.20.471",
+      "InfName": "oem48.inf",
+      "IsSigned": true,
+      "Signer": "Microsoft Windows Hardware Compatibility Publisher"
+    },
+    {
+      "DeviceName": "Steam Streaming Speakers",
+      "DeviceID": "ROOT\\STEAMSTREAMINGSPEAKERS\\0000",
+      "DriverVersion": "17.56.13.764",
+      "InfName": "oem31.inf",
+      "IsSigned": true,
+      "Signer": "Microsoft Windows Hardware Compatibility Publisher"
+    },
+    {
+      "DeviceName": "Steam Streaming Microphone",
+      "DeviceID": "ROOT\\STEAMSTREAMINGMICROPHONE\\0000",
+      "DriverVersion": "8.33.15.17",
+      "InfName": "oem13.inf",
+      "IsSigned": true,
+      "Signer": "Microsoft Windows Hardware Compatibility Publisher"
+    },
+    {
+      "DeviceName": "Realtek High Definition Audio",
+      "DeviceID": "HDAUDIO\\FUNC_01&VEN_10EC&DEV_1220&SUBSYS_1458A0D2&REV_1001\\5&BA4152B&0&0001",
+      "DriverVersion": "6.0.8881.1",
+      "InfName": "oem18.inf",
+      "IsSigned": true,
+      "Signer": "Microsoft Windows Hardware Compatibility Publisher"
+    },
+    {
+      "DeviceName": "NVIDIA High Definition Audio",
+      "DeviceID": "HDAUDIO\\FUNC_01&VEN_10DE&DEV_009A&SUBSYS_145840A6&REV_1001\\5&6C0774E&0&0001",
+      "DriverVersion": "1.4.5.7",
+      "InfName": "oem61.inf",
+      "IsSigned": true,
+      "Signer": "Microsoft Windows Hardware Compatibility Publisher"
+    },
+    {
+      "DeviceName": "USB Audio 2.0",
+      "DeviceID": "USB\\VID_14ED&PID_1019&MI_01\\7&12E4804&0&0001",
+      "DriverVersion": "10.0.26100.9974",
+      "InfName": "usbaudio2.inf",
+      "IsSigned": true,
+      "Signer": "Microsoft Windows"
+    },
+    {
+      "DeviceName": "Microsoft Bluetooth Hands-Free Audio device",
+      "DeviceID": "BTHHFENUM\\BTHHFPAUDIO\\A&216F5800&0&97",
+      "DriverVersion": "10.0.26100.9818",
+      "InfName": "microsoft_bluetooth_hfp.inf",
+      "IsSigned": true,
+      "Signer": "Microsoft Windows"
+    },
+    {
+      "DeviceName": "Microsoft Bluetooth A2dp Source",
+      "DeviceID": "BTHENUM\\{0000110B-0000-1000-8000-00805F9B34FB}_LOCALMFG&0002\\9&1787D2CF&2&80C3BA208532_C00000000",
+      "DriverVersion": "10.0.26100.1",
+      "InfName": "microsoft_bluetooth_a2dp_src.inf",
+      "IsSigned": true,
+      "Signer": "Microsoft Windows"
+    },
+    {
+      "DeviceName": "Microsoft Bluetooth Hands-Free Audio device",
+      "DeviceID": "BTHHFENUM\\BTHHFPAUDIO\\A&334BE2AC&0&97",
+      "DriverVersion": "10.0.26100.9818",
+      "InfName": "microsoft_bluetooth_hfp.inf",
+      "IsSigned": true,
+      "Signer": "Microsoft Windows"
+    },
+    {
+      "DeviceName": "Microsoft Bluetooth Hands-Free Audio device",
+      "DeviceID": "BTHHFENUM\\BTHHFPAUDIO\\A&60AEC33&0&97",
+      "DriverVersion": "10.0.26100.9818",
+      "InfName": "microsoft_bluetooth_hfp.inf",
+      "IsSigned": true,
+      "Signer": "Microsoft Windows"
+    },
+    {
+      "DeviceName": "Microsoft Bluetooth A2dp Source",
+      "DeviceID": "BTHENUM\\{0000110B-0000-1000-8000-00805F9B34FB}_VID&00010057_PID&0024\\9&1787D2CF&2&B8D50BFFC050_C00000000",
+      "DriverVersion": "10.0.26100.1",
+      "InfName": "microsoft_bluetooth_a2dp_src.inf",
+      "IsSigned": true,
+      "Signer": "Microsoft Windows"
+    },
+    {
+      "DeviceName": "Microsoft Bluetooth A2dp Source",
+      "DeviceID": "BTHENUM\\{0000110B-0000-1000-8000-00805F9B34FB}_VID&00010103_PID&101E\\9&1787D2CF&2&0009A7B4AFD1_C00000000",
+      "DriverVersion": "10.0.26100.1",
+      "InfName": "microsoft_bluetooth_a2dp_src.inf",
+      "IsSigned": true,
+      "Signer": "Microsoft Windows"
+    },
+    {
+      "DeviceName": "Microsoft Bluetooth Hands-Free Audio device",
+      "DeviceID": "BTHHFENUM\\BTHHFPAUDIO\\A&C46B492&0&97",
+      "DriverVersion": "10.0.26100.9818",
+      "InfName": "microsoft_bluetooth_hfp.inf",
+      "IsSigned": true,
+      "Signer": "Microsoft Windows"
+    },
+    {
+      "DeviceName": "Microsoft Bluetooth A2dp Sink",
+      "DeviceID": "BTHENUM\\{0000110A-0000-1000-8000-00805F9B34FB}_VID&0001004C_PID&761D\\9&1787D2CF&2&6057C819C6F5_C00000000",
+      "DriverVersion": "10.0.26100.1",
+      "InfName": "microsoft_bluetooth_a2dp_snk.inf",
+      "IsSigned": true,
+      "Signer": "Microsoft Windows"
+    }
+  ],
+  "default_thread_policy": "No Hail MMCSS/priority/power changes; ordinary application and worker threads",
+  "native_streams_executed": false,
+  "asan": "Initial implementation build: matching LLVM 19 runtime failed before eight then-existing tests; not final-tree sanitizer execution",
+  "application_verifier": "Installed; not enabled because current shell is not elevated"
+}

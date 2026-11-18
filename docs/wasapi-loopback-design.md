@@ -1,6 +1,9 @@
 # WASAPI paired-endpoint loopback qualification design
 
-Status: designed, not executed. Hail's shared WASAPI adapter builds and its
+Status: artifacts implemented, paired-fixture audio not executed. Physical Shure
+execution is recorded separately in [native results](native-windows-physical-results.md). See
+[harness setup](wasapi-qualification.md) and [local results](native-windows-results.md).
+Hail's shared WASAPI adapter builds and its
 context/enumeration, portable suite and installed consumers pass Windows CI.
 The headless runner in [run 43919570772](https://github.com/artalis-io/hail/actions/runs/43919570772)
 returned no audio endpoints. It did not exercise native capture/render streams.

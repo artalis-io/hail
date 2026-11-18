@@ -152,7 +152,8 @@ python3 tools/audit_namespace.py ../keel ../hull ../bitnet.c > /tmp/sibling-symb
 ```
 
 The contract checker uses GNU-compatible nm on Linux; Mach-O and PE export
-validation need target tooling in the respective platform gates. The sibling
+validation use target tooling: Windows needs `llvm-nm` for static COFF and
+`llvm-readobj` for DLL exports. The sibling
 audit remains incomplete for unavailable Sail and Hull binary artifacts. Static
 archives may contain private `hail_*` helper definitions; only `ha_*` functions
 listed in the export manifest belong to the public interface. Shared builds
@@ -224,6 +225,17 @@ checked separately. See [CoreAudio results](coreaudio-qualification.md), includi
 the retained earlier failures. The corresponding Windows plan is in
 [WASAPI paired-endpoint design](wasapi-loopback-design.md); it has not yet been
 executed on a provisioned Windows audio fixture.
+
+The [Windows qualification harness](wasapi-qualification.md) is now implemented.
+`tools/check_windows_builds.ps1` runs the device-free native static/shared
+Debug/Release and installed-consumer matrix. Actual audio tests require explicit
+endpoint keys; the paired runner requires approved signed fixture manifests.
+ClangCL x64 DLL-CRT builds accept `HA_SANITIZER=address` (ASan only), with matching
+compiler runtime libraries. The local LLVM 19 runtime fails before test entry on
+Windows build 26300; see the retained [results](native-windows-results.md).
+Matching LLVM 23 now passes device-free and native ASan profiles on that host;
+select its compiler explicitly and use its matching runtime resource directory.
+See [Shure execution](native-windows-physical-results.md) for exact evidence.
 
 ## Opt-in physical CoreAudio qualification
 

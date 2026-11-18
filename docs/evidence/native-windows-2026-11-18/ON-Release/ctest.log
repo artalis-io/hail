@@ -1,0 +1,15 @@
+Test project C:/Users/Mark/artalis.io/src/hail/build-windows-validation/ON-Release
+    Start 1: headers_cpp
+1/5 Test #1: headers_cpp ......................   Passed    0.04 sec
+    Start 2: wasapi_oracle
+2/5 Test #2: wasapi_oracle ....................   Passed    0.03 sec
+    Start 3: conformance
+3/5 Test #3: conformance ......................   Passed    0.03 sec
+    Start 4: concurrency
+4/5 Test #4: concurrency ......................   Passed    0.04 sec
+    Start 5: example
+5/5 Test #5: example ..........................   Passed    0.03 sec
+
+100% tests passed out of 5
+
+Total Test time (real) =   0.18 sec

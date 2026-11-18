@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ELF/Mach-O symbol and portable-core boundary checks. No file mutations."""
+"""ELF/Mach-O/PE-COFF symbols and portable boundaries. No file mutations."""
 import argparse
 from pathlib import Path
 import re
@@ -17,11 +17,25 @@ if not args.no_virtual:
     expected.update(('ha_virtual_configure', 'ha_virtual_step', 'ha_virtual_device_set',
                      'ha_virtual_device_add', 'ha_virtual_default_set'))
 darwin = sys.platform == 'darwin'
-cmd = ['nm', '-g', '-U'] if darwin else ['nm', '--defined-only', '-g']
-if args.shared and not darwin:
-    cmd.append('-D')
-raw = subprocess.check_output([*cmd, str(args.library)], text=True)
-symbols = {line.split()[-1].split('@')[0] for line in raw.splitlines() if len(line.split()) >= 3}
+windows = sys.platform == 'win32'
+if windows and args.shared:
+    raw = subprocess.check_output(['llvm-readobj', '--coff-exports', str(args.library)], text=True)
+    symbols = set(re.findall(r'^\s+Name: (\S+)$', raw, re.MULTILINE))
+else:
+    cmd = ['llvm-nm' if windows else 'nm', '--defined-only', '-g']
+    if darwin:
+        cmd = ['nm', '-g', '-U']
+    if args.shared and not darwin:
+        cmd.append('-D')
+    raw = subprocess.check_output([*cmd, str(args.library)], text=True)
+    records = [line.split() for line in raw.splitlines() if len(line.split()) >= 3]
+    if windows:
+        # LLVM/MSVC emit content-addressed read-only COMDAT constants. These are
+        # linker-pooled literals, not Hail's named functions/data or SDK globals.
+        symbols = {r[-1] for r in records if not (r[-2] == 'R' and
+                   re.match(r'^(?:__real@[0-9a-f]+$|__xmm@[0-9a-f]+$|\?\?_C@)', r[-1]))}
+    else:
+        symbols = {r[-1].split('@')[0] for r in records}
 if darwin:
     symbols = {s[1:] if s.startswith('_') else s for s in symbols}
 public = {s for s in symbols if s.startswith('ha_')}

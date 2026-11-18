@@ -1,0 +1,21 @@
+{
+  "driver_file": "C:/Windows/System32/drivers/usbaudio2.sys",
+  "sha256": "B8AE23808D49175E64F9AE3A26216F622CA2F4463FD4862EA8B29AAEB79A7664",
+  "file_version": "10.0.26100.9974 (WinBuild.160101.0800)",
+  "signature_status": "Valid",
+  "signer_subject": "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+  "signer_thumbprint": "667BBA1E1F478221AA65DE4F75187A751B03A453",
+  "llvm23_release": {
+    "digest": "sha256:7623f582089983c1cb51030cf1996514b19464e5669099571b399e8543770155",
+    "name": "clang+llvm-23.1.6-x86_64-pc-windows-msvc.tar.zst",
+    "url": "https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.6/clang%2Bllvm-23.1.6-x86_64-pc-windows-msvc.tar.zst"
+  },
+  "llvm23_compiler": [
+    "clang version 23.1.6 (https://github.com/llvm/llvm-project 5b10d2d74929eae78912771222c9855af97496f4)",
+    "Target: x86_64-pc-windows-msvc",
+    "Thread model: posix",
+    "InstalledDir: C:\\Users\\Mark\\artalis.io\\src\\hail\\build-llvm23\\toolchain\\clang+llvm-23.1.6-x86_64-pc-windows-msvc\\bin",
+    "Build config: +alloc:rpmalloc"
+  ],
+  "asan_runtime_sha256": "52C09B411E6FE2520E42A920F12B747B1ACB695C633E1F3E0EBC57E257101280"
+}

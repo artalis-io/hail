@@ -1,0 +1,58 @@
+[
+  {
+    "name": "Microphone (2- Shure MV7+)",
+    "driver_version": "10.0.26100.1",
+    "status": "OK",
+    "inf": "audioendpoint.inf",
+    "instance_id": "SWD\\MMDEVAPI\\{0.0.1.00000000}.{BF16F049-5379-4D2E-A4D9-A15A142424D8}"
+  },
+  {
+    "name": "Shure MV7+",
+    "driver_version": "10.0.26100.9974",
+    "status": "OK",
+    "inf": "usbaudio2.inf",
+    "instance_id": "USB\\VID_14ED&PID_1019&MI_01\\7&12e4804&0&0001"
+  },
+  {
+    "name": "USB Composite Device",
+    "driver_version": "10.0.26100.9818",
+    "status": "OK",
+    "inf": "usb.inf",
+    "instance_id": "USB\\VID_14ED&PID_1019\\MV7+#12-24804c9b7b716d569d61ea4362d5f026"
+  },
+  {
+    "name": "USB Root Hub (USB 3.0)",
+    "driver_version": "10.0.26100.9974",
+    "status": "OK",
+    "inf": "usbhub3.inf",
+    "instance_id": "USB\\ROOT_HUB30\\5&201a262c&0&0"
+  },
+  {
+    "name": "AMD USB 3.10 eXtensible Host Controller - 1.10 (Microsoft)",
+    "driver_version": "10.0.26100.9974",
+    "status": "OK",
+    "inf": "usbxhci.inf",
+    "instance_id": "PCI\\VEN_1022&DEV_43EE&SUBSYS_11421B21&REV_00\\4&5f22ecf&0&000A"
+  },
+  {
+    "name": "PCI Express Root Port",
+    "driver_version": "10.0.26100.9974",
+    "status": "OK",
+    "inf": "pci.inf",
+    "instance_id": "PCI\\VEN_1022&DEV_1483&SUBSYS_14531022&REV_00\\3&11583659&0&0A"
+  },
+  {
+    "name": "PCI Express Root Complex",
+    "driver_version": "10.0.26100.9974",
+    "status": "OK",
+    "inf": "pci.inf",
+    "instance_id": "ACPI\\PNP0A08\\0"
+  },
+  {
+    "name": "Microsoft ACPI-Compliant System",
+    "driver_version": "10.0.26100.9818",
+    "status": "OK",
+    "inf": "acpi.inf",
+    "instance_id": "ACPI_HAL\\PNP0C08\\0"
+  }
+]
