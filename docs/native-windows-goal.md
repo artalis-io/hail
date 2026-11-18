@@ -3,8 +3,9 @@
 Status: [owner-authorized Shure native execution](native-windows-physical-results.md)
 now passes the 32-case format/startup matrix, simplex/duplex, lifecycle stress,
 600 s sustained duplex and matching-runtime ASan profiles after a capture-clock
-fix. The complete goal remains open for approved signed paired-fixture execution
-and actual device removal/reopen. Physical timing is uncalibrated; no physical
+fix. Owner-coordinated USB removal/reopen also passes with fresh endpoint IDs
+and clock domains. The complete goal remains open for approved signed paired-fixture
+execution. Physical timing is uncalibrated; no physical
 latency or audible-tail bound is claimed.
 
 ## Objective

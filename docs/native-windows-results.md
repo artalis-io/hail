@@ -8,8 +8,9 @@ capture/playback, static/shared Debug/Release samples, 30 lifecycle cycles and a
 600.009 s strict duplex trial passed after correcting converted capture clock
 facts. Matching LLVM 23 ASan now passes device-free and native trials; LLVM 19's
 startup failure is preserved. Input settings were restored and no PCM retained.
-Controlled paired-fixture, real hotplug/reopen and calibrated physical timing
-evidence remain outstanding; full production qualification is not claimed.
+Owner-coordinated real USB loss/reopen now passes with fresh endpoint IDs/domains
+and balanced teardown. Controlled paired-fixture execution and calibrated physical
+timing remain outstanding; full production qualification is not claimed.
 
 ## Initial implementation-only pass (before physical authorization)
 

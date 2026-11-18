@@ -1,0 +1,11 @@
+native direction=1 mix_rate=48000 mix_channels=1 mix_bits=32 mix_tag=65534 period_100ns=100000 minimum_100ns=30000 physical_format=unknown
+endpoint direction=1 master_gain=0.5 muted=0
+native direction=1 requested_buffer_100ns=200000 observed_buffer_frames=1056 application_rate=48000 application_channels=2 application_pcm=2
+native direction=2 mix_rate=48000 mix_channels=2 mix_bits=32 mix_tag=65534 period_100ns=100000 minimum_100ns=30000 physical_format=unknown
+endpoint direction=2 master_gain=0.980000019 muted=0
+native direction=2 requested_buffer_100ns=200000 observed_buffer_frames=1056 application_rate=48000 application_channels=2 application_pcm=2
+negotiated direction=1 app_rate=48000 app_channels=2 app_pcm=2 engine_valid=1 engine_rate=48000 engine_channels=1 engine_pcm=2 physical_valid=0 conversion=1
+negotiated direction=2 app_rate=48000 app_channels=2 app_pcm=2 engine_valid=1 engine_rate=48000 engine_channels=2 engine_pcm=2 physical_valid=0 conversion=1
+profile=strict physical=1 rate=48000 channels=2 pcm=2 quantum=256 capture_slots=32 playback_slots=32 reference_slots=64 seconds=5 unprimed=1 conversion_capture=1 conversion_playback=1 clock_relationship=0 capture_domain=12 render_domain=13
+loss terminal=-8 native=0 old_capture_id=10 old_render_id=5
+PASS explicit loss/reopen capture_id=15 render_id=14 allocations=3 frees=3

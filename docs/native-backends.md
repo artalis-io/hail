@@ -12,8 +12,8 @@ The [Windows qualification harness](wasapi-qualification.md) implements explicit
 physical/paired tests, fixture validation and a provisioned workflow. The
 [Shure native execution](native-windows-physical-results.md) now covers the full
 application format/startup matrix, standalone/duplex operation, a ten-minute strict
-duplex trial, lifecycle cycles and ASan. Approved paired-fixture, actual hotplug
-and calibrated physical latency qualification remain open.
+duplex trial, lifecycle cycles, real USB loss/reopen and ASan. Approved
+paired-fixture and calibrated physical latency qualification remain open.
 
 ## Selection and discovery
 

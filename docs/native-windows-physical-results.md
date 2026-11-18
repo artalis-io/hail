@@ -7,7 +7,7 @@ All 32 strict duplex format/startup cases passed after a capture-clock fix:
 playback, static/shared Debug/Release duplex, 30 lifecycle cycles and two native
 ASan profiles also passed. This qualifies those recorded operations/configurations;
 the complete [Windows goal](native-windows-goal.md) remains open for the signed
-paired fixture and actual removal/reopen. Physical latency is uncalibrated and
+paired fixture. Real USB removal/reopen now passes as recorded below. Physical latency is uncalibrated and
 is not claimed by this pass.
 
 The final strict Release trial completed 600.0092291 seconds of measured duplex
@@ -139,14 +139,23 @@ process CPU/private-byte/working-set/handle observations. The recorded ordinary
 `Sleep(1)` application loop commonly wakes at 14–16 ms; no hard-real-time claim
 or physical latency bound follows from the observed software timings.
 
-Actual USB unplug/replug requires owner coordination; the explicit
-`run_wasapi_physical_hotplug.ps1` test is prepared and has not run. No device was
-disabled administratively. A signed, reserved, transparent paired fixture with
+Owner-coordinated USB unplug/replug now passed: terminal DEVICE_LOST, old capture/
+render IDs 10/5 replaced by 15/14 in the same context, fresh clock domains,
+explicit reopen, and balanced three allocations/frees with zero retained bytes.
+[Raw attempt 2](evidence/native-windows-hotplug-2026-11-18-attempt2/result.json)
+records the result. Attempt 1 timed out without physical removal; that failure
+is retained separately and is not a native loss-test pass. Both attempts restored
+the original microphone gain/mute. No device was disabled administratively.
+A signed, reserved, transparent paired fixture with
 approved provisioning/manifest is still unavailable. The existing MOTIV virtual
 endpoints were not treated as a verified cable. Hardware permissions/revocation,
 old-after-new PCM across a paired path, physical ADC/DAC latency and audible tails
 remain separate evidence gaps. Do not describe this pass as blanket production
 readiness or completion of every criterion in the goal.
+
+The [VB-CABLE candidate](wasapi-fixture-provisioning.md) has been downloaded and
+signature/catalog verified, but requires owner provisioning, administrative
+installation, licensing review and reboot before any paired test can run.
 
 Qualification source `aee35e16e91b689fb22be28bda25efba1188c952` also passed all
 11 jobs in [general CI](https://github.com/artalis-io/hail/actions/runs/44257729178)

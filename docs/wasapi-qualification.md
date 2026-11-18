@@ -1,8 +1,8 @@
 # Windows native qualification harness
 
 Implemented on 2026-11-18, with [owner-authorized Shure native execution](native-windows-physical-results.md)
-now covering the format/startup matrix, ten-minute duplex and ASan. Approved
-paired-fixture, actual hotplug and calibrated physical timing remain open. See
+now covering the format/startup matrix, ten-minute duplex, real USB loss/reopen
+and ASan. Approved paired-fixture and calibrated physical timing remain open. See
 [local results](native-windows-results.md) for historical evidence and blockers.
 The [design](wasapi-loopback-design.md) remains the acceptance contract.
 
@@ -144,7 +144,8 @@ client and is outside the library. Ordinary runs do not alter levels.
 `tools/run_wasapi_physical_hotplug.ps1` prepares the same-context loss/reopen
 trial with human USB unplug/reconnect instead of administrative fixture scripts.
 Run only after coordinating the ready signal with the owner; do not unplug during
-another audio trial. Real hotplug remains unexecuted in this report.
+another audio trial. The owner-coordinated Shure hotplug trial has now passed;
+its first no-removal timeout is retained separately in the physical report.
 
 The measured-phase capture timing histogram reports nonnegative SDK host
 correlation ages in 100 microsecond buckets and counts future correlations

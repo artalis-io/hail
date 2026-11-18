@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-18",
+  "attempt1": "No physical USB removal observed within the 30 second window; deadline failure retained, not counted as passing",
+  "attempt2": "Owner physically unplugged and reconnected the Shure; explicit loss/reopen passed",
+  "terminal_result": -8,
+  "old_capture_id": 10,
+  "old_playback_id": 5,
+  "new_capture_id": 15,
+  "new_playback_id": 14,
+  "clock_domains": "Both changed: asserted by native test",
+  "allocations": 3,
+  "frees": 3,
+  "retained_hail_bytes": 0,
+  "source_revision": "ece2ca08b3b2cd805c161a81b49fcc744949cebc",
+  "executable_sha256": "32B0EA4067364C4250523C99111CB7F8A0918F14B672DFCF962C5D9FE430475F",
+  "microphone_settings_restored": true
+}

@@ -20,7 +20,8 @@ all static/shared Debug/Release samples, 30 native lifecycle cycles and a
 changes. A real converted-capture clock-fact defect was fixed; all failed
 lower-rate cases are preserved. Matching LLVM 23 ASan passes device-free and
 native trials, including an independent intentional-overrun runtime check.
-No microphone PCM was retained. Controlled paired-fixture, real hotplug/reopen,
+Owner-coordinated real USB loss/reopen passed with fresh endpoint IDs/clock domains
+and balanced teardown. No microphone PCM was retained. Controlled paired-fixture,
 physical timestamp accuracy and calibrated latency remain unqualified.
 
 On 2026-11-18, native Windows ClangCL static Debug/Release each passed nine
@@ -132,9 +133,10 @@ measured latency remain explicit D/E qualification work.
 
 CoreAudio now has native BlackHole static/shared loopback execution and a separate
 instrumented ASan/UBSan profile, with earlier timing-sensitive failures retained.
-See [CoreAudio qualification](coreaudio-qualification.md). Windows WASAPI remains
-build/context/enumeration verified; a signed paired-endpoint fixture runner is
-required for the [designed native loopback suite](wasapi-loopback-design.md).
+See [CoreAudio qualification](coreaudio-qualification.md). Windows WASAPI now has
+the separate [Shure physical execution](native-windows-physical-results.md),
+including sustained duplex and USB loss/reopen. A signed paired-endpoint fixture
+is still required for the [controlled loopback suite](wasapi-loopback-design.md).
 
 ## Gate completion criteria
 
@@ -251,7 +253,7 @@ coverage. Run Clang static analysis and configuration/metadata fuzzing too.
 | Linux PipeWire | Static/shared, GCC/Clang | Isolated nonzero loopback, flush, loss/reopen, starvation; ASan/UBSan/LSan and TSan clean in fixture; default-config dependency finding remains | Not tested | Software only; see loopback report |
 | Linux ALSA | Static/shared, GCC/Clang | Null-device duplex, flush, stop/restart; ASan/UBSan/LSan and TSan clean | Not tested | Not measured |
 | macOS CoreAudio | arm64 native macOS 15/26 static/shared; Intel portable/consumer CI | BlackHole full format matrix at explicit 2,048-frame native period; strict Release + ASan/UBSan; nominal/loaded physical duplex; aggregate loss/defaults; denied-open and rollback fixes; permission-worker ASan/TSan; [CI scope/failures](coreaudio-ci-regression.md) | Built-in M1 Max microphone/speakers at 48 kHz; actual OS denial passes; physical USB/Bluetooth hotplug unqualified; [follow-up](native-macos-followup.md) | Software flush/callback/delivery measurements; 512-frame hosted failures retained; physical latency unmeasured |
-| Windows shared WASAPI | MinGW cross static/shared and ClangCL native CI static/shared | Native context/empty enumeration plus virtual suite in CI; [loopback designed](wasapi-loopback-design.md), streaming not yet verified | Not tested | Not measured |
+| Windows shared WASAPI | MinGW cross static/shared; ClangCL native static/shared Debug/Release and installed C/C++ consumers | SDK fault/oracle tests; 32 strict format/startup cases; 600 s zero-xrun duplex; 30 lifecycle cycles; real USB loss/reopen; matching LLVM 23 ASan; signed paired fixture pending | Shure MV7+ capture/headphones on Windows 11 x64; exact [scope and evidence](native-windows-physical-results.md) | Software control/timing observations only; future SDK correlations retained; physical latency uncalibrated |
 | Embedded/RTOS/UEFI | Extension design; freestanding core compiles | No adapter | No adapter | Not measured |
 
 Planned CI: GCC and Clang Linux, AppleClang macOS, MSVC and MinGW Windows; debug

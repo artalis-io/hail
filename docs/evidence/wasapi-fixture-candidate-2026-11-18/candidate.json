@@ -1,0 +1,39 @@
+{
+  "checked_utc": "2026-11-18T08:40:27.0927882+00:00",
+  "source_page": "https://vb-audio.com/Cable/",
+  "download_url": "https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack46.zip",
+  "package_sha256": "BC44E8974191A5A2427D6C979E2DAB08DBB09925F3F435DFA2F0BA3E45B6EB90",
+  "package": "VBCABLE_Driver_Pack46.zip",
+  "driver_version": "3.5.2.0",
+  "driver_date": "2026-10-31",
+  "files": [
+    {
+      "name": "VBCABLE_Setup_x64.exe",
+      "sha256": "734C35DFA6D98F48782A451633CEB471166EC70D60482FD89A1123D0EE3C4F41",
+      "signature_status": "Valid",
+      "signer": "CN=BUREL VINCENT Entrepreneur individuel, O=BUREL VINCENT Entrepreneur individuel, STREET=21 avenue des Marguerites, L=Eymet, S=Dordogne, C=FR, OID.1.3.6.1.4.1.311.60.2.1.3=FR, SERIALNUMBER=423 734 177, OID.2.5.4.15=Private Organization",
+      "signer_thumbprint": "A77952D93229D0EC36E2543081EEA7D125732B9C"
+    },
+    {
+      "name": "vbaudio_cable64_win10.sys",
+      "sha256": "7EBCBBE7004D185F7B29613CD27FDC2DD71C1712224B767A74D2F66BDC33A7EF",
+      "signature_status": "Valid",
+      "signer": "CN=BUREL VINCENT Entrepreneur individuel, O=BUREL VINCENT Entrepreneur individuel, STREET=21 avenue des Marguerites, L=Eymet, S=Dordogne, C=FR, OID.1.3.6.1.4.1.311.60.2.1.3=FR, SERIALNUMBER=423 734 177, OID.2.5.4.15=Private Organization",
+      "signer_thumbprint": "762B6D6B2958E709F24C8DEA080150E2D4FB5889"
+    },
+    {
+      "name": "vbaudio_cable64_win10.cat",
+      "sha256": "5D24C17858B49AD83BB856C66C24C5C2AECDB89CBAAE2F8179C15D351124FA9F",
+      "signature_status": "Valid",
+      "signer": "CN=Microsoft Windows Hardware Compatibility Publisher, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+      "signer_thumbprint": "6022340C9F4CB00307DF8DB036D392ADAC766212"
+    }
+  ],
+  "kernel_catalog_verification": "signtool verify /kp /v /c vbaudio_cable64_win10.cat vbaudio_cable64_win10.sys: exit 0, zero warnings/errors",
+  "installed": false,
+  "owner_installation_procedure_approved": false,
+  "license_terms": "https://vb-audio.com/Services/licensing.htm",
+  "licensing": "Vendor permits workflow evaluation first; professional use requires a paid license. No license purchase or unattended installation rights assumed.",
+  "provisioning": "Standalone vendor installer must run as administrator; vendor requires reboot after installation and uninstallation. Current shell is not elevated.",
+  "local_installer": "C:\\Users\\Mark\\artalis.io\\src\\hail\\build-wasapi-fixture\\pack46\\VBCABLE_Setup_x64.exe"
+}

@@ -24,8 +24,10 @@ settings outside the library. The callback/worker transport still calls no
 application audio code and performs no DSP. Test-only timing observations must
 state SDK estimate/uncertainty and exclude physical latency claims. See
 [physical results](native-windows-physical-results.md) for the support boundary;
-actual removal/reopen, approved paired-fixture and physical latency evidence
-remain outstanding. The earlier artifact-only pass below is retained as history.
+owner-coordinated real USB loss/reopen now passes with fresh runtime incarnations
+and clock domains, while approved paired-fixture and physical latency evidence
+remain outstanding. The timeout with no physical removal is retained separately;
+it is not evidence of device loss. The earlier artifact-only pass below is history.
 
 ## 2026-11-18 Windows qualification artifacts
 
