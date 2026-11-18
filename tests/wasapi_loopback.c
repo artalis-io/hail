@@ -30,6 +30,11 @@ static uint32_t rate=48000, channels=2, pcm=HA_PCM_F32, directions=HA_CAPTURE|HA
 static unsigned seconds=5, physical, unprimed, instrumented;
 static unsigned lifecycle_cycles;
 static unsigned low_grid;
+/* Stop/reset discards pending PCM. Only the new generation has a continuity
+ * contract after restart; validate residual older samples, but do not assume
+ * their old sequence survived a deliberate stop/reset. I/O-owner state. */
+static unsigned restart_target;
+static uint64_t restart_tail_frames;
 static atomic_uint quit, write_generation, hold_capture, io_failed, io_ready, expect_loss;
 static atomic_ullong captured;
 /* The I/O thread owns all plain fields below until it has joined. */
@@ -169,6 +174,10 @@ static void verify_frame(double left,double right)
     }
     value=(uint32_t)(left*32768.0); marker=value/span; code=value&(span-1u);
     if(marker<1 || marker>3 || (seen && marker<last_marker)) { ++bad; return; }
+    if(restart_target && marker<restart_target) {
+        ++restart_tail_frames; seen=1; last_marker=marker; last_code=code; return;
+    }
+    if(restart_target) restart_target=0;
     if(seen && marker==last_marker && code!=((last_code+1u)&(span-1u))) {
         if(instrumented && gap_credit && ((code-last_code-1u)&(span-1u))<span/2u) gap_credit=0;
         else {
@@ -316,13 +325,24 @@ static unsigned number(const char *s,unsigned min,unsigned max)
 static int oracle_self_test(void)
 {
     uint32_t format,c,m,i; uint64_t previous_bad;
+    double first=low_grid?0.0625:0.25;
+    double second=low_grid?0.125:0.5;
+    double third=low_grid?0.1875:0.75;
+    unsigned base=low_grid?2048u:8192u;
     /* Hand-authored values independently exercise the oracle's negative paths. */
     verify_frame(0,0); CHECK(!nonzero_frames && !verified[1] && !verified[2] && !verified[3]);
-    verify_frame(0.25,-0.25); verify_frame(8193.0/32768.0,-8193.0/32768.0); CHECK(!bad && verified[1]==2);
-    previous_bad=bad; verify_frame(0.25,0.25); CHECK(bad==previous_bad+1);
-    previous_bad=bad; verify_frame(8195.0/32768.0,-8195.0/32768.0); CHECK(bad==previous_bad+1);
-    verify_frame(0.5,-0.5); previous_bad=bad; verify_frame(0.25,-0.25); CHECK(bad==previous_bad+1);
-    previous_bad=bad; verify_frame(0.25001,-0.25001); CHECK(bad==previous_bad+1);
+    verify_frame(first,-first); verify_frame((base+1.0)/32768.0,-(base+1.0)/32768.0); CHECK(!bad && verified[1]==2);
+    previous_bad=bad; verify_frame(first,first); CHECK(bad==previous_bad+1);
+    previous_bad=bad; verify_frame((base+3.0)/32768.0,-(base+3.0)/32768.0); CHECK(bad==previous_bad+1);
+    verify_frame(second,-second); previous_bad=bad; verify_frame(first,-first); CHECK(bad==previous_bad+1);
+    previous_bad=bad; verify_frame(first+0.00001,-first-0.00001); CHECK(bad==previous_bad+1);
+    bad=0; seen=0; restart_target=3;
+    verify_frame(second,-second); verify_frame(second+17.0/32768.0,-second-17.0/32768.0);
+    CHECK(!bad && restart_tail_frames==2 && restart_target==3);
+    previous_bad=bad; verify_frame(second,second); CHECK(bad==previous_bad+1 && restart_target==3);
+    verify_frame(third,-third); CHECK(restart_target==0);
+    previous_bad=bad; verify_frame(third+2.0/32768.0,-third-2.0/32768.0); CHECK(bad==previous_bad+1);
+    previous_bad=bad; verify_frame(second,-second); CHECK(bad==previous_bad+1);
     for(format=HA_PCM_S16;format<=HA_PCM_F32;++format) for(c=1;c<=2;++c) {
         pcm=format; channels=c; bad=0; seen=0;
         for(m=1;m<=3;++m) {
@@ -421,6 +441,7 @@ int main(int argc,char **argv)
     CHECK(frequency<=UINT64_MAX/NS);
     CHECK(setvbuf(stdout,NULL,_IONBF,0)==0);
     if(argc==2 && !strcmp(argv[1],"--self-test")) return oracle_self_test();
+    if(argc==2 && !strcmp(argv[1],"--self-test-low-grid")) { low_grid=1; return oracle_self_test(); }
     for(i=1;i<(unsigned)argc;++i) {
         if(!strcmp(argv[i],"--list")) list=1;
         else if(!strcmp(argv[i],"--physical")) physical=1;
@@ -441,7 +462,6 @@ int main(int argc,char **argv)
         }
     }
     a.allocate=allocate; a.deallocate=deallocate; cc.allocator=a; cc.backend=HA_BACKEND_WASAPI;
-    printf("numerical_profile=%s\n",low_grid?"transparent-s16-grid-low-v1":"transparent-s16-grid");
     cc.max_devices=HA_MAX_DEVICES; cc.max_streams=2; cc.event_capacity=128; cc.memory_limit=4u*1024u*1024u; cc.diagnostic=&diagnostic;
     CHECK(ha_context_plan(&cc,&cp)==HA_OK); CHECK(ha_context_create(&cc,&context)==HA_OK);
     CHECK(live_bytes==cp.bytes);
@@ -452,6 +472,7 @@ int main(int argc,char **argv)
         CHECK(ha_context_destroy(&context)==HA_OK); CHECK(!live_bytes && allocations==frees); return 0;
     }
     directions=(capture_key?HA_CAPTURE:0u)|(playback_key?HA_PLAYBACK:0u);
+    printf("numerical_profile=%s\n",low_grid?"transparent-s16-grid-low-v1":"transparent-s16-grid");
     CHECK(directions && (physical || directions==(HA_CAPTURE|HA_PLAYBACK)));
     sc.directions=directions; sc.negotiation=HA_EXACT_APPLICATION;
     sc.quantum_frames=Q; sc.capture_slots=capture_key?32u:0u; sc.playback_slots=playback_key?32u:0u; sc.reference_slots=playback_key?64:0;
@@ -520,6 +541,7 @@ int main(int argc,char **argv)
     generation=(uint32_t)status().playback_generation;
     last_frame=last_epoch=last_raw=last_host=0; capture_blocks=0; seen=0; gap_credit=0;
     atomic_store(&phase,3);
+    if(!physical) restart_target=3;
     CHECK(ha_stream_start(stream)==HA_PENDING); await_state(HA_RUNNING); launch_io(playback_key?generation:0u); run_for(1000);
     if(playback_key) { atomic_store(&write_generation,0); run_for(400); }
     starved=status();
@@ -528,6 +550,7 @@ int main(int argc,char **argv)
     if(capture_key) { atomic_store(&hold_capture,1); run_for(32u*Q*1000u/rate+200u); atomic_store(&hold_capture,0); run_for(500); }
     overflow=status(); if(capture_key) CHECK(overflow.capture_lost_frames>starved.capture_lost_frames);
     join_io();
+    printf("restart_old_tail_frames=%llu\n",(unsigned long long)restart_tail_frames);
     printf("injected_capture_loss_frames=%llu injected_playback_underrun_frames=%llu host_valid_blocks=%llu device_valid_blocks=%llu native_silent_blocks=%llu unknown_gap_blocks=%llu meaningful_capture_minus90dbfs=%u\n",
         (unsigned long long)(overflow.capture_lost_frames-starved.capture_lost_frames),
         (unsigned long long)(starved.playback_underrun_frames-after.playback_underrun_frames),

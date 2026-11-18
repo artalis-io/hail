@@ -88,10 +88,20 @@ static void hail_io(observation *capture,observation *reference,int expected,uns
     for(i=0;i<Q*2;++i) { int v=(i&1)?-expected:expected; if(pcm==HA_PCM_F32) p.f[i]=(float)v/32768.0f; else p.s[i]=(int16_t)v; }
     for(attempt=0;attempt<8;++attempt) { ha_result r=ha_stream_write(stream,&p,Q,1,&n); if(r==HA_WOULD_BLOCK || r==HA_BUSY) break; REQUIRE(r==HA_OK && n<=Q); }
 }
+static int self_test(void) {
+    observation o; float f[2]={0.25f,-0.25f}; int16_t s[2]={8192,-8192};
+    memset(&o,0,sizeof(o)); observe(&o,f,HA_PCM_F32,1,0,8192); observe(&o,s,HA_PCM_S16,1,0,8192);
+    REQUIRE(o.frames==2 && !o.mismatches && o.nonzero==2 && o.max_error==0);
+    s[1]=-8191; observe(&o,s,HA_PCM_S16,1,0,8192); REQUIRE(o.mismatches==1 && o.max_error==1);
+    observe(&o,NULL,HA_PCM_F32,1,1,8192); REQUIRE(o.mismatches==2 && o.max_error==8192);
+    f[0]=NAN; observe(&o,f,HA_PCM_F32,1,0,8192); REQUIRE(o.mismatches==3 && !isfinite(o.max_error));
+    puts("PASS constant observer rejects LSB errors, zeros-only substitution and nonfinite PCM"); return 0;
+}
 int main(int argc,char **argv) {
     static const int levels[]={0,8192,16384,24576,30000,32000,32700,0};
     ha_context_config cc=HA_INIT(ha_context_config); ha_stream_config sc=HA_INIT(ha_stream_config);
     IMMDeviceEnumerator *e=NULL; tap taps[3]; unsigned phase,j; LARGE_INTEGER f; uint64_t deadline; ha_result r;
+    if(argc==2 && !strcmp(argv[1],"--self-test")) return self_test();
     REQUIRE(argc==4 && (!strcmp(argv[3],"f32") || !strcmp(argv[3],"s16"))); pcm=!strcmp(argv[3],"f32")?HA_PCM_F32:HA_PCM_S16;
     /* Exact local cable identities are deliberately supplied; no default fallback. */
     REQUIRE(QueryPerformanceFrequency(&f) && f.QuadPart>0); frequency=(uint64_t)f.QuadPart;

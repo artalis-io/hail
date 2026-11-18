@@ -31,6 +31,7 @@ foreach ($rate in 16000,24000,44100,48000) {
                 $arguments = @('--capture',$fixture.capture.key,'--playback',$fixture.playback.key,
                     '--rate',"$rate",'--channels',"$channels",'--pcm',$pcm,'--seconds','5')
                 if ($startup -eq 'unprimed') { $arguments += '--unprimed' }
+                if ($fixture.profile -eq 'transparent-s16-grid-low-v1') { $arguments += '--low-grid' }
                 & $Executable @arguments 2>&1 | Tee-Object -FilePath (Join-Path $OutputDirectory "$name-$startup.log")
                 if ($LASTEXITCODE -ne 0) { $failures.Add("$name-$startup") }
             }
@@ -40,6 +41,7 @@ foreach ($rate in 16000,24000,44100,48000) {
 $fixture=$fixtures[0]
 $arguments = @('--capture',$fixture.capture.key,'--playback',$fixture.playback.key,
     '--rate',"$($fixture.sample_rate)",'--channels',"$($fixture.channels)",'--pcm','f32','--seconds',"$SustainedSeconds")
+if ($fixture.profile -eq 'transparent-s16-grid-low-v1') { $arguments += '--low-grid' }
 & $Executable @arguments 2>&1 | Tee-Object -FilePath (Join-Path $OutputDirectory 'sustained.log')
 if ($LASTEXITCODE -ne 0) { $failures.Add('sustained') }
 [ordered]@{completed_utc=[DateTimeOffset]::UtcNow.ToString('o'); failures=@($failures);

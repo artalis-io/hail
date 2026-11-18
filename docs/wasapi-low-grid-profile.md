@@ -24,3 +24,13 @@ Any later transition-boundary correction requires a demonstrated cause and
 independent device-free negative tests. It may not excuse nominal sample skips
 or unexplained native discontinuities. Trials are explicit and individually
 retained; no retry-until-pass loop is permitted.
+
+The initial low-grid F32 run isolated a single post-stop residual-B sequence
+failure while all sample values were exact. The control stop resets/discards
+pending native and Hail buffers, so continuity of the old tail across that
+deliberate discard is not a valid assertion. The corrected oracle still checks
+every old-tail value and channel, preserves monotonic marker order, reports
+old-tail frame counts, and gives that tail no verified-frame credit. Continuity
+becomes mandatory at the first C frame; any subsequent B or C counter skip
+fails. Independent negative tests cover both those failures and corrupt tail
+samples. Nominal and render-flush continuity requirements are unchanged.

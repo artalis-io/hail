@@ -6,8 +6,8 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $fixture = Get-Content -LiteralPath $Manifest -Raw | ConvertFrom-Json
-if ($fixture.schema_version -ne 1 -or $fixture.profile -ne 'transparent-s16-grid') {
-    throw 'Require manifest schema 1 and the predeclared transparent-s16-grid oracle.'
+if ($fixture.schema_version -ne 1 -or $fixture.profile -notin 'transparent-s16-grid','transparent-s16-grid-low-v1') {
+    throw 'Require manifest schema 1 and a predeclared exact transparent-s16-grid profile.'
 }
 if ($fixture.sample_rate -notin 16000,24000,44100,48000 -or $fixture.channels -notin 1,2) {
     throw 'Manifest must declare a supported qualification rate and mono/stereo channels.'
