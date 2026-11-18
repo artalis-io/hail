@@ -29,6 +29,7 @@ static ha_stream *stream;
 static uint32_t rate=48000, channels=2, pcm=HA_PCM_F32, directions=HA_CAPTURE|HA_PLAYBACK;
 static unsigned seconds=5, physical, unprimed, instrumented;
 static unsigned lifecycle_cycles;
+static unsigned low_grid;
 static atomic_uint quit, write_generation, hold_capture, io_failed, io_ready, expect_loss;
 static atomic_ullong captured;
 /* The I/O thread owns all plain fields below until it has joined. */
@@ -155,21 +156,21 @@ static double sample(const pcm_buffer *p,uint32_t i)
 { return pcm==HA_PCM_F32?(double)p->f[i]:(double)p->s[i]/32768.0; }
 static void verify_frame(double left,double right)
 {
-    uint32_t value,marker,code;
+    uint32_t value,marker,code,span=low_grid?2048u:8192u;
     if(!isfinite(left) || !isfinite(right)) { ++bad; return; }
     if(fabs(left)>capture_peak) capture_peak=fabs(left);
     capture_square+=left*left; ++capture_samples;
     if(left==0 && right==0) { ++zero_frames; return; }
     ++nonzero_frames;
     if(physical) return;
-    if(left<0.25 || left>=1.0 || right!=-left || left*32768.0!=(double)(uint32_t)(left*32768.0)) {
+    if(left<(double)span/32768.0 || left>=(double)(span*4u)/32768.0 || right!=-left || left*32768.0!=(double)(uint32_t)(left*32768.0)) {
         if(bad<8) printf("oracle_sample_failure phase=%u left_s16_grid=%.17g right_s16_grid=%.17g\n",atomic_load(&phase),left*32768.0,right*32768.0);
         ++bad; return;
     }
-    value=(uint32_t)(left*32768.0); marker=value/8192u; code=value&8191u;
+    value=(uint32_t)(left*32768.0); marker=value/span; code=value&(span-1u);
     if(marker<1 || marker>3 || (seen && marker<last_marker)) { ++bad; return; }
-    if(seen && marker==last_marker && code!=((last_code+1u)&8191u)) {
-        if(instrumented && gap_credit && ((code-last_code-1u)&8191u)<4096u) gap_credit=0;
+    if(seen && marker==last_marker && code!=((last_code+1u)&(span-1u))) {
+        if(instrumented && gap_credit && ((code-last_code-1u)&(span-1u))<span/2u) gap_credit=0;
         else {
             if(bad<8) printf("oracle_sequence_failure phase=%u marker=%u code=%u previous_code=%u gap_credit=%u\n",atomic_load(&phase),marker,code,last_code,gap_credit);
             ++bad;
@@ -243,9 +244,9 @@ static void drain_reference(void)
 }
 static void pattern(pcm_buffer *p,uint32_t marker,uint32_t position)
 {
-    uint32_t i,c;
+    uint32_t i,c,span=low_grid?2048u:8192u;
     for(i=0;i<Q;++i) {
-        int32_t value=(int32_t)(marker*8192u+((position+i)&8191u));
+        int32_t value=(int32_t)(marker*span+((position+i)&(span-1u)));
         if(physical) { int32_t t=(int32_t)((position+i)%96u); value=(t<48?t:96-t)*21-504; }
         for(c=0;c<channels;++c) {
             int32_t v=c?-value:value;
@@ -425,6 +426,7 @@ int main(int argc,char **argv)
         else if(!strcmp(argv[i],"--physical")) physical=1;
         else if(!strcmp(argv[i],"--unprimed")) unprimed=1;
         else if(!strcmp(argv[i],"--instrumented")) instrumented=1;
+        else if(!strcmp(argv[i],"--low-grid")) low_grid=1;
         else {
             CHECK(i+1u<(unsigned)argc);
             if(!strcmp(argv[i],"--capture")) capture_key=argv[++i];
@@ -439,6 +441,7 @@ int main(int argc,char **argv)
         }
     }
     a.allocate=allocate; a.deallocate=deallocate; cc.allocator=a; cc.backend=HA_BACKEND_WASAPI;
+    printf("numerical_profile=%s\n",low_grid?"transparent-s16-grid-low-v1":"transparent-s16-grid");
     cc.max_devices=HA_MAX_DEVICES; cc.max_streams=2; cc.event_capacity=128; cc.memory_limit=4u*1024u*1024u; cc.diagnostic=&diagnostic;
     CHECK(ha_context_plan(&cc,&cp)==HA_OK); CHECK(ha_context_create(&cc,&context)==HA_OK);
     CHECK(live_bytes==cp.bytes);
