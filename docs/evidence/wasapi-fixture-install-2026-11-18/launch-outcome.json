@@ -1,0 +1,9 @@
+{
+  "checked_utc": "2026-11-18T09:03:13.6388618+00:00",
+  "state": "Windows canceled the normal RunAs launch before the vendor installer started",
+  "installed_devices": 0,
+  "automatic_retry": false,
+  "next_action": "Owner opens the verified staged setup as administrator, completes Install Driver and reboots, or explicitly requests a new normal UAC launch",
+  "defaults_helper_analysis_exit": 0,
+  "defaults_roles_captured": 6
+}
