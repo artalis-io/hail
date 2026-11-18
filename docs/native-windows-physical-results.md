@@ -147,3 +147,10 @@ endpoints were not treated as a verified cable. Hardware permissions/revocation,
 old-after-new PCM across a paired path, physical ADC/DAC latency and audible tails
 remain separate evidence gaps. Do not describe this pass as blanket production
 readiness or completion of every criterion in the goal.
+
+Qualification source `aee35e16e91b689fb22be28bda25efba1188c952` also passed all
+11 jobs in [general CI](https://github.com/artalis-io/hail/actions/runs/44257729178)
+and [device-free fuzzing](https://github.com/artalis-io/hail/actions/runs/44257730258).
+The [CI snapshot](evidence/native-windows-physical-2026-11-18/ci-aee35e1.json)
+records exact jobs/head. Hosted Windows checks remain distinct from the local
+physical execution above; the following evidence-only commit changes no tested code.
