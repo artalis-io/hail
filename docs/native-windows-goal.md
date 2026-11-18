@@ -4,8 +4,10 @@ Status: [owner-authorized Shure native execution](native-windows-physical-result
 now passes the 32-case format/startup matrix, simplex/duplex, lifecycle stress,
 600 s sustained duplex and matching-runtime ASan profiles after a capture-clock
 fix. Owner-coordinated USB removal/reopen also passes with fresh endpoint IDs
-and clock domains. The complete goal remains open for approved signed paired-fixture
-execution. Physical timing is uncalibrated; no physical
+and clock domains. The signed VB-CABLE pair was subsequently exercised, but all
+four strict 48 kHz stereo cases [failed the PCM oracle](native-windows-paired-results.md).
+The complete goal remains open for successful paired qualification.
+Physical timing is uncalibrated; no physical
 latency or audible-tail bound is claimed.
 
 ## Objective

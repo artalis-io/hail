@@ -1,6 +1,7 @@
 # WASAPI paired-endpoint loopback qualification design
 
-Status: artifacts implemented, paired-fixture audio not executed. Physical Shure
+Status: artifacts implemented; [paired-fixture execution](native-windows-paired-results.md)
+failed the exact PCM oracle in all four 48 kHz stereo cases. Physical Shure
 execution is recorded separately in [native results](native-windows-physical-results.md). See
 [harness setup](wasapi-qualification.md) and [local results](native-windows-results.md).
 Hail's shared WASAPI adapter builds and its

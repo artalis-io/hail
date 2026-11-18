@@ -2,7 +2,8 @@
 
 Implemented on 2026-11-18, with [owner-authorized Shure native execution](native-windows-physical-results.md)
 now covering the format/startup matrix, ten-minute duplex, real USB loss/reopen
-and ASan. Approved paired-fixture and calibrated physical timing remain open. See
+and ASan. The installed VB-CABLE's [first paired campaign](native-windows-paired-results.md)
+failed the exact PCM oracle; paired qualification and calibrated physical timing remain open. See
 [local results](native-windows-results.md) for historical evidence and blockers.
 The [design](wasapi-loopback-design.md) remains the acceptance contract.
 

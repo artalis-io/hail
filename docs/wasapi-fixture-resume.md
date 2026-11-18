@@ -1,5 +1,11 @@
 # VB-CABLE installation/reboot checkpoint
 
+Resumed after installation and reboot on 2026-11-18. See the
+[paired execution report](native-windows-paired-results.md): driver/endpoint
+validation passed, but all four strict 48 kHz stereo PCM trials failed.
+This checkpoint is historical; the next step is numerical-path diagnosis,
+not another installation or an assumed passing qualification.
+
 The owner authorized proceeding with the staged standalone VB-CABLE evaluation
 on 2026-11-18. Package 46, driver 3.5.2.0, has the verified hashes/signatures in
 [candidate evidence](evidence/wasapi-fixture-candidate-2026-11-18/candidate.json).

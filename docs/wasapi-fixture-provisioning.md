@@ -1,8 +1,10 @@
 # Staged signed paired fixture, 2026-11-18
 
-VB-CABLE package 46 is staged for review, **not installed**. The current shell
-is not elevated. The remaining paired PCM qualification needs an independently
-provisioned render/capture pair; the Shure physical endpoint tests do not replace it.
+VB-CABLE package 46 is now installed and the required reboot was verified.
+The [paired execution report](native-windows-paired-results.md) records successful
+driver/endpoint validation but four failed strict PCM cases. Paired qualification
+remains open. The original staging/provisioning procedure below is retained;
+the Shure physical endpoint tests do not replace the paired oracle.
 
 Official [download and installation instructions](https://vb-audio.com/Cable/)
 require extracting the complete package, running the standalone vendor setup as

@@ -162,12 +162,18 @@ static void verify_frame(double left,double right)
     if(left==0 && right==0) { ++zero_frames; return; }
     ++nonzero_frames;
     if(physical) return;
-    if(left<0.25 || left>=1.0 || right!=-left || left*32768.0!=(double)(uint32_t)(left*32768.0)) { ++bad; return; }
+    if(left<0.25 || left>=1.0 || right!=-left || left*32768.0!=(double)(uint32_t)(left*32768.0)) {
+        if(bad<8) printf("oracle_sample_failure phase=%u left_s16_grid=%.17g right_s16_grid=%.17g\n",atomic_load(&phase),left*32768.0,right*32768.0);
+        ++bad; return;
+    }
     value=(uint32_t)(left*32768.0); marker=value/8192u; code=value&8191u;
     if(marker<1 || marker>3 || (seen && marker<last_marker)) { ++bad; return; }
     if(seen && marker==last_marker && code!=((last_code+1u)&8191u)) {
         if(instrumented && gap_credit && ((code-last_code-1u)&8191u)<4096u) gap_credit=0;
-        else ++bad;
+        else {
+            if(bad<8) printf("oracle_sequence_failure phase=%u marker=%u code=%u previous_code=%u gap_credit=%u\n",atomic_load(&phase),marker,code,last_code,gap_credit);
+            ++bad;
+        }
     }
     seen=1; last_marker=marker; last_code=code; ++verified[marker];
     if(!marker_capture_ns[marker]) marker_capture_ns[marker]=observation_ns;

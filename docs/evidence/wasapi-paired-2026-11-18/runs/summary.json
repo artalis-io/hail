@@ -1,0 +1,27 @@
+{
+  "completed_utc": "2026-11-18T09:29:50.4133801+00:00",
+  "failures": [
+    "16000-1-s16",
+    "16000-1-f32",
+    "16000-2-s16",
+    "16000-2-f32",
+    "24000-1-s16",
+    "24000-1-f32",
+    "24000-2-s16",
+    "24000-2-f32",
+    "44100-1-s16",
+    "44100-1-f32",
+    "44100-2-s16",
+    "44100-2-f32",
+    "48000-1-s16",
+    "48000-1-f32",
+    "48000-2-s16-primed",
+    "48000-2-s16-unprimed",
+    "48000-2-f32-primed",
+    "48000-2-f32-unprimed",
+    "sustained"
+  ],
+  "endpoint_disable_reenable": "not executed by this harness; provisioner-controlled lifecycle trial required",
+  "physical_audio": "not exercised by paired virtual fixture",
+  "physical_latency": "not measured"
+}

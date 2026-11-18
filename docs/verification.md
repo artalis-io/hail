@@ -21,8 +21,10 @@ changes. A real converted-capture clock-fact defect was fixed; all failed
 lower-rate cases are preserved. Matching LLVM 23 ASan passes device-free and
 native trials, including an independent intentional-overrun runtime check.
 Owner-coordinated real USB loss/reopen passed with fresh endpoint IDs/clock domains
-and balanced teardown. No microphone PCM was retained. Controlled paired-fixture,
-physical timestamp accuracy and calibrated latency remain unqualified.
+and balanced teardown. No microphone PCM was retained. The installed
+[VB-CABLE pair](native-windows-paired-results.md) then failed all four strict
+48 kHz stereo PCM cases. Controlled paired-fixture correctness, physical
+timestamp accuracy and calibrated latency remain unqualified.
 
 On 2026-11-18, native Windows ClangCL static Debug/Release each passed nine
 device-free CTests; shared Debug/Release each passed five, and all four installed

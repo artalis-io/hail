@@ -1,5 +1,10 @@
 # Audio architecture axis audit
 
+The subsequent [signed VB-CABLE paired campaign](native-windows-paired-results.md)
+opened both real WASAPI legs but failed all four strict 48 kHz stereo PCM cases.
+No core/backend-axis change was made: numerical-path diagnosis remains open,
+and the prior Shure results do not replace the failing independent paired oracle.
+
 ## 2026-11-18 Shure native execution follow-up
 
 Owner-authorized physical capture/playback/duplex now exercises the WASAPI COM

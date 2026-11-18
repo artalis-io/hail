@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "profile": "transparent-s16-grid",
+  "origin": "https://vb-audio.com/Cable/",
+  "version": "3.5.2.0",
+  "pnp_instance_id": "ROOT\\MEDIA\\0001",
+  "owner_approved": true,
+  "license_automation_approved": true,
+  "license_terms": "Owner-authorized standalone workflow evaluation only, per saved checkpoint and current user resumption. No purchase, redistribution or unattended driver installation approved. https://vb-audio.com/Services/licensing.htm",
+  "installation_procedure": "Owner installed staged signed package using standalone vendor setup and normal administrator consent; independently inspected installed driver and PnP ancestry after reboot.",
+  "reboot_record": "LastBootUpTime=2026-11-18T10:10:20.5000000+01:00; later than pre-install checkpoint 2026-11-18T08:54:06Z",
+  "exclusive": true,
+  "reservation_owner": "Hail qualification in this session; exact ROOT\\MEDIA\\0001 pair; no active sessions observed before reservation",
+  "reservation_expires_utc": "2026-11-18T12:16:19.4909463+00:00",
+  "unity_gain": true,
+  "effects_disabled": true,
+  "sample_rate": 48000,
+  "channels": 2,
+  "package": {
+    "path": "C:\\Users\\Mark\\artalis.io\\src\\hail\\build-wasapi-fixture\\VBCABLE_Driver_Pack46.zip",
+    "sha256": "BC44E8974191A5A2427D6C979E2DAB08DBB09925F3F435DFA2F0BA3E45B6EB90"
+  },
+  "driver": {
+    "path": "C:/Windows/System32/DriverStore/FileRepository/vbmmecable64_win10.inf_amd64_9ed1e8995f3f9e21/vbaudio_cable64_win10.sys",
+    "inf_name": "oem54.inf",
+    "signer_thumbprint": "6022340C9F4CB00307DF8DB036D392ADAC766212",
+    "sha256": "7EBCBBE7004D185F7B29613CD27FDC2DD71C1712224B767A74D2F66BDC33A7EF"
+  },
+  "capture": {
+    "key": "{0.0.1.00000000}.{87d84b71-17b7-4d13-89df-b4b95b98aa6d}",
+    "pnp_instance_id": "SWD\\MMDEVAPI\\{0.0.1.00000000}.{87d84b71-17b7-4d13-89df-b4b95b98aa6d}"
+  },
+  "playback": {
+    "key": "{0.0.0.00000000}.{266bf420-96a2-47b5-a831-f6a6dbc0ae03}",
+    "pnp_instance_id": "SWD\\MMDEVAPI\\{0.0.0.00000000}.{266bf420-96a2-47b5-a831-f6a6dbc0ae03}"
+  },
+  "configuration_evidence": "provisioning.json and capture-before/playback-unity.json: matching 48k stereo, unity master/channel gains, unmuted, no active sessions; empty endpoint FxProperties and no APO/effect registration in vendor INF. No physical monitoring configured by this session; native exact PCM remains mandatory."
+}
