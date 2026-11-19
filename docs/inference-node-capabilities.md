@@ -69,6 +69,12 @@ software exists anywhere on the machines.
 
 ## Concrete integration direction
 
+The subsequent [incremental transcription investigation](incremental-transcription-investigation.md)
+distinguishes microphone input streaming from transcript output streaming and
+records the installed realtime adapter's five-second segmentation and unbounded
+incoming queue. It recommends comparing Parakeet/NeMo buffered streaming with
+Whisper/SimulStreaming in a separate speech runtime before headset integration.
+
 Use the existing authenticated text-chat gateway as the conversation backend.
 Add a separately specified duplex session service above the inference services,
 with an external native client adapter above Hail. The current gateway should

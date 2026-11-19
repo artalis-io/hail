@@ -160,7 +160,10 @@ VAD/AEC/noise processing stay outside the Hail core.
    text; the existing gateway authenticates and bounds admission but exposes no
    speech/realtime routes. Next establish ASR/TTS services, authenticated client
    streaming, cancellation and mixed-workload capacity, then choose the wire
-   contract from observed formats and incremental behavior.
+   contract from observed formats and incremental behavior. The
+   [incremental ASR investigation](incremental-transcription-investigation.md)
+   recommends a paced-file comparison of Parakeet/NeMo and Whisper/SimulStreaming;
+   installed vLLM realtime source alone does not meet the client requirements.
 3. **One headset conversation.** Build the native adapter plus gateway path.
    Continuously send input while streamed TTS plays. Demonstrate user interruption,
    capture continuity, cancellation propagation and rejection of late old audio.
