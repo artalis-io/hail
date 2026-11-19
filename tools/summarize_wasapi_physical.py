@@ -53,10 +53,12 @@ def measurements(text):
 
 
 campaigns = {}
-for path in sorted(args.directory.rglob('summary.json')):
+for path in sorted([*args.directory.rglob('summary.json'), *args.directory.rglob('results.json')]):
     records = json.loads(path.read_text(encoding='utf-8-sig'))
     records = records if isinstance(records, list) else [records]
     trials = []
+    plan_path = path.parent / 'plan.json'
+    plan = json.loads(plan_path.read_text(encoding='utf-8-sig')) if plan_path.exists() else {}
     for record in records:
         if 'name' not in record:
             continue
@@ -67,7 +69,8 @@ for path in sorted(args.directory.rglob('summary.json')):
             'name': record['name'], 'exit_code': record['exit_code'],
             'meaningful_signal': bool(observed['meaningful_capture_minus90dbfs']) if 'meaningful_capture_minus90dbfs' in observed else None,
             'historical_runner_signal_flag': record.get('meaningful_signal'),
-            'executable_sha256': record['executable_sha256'],
+            'executable_sha256': record.get('executable_sha256', plan.get('conditioning_sha256')
+                if record['name'].endswith('.condition') else plan.get('executable_sha256')),
             'measurements': observed,
             'stderr': stderr.read_text(encoding='utf-8-sig'),
         }

@@ -96,5 +96,24 @@ class Timing(unittest.TestCase):
             self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0)
             self.assertEqual((root/'result.json').read_bytes(),raw)
 
+    def test_existing_wasapi_summary_reads_matrix_process_records(self):
+        with tempfile.TemporaryDirectory(prefix='hail-matrix-summary-') as directory:
+            root=Path(directory)
+            (root/'results.json').write_text(json.dumps([
+                dict(name='trial',exit_code=0),dict(name='trial.condition',exit_code=None)]))
+            (root/'plan.json').write_text(json.dumps(dict(executable_sha256='a'*64,conditioning_sha256='b'*64)))
+            (root/'trial.stdout.log').write_text('capture_frames=32 flush_ack_ns=100\n'
+                'capture_delivery_bucket=0 count=1\ncapture_delivery_bucket=1 count=2\n')
+            for name in ('trial.stderr.log','trial.condition.stdout.log','trial.condition.stderr.log'):
+                (root/name).write_text('')
+            tool=Path(timing.__file__).with_name('summarize_wasapi_physical.py')
+            r=subprocess.run([sys.executable,str(tool),str(root),'--output',str(root/'report.json')],capture_output=True,text=True)
+            self.assertEqual(r.returncode,0,r.stderr)
+            result=json.loads((root/'report.json').read_text())['campaigns']['.']
+            self.assertEqual((result['passed'],result['failed']),(1,1)) # Null is never success.
+            self.assertEqual(result['trials'][0]['executable_sha256'],'a'*64)
+            self.assertEqual(result['trials'][1]['executable_sha256'],'b'*64)
+            self.assertEqual(result['trials'][0]['measurements']['capture_age_nonnegative_p95_upper_ns'],200000)
+
 
 if __name__=='__main__': unittest.main()
