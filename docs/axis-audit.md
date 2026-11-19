@@ -1,5 +1,39 @@
 # Audio architecture axis audit
 
+## 2026-11-19 Gate E external DSP boundary
+
+The [Gate E audit and implementation](gate-e.md) use base `42537e2` and preserve
+the existing map and cross-platform ownership traces below. The independent
+installed `examples/dsp-consumer` project forces the public boundary: its DSP
+module uses only `hail.h`; the scenario driver uses public `hail/virtual.h`.
+No private seam or production source is compiled into the fixture. CI builds it
+against installed static/shared packages. Hail depends on none of the consumer,
+DSP, speech, networking, Keel or Hull components.
+
+Two contract gaps were exposed without another state machine or clock system:
+event identity was unavailable through get_info (now an optional compatible
+tail), and the format validator rejected arrays (now bounded discrete indexed
+channels). Native scratch stays adapter-owned and is sized through the existing
+pure plan hook. Unknown physical positions stay unknown. PipeWire invalid
+queue-depth correlation and CoreAudio nonfinite-rate conversion receive focused
+adapter fixes. No core resampler, numerical conversion or AEC was added.
+
+Capture and render clocks/gates remain independent; reference remains selected
+application PCM before SDK transformations. Cancellation generation, render
+clock epoch, native reset acknowledgement and acoustic tail remain separate.
+The fixture checks old reference tags rather than pretending reset proves
+presentation. It verifies modeled drift and mismatched-rate transport, not
+production resampling or physical alignment. The same-cadence zero-drift virtual
+case conservatively reports independent domains; shared hardware still requires
+native evidence. Device loss continues to fail the affected duplex stream and
+requires explicit reopen, with fresh domains/identity.
+
+Gate E remains PARTIAL: arbitrary physical maps, calibrated timing/reference
+alignment, physical drift, audible tail and deadline evidence remain incomplete.
+There is no justification for turning Hail into a DSP/inference framework or
+freezing the ABI. The [C audit](c-audit-2026-11-19.md) separates actual adapter
+defects from these evidence/contract limitations.
+
 ## 2026-11-19 standalone follow-up and full source pass
 
 Applied [axis-audit](../.claude/skills/axis-audit/SKILL.md) after the

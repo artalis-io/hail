@@ -104,6 +104,53 @@ and loopback delivery measurements are in [qualification](loopback-qualification
 
 ## Memory, concurrency and retirement
 
+### Timing and reference provenance for external DSP
+
+| Backend | Capture anchor | Render-reference anchor | Uncertainty/limits |
+| --- | --- | --- | --- |
+| CoreAudio | SDK sample/host timestamp for the first callback frame; split blocks advance it by nominal rate | SDK output callback sample/host correlation, before output-unit processing | Native correlation, not calibrated ADC/DAC/acoustic timing; uncertainty remains unknown |
+| WASAPI shared | SDK packet device/QPC first-frame correlation; converted-rate positions invalidated | IAudioClock QPC correlation plus current padding at selection | Render and converted capture estimated; unknown uncertainty; SDK mixer/SRC and cable processing can change PCM after selection |
+| PipeWire | Graph time minus delay and capture block duration | Graph time plus delay, queued and buffered frames | Estimates with unknown uncertainty; invalid queue-depth bounds now invalidate the estimate instead of substituting zero |
+| ALSA | Monotonic query minus (delay + returned capture frames) | Monotonic query plus playback delay before selection/write | Estimates, raw device position unavailable, unknown uncertainty; partial writes can remain adapter-owned after selection |
+| Virtual | Rational modeled capture clock | Independent rational modeled render clock at selection | Modeled 1 ns uncertainty; not hardware or audible latency |
+
+Native host nanoseconds use the platform monotonic correlation: CoreAudio host
+ticks converted to nanoseconds, WASAPI QPC converted to nanoseconds, PipeWire
+graph `now` and ALSA CLOCK_MONOTONIC. Do not compare with UTC or another machine's
+clock. Raw positions are valid only under `HA_TIME_DEVICE_VALID`; estimated host
+time requires `HA_TIME_HOST_VALID` and retains `HA_TIME_ESTIMATED`. UINT64_MAX
+uncertainty means unknown, never a finite error bound. Rational per-frame
+interpolation uses the declared nominal rate on native paths; independent block
+correlations, epochs and uncertainty are needed for an external drift estimator.
+
+Application write time is not retained as device time. Reference is selected
+application-format PCM, including Hail underrun zeros, before SDK submission.
+Hail applies no gain, mix, resampling or DSP. Therefore the reference includes
+none of the later OS mixer/effects/SRC transformations. There is no portable
+post-mixer tap or per-frame successful-write/presentation receipt. Physical
+speaker/microphone geometry, transport buffers and room impulse response remain
+external calibration/AEC concerns. Capture delivery age and rendered padding
+estimates must not be labeled calibrated input/output/round-trip latency.
+
+Start increments both leg epochs and resets logical positions. An observed raw
+position discontinuity, exact host reversal or unknown capture gap advances only
+the affected leg's epoch. Known capture queue loss retains its clock epoch and
+sets gap/loss metadata. Underrun zeros retain a continuous render timeline. Native
+flush advances render epoch and generation while preserving capture. Virtual
+software-only flush changes generation without resetting its uninterrupted model
+clock; native-required virtual flush resets render. Stop clears queues and changes
+generation; next start creates new epochs. Rate/format changes and terminal
+device/service/permission loss require explicit close/reopen, fresh identity and
+new domains. Separate streams remain independently owned.
+
+Discrete multichannel application PCM preserves channel indices and explicit
+counts; physical positions remain unknown unless the named mono/stereo
+application contract applies. WASAPI uses a zero channel mask for discrete
+requests, PipeWire marks unpositioned channels, ALSA negotiates exact channel
+count, and AUHAL configures that count. No spatial mapping is inferred from a
+count or from an ASBD alone. A complete arbitrary physical channel-map query is
+still unavailable; multichannel hardware qualification remains open.
+
 All allocated Hail-owned native state and fixed scratch are included in context/stream
 plans and the byte budget. Framework, driver, server and thread-stack memory
 are outside that budget; native APIs can allocate during setup/control. There

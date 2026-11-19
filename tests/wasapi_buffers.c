@@ -47,6 +47,7 @@ static IAudioCaptureClient capture_client = { &capture_ops };
 static IAudioRenderClient render_client = { &render_ops };
 static ha_stream stream;
 static wa_stream adapter;
+static unsigned char silence[2u * HA_MAX_CHANNELS * sizeof(float)];
 static _Alignas(16) unsigned char storage[2048];
 static void setup(void)
 {
@@ -63,6 +64,7 @@ static void setup(void)
     atomic_init(&stream.playback.read_index,0); atomic_init(&stream.playback.write_index,0);
     atomic_init(&stream.state,HA_RUNNING); hail_rt_init(&stream); hail_rt_open(&stream,0); hail_rt_open(&stream,1);
     adapter.owner=&stream; adapter.capture=&capture_client; adapter.render=&render_client;
+    adapter.silence=silence;
     adapter.client[0]=&clients[0]; adapter.client[1]=&clients[1]; adapter.frames[0]=4; adapter.frames[1]=4;
     adapter.capture_engine_rate=48000;
     clients[0].lpVtbl=&client_ops; clients[1].lpVtbl=&client_ops;
@@ -91,6 +93,30 @@ static void notification_test(void)
     CHECK(hail_registry_publish(&c,&replacement,1,"fixture",NULL)==HA_OK && c.devices[0].info.runtime_id!=7);
     for(i=0;i<17;++i) CHECK(notify_removal(&p.notification.iface,L"unknown")==S_OK);
     CHECK(atomic_load(&p.lost_removals)); wa_context_poll(&c); CHECK(!c.device_count);
+}
+static void multichannel_test(void)
+{
+    float input[2u*HA_MAX_CHANNELS], output[2u*HA_MAX_CHANNELS];
+    ha_block_info b=HA_INIT(ha_block_info);
+    ha_stream_info info=HA_INIT(ha_stream_info); WAVEFORMATEXTENSIBLE wave; size_t bytes;
+    const uint32_t counts[]={1,2,4,HA_MAX_CHANNELS};
+    for(unsigned k=0;k<sizeof(counts)/sizeof(counts[0]);++k) {
+        uint32_t channels=counts[k]; ha_format f=HA_FORMAT_INIT(48000,channels,HA_PCM_F32);
+        f.channel_layout=HA_LAYOUT_DISCRETE;
+        setup(); stream.info.capture_format=f;
+        stream.capture.bytes_per_frame=channels*4u; stream.capture.slots=2;
+        stream.capture.stride=(uint32_t)hail_align(sizeof(hail_slot)+2u*channels*4u);
+        info.capture_format=f; info.capture_slots=2; info.quantum_frames=2;
+        CHECK(wa_extra_bytes(&info,&bytes)==HA_OK && bytes==2u*channels*4u);
+        wave_format(&f,&wave); CHECK(!wave.dwChannelMask && wave.Format.nChannels==channels);
+        for(unsigned i=0;i<2u*channels;++i) input[i]=(float)i/128.0f;
+        packet_data=(BYTE *)(void *)input; packet_frames=2; wa_capture(&adapter);
+        CHECK(!atomic_load(&stream.rt[0].error));
+        CHECK(hail_ring_read(&stream.capture,output,2,&b)==2 && !memcmp(input,output,bytes));
+        packets=1; packet_flags=AUDCLNT_BUFFERFLAGS_SILENT; wa_capture(&adapter);
+        CHECK(hail_ring_read(&stream.capture,output,2,&b)==2);
+        for(unsigned i=0;i<2u*channels;++i) CHECK(output[i]==0);
+    }
 }
 int main(void)
 {
@@ -149,7 +175,7 @@ int main(void)
     { wa_context p={0}; CHECK(wa_context_request(&p,WA_REFRESH)==HA_STREAM_FAILED);
       p.reply=CreateEventW(NULL,FALSE,FALSE,NULL); CHECK(p.reply); signal_ok=FALSE;
       CHECK(wa_context_request(&p,WA_REFRESH)==HA_STREAM_FAILED); CHECK(CloseHandle(p.reply)); }
-    notification_test();
+    notification_test(); multichannel_test();
     puts("WASAPI packet leases, flags, bounds, rollback and command supersession passed");
     return 0;
 }

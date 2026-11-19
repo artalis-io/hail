@@ -41,7 +41,7 @@ jobs:
         shell: pwsh
         run: Add-Content -Path $env:GITHUB_PATH -Value "$env:GITHUB_WORKSPACE/installed/bin"
       - name: Configure installed consumer
-        run: cmake -S tests/consumer -B consumer -DCMAKE_PREFIX_PATH="${{ github.workspace }}/installed"
+        run: cmake -S tests/consumer -B consumer -DCMAKE_PREFIX_PATH="${{ github.workspace }}/installed" -DHA_CONSUMER_DSP=ON
       - run: cmake --build consumer --config Debug --parallel
       - run: ctest --test-dir consumer -C Debug --output-on-failure
   sanitizers:
@@ -77,6 +77,6 @@ jobs:
       - run: cmake --build build --parallel
       - run: ctest --test-dir build --output-on-failure
       - run: cmake --install build --prefix "${{ github.workspace }}/installed"
-      - run: cmake -S tests/consumer -B consumer -DCMAKE_PREFIX_PATH="${{ github.workspace }}/installed"
+      - run: cmake -S tests/consumer -B consumer -DCMAKE_PREFIX_PATH="${{ github.workspace }}/installed" -DHA_CONSUMER_DSP=ON
       - run: cmake --build consumer --parallel
       - run: ctest --test-dir consumer --output-on-failure

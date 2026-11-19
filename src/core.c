@@ -377,6 +377,7 @@ ha_result HA_CALL ha_stream_open(ha_context *c, const ha_stream_config *cfg, ha_
     memset(s, 0, bytes);
     s->context = c; s->info = info; s->allocation_bytes = bytes;
     s->id = c->next_id++; s->generation = 1;
+    s->info.stream_id = s->id;
     s->render_generation = 1; s->concurrent = c->backend->execution == HAIL_EXEC_CONCURRENT;
     s->negotiation = cfg->negotiation;
     s->info.capture_clock_domain = info.capture_slots ? c->next_id++ : 0;
@@ -452,7 +453,16 @@ void hail_fail(ha_stream *s, ha_result result)
 
 ha_result HA_CALL ha_stream_get_info(ha_stream *s, ha_stream_info *out)
 {
-    return s ? HAIL_RECORD(out, s->info) : HA_INVALID_ARGUMENT;
+    /* The original version-1 prefix remains accepted. Never partially write
+     * an optional field or touch the caller's unknown tail/header. */
+    const uint32_t prefix = (uint32_t)offsetof(ha_stream_info, stream_id);
+    uint32_t capacity;
+    if (!s || !hail_header(out, prefix)) return HA_INVALID_ARGUMENT;
+    memcpy(&capacity, out, sizeof(capacity));
+    memcpy((unsigned char *)out + 8, (const unsigned char *)&s->info + 8, prefix - 8u);
+    if (capacity >= sizeof(ha_stream_info))
+        memcpy((unsigned char *)out + prefix, &s->info.stream_id, sizeof(s->info.stream_id));
+    return HA_OK;
 }
 
 ha_result HA_CALL ha_stream_get_status(ha_stream *s, ha_stream_status *out)

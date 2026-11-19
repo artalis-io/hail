@@ -5,6 +5,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <time.h>
 #include <pthread.h>
+#include <math.h>
 ha_result hail_coreaudio_capture_permission(void);
 #if HA_COREAUDIO_DIAGNOSTICS
 #include "coreaudio_diagnostics.h"
@@ -32,8 +33,18 @@ typedef struct ca_stream {
     ca_leg legs[2];
     atomic_uint callbacks;
     uint32_t flushing, flush_running, permission_registered;
-    unsigned char input[HA_MAX_QUANTUM * 8u];
+    unsigned char *input; /* Planned maximum-slice capture scratch. */
 } ca_stream;
+
+static ha_result ca_extra_bytes(const ha_stream_info *info, size_t *bytes)
+{
+    uint32_t bpf; ha_result r;
+    *bytes = 0;
+    if (!info->capture_slots) return HA_OK;
+    r = hail_format(&info->capture_format, &bpf);
+    if (r != HA_OK) return r;
+    return hail_mul(HA_MAX_QUANTUM, bpf, bytes) ? HA_OK : HA_OVERFLOW;
+}
 
 /* AVFoundation authorization reads can take milliseconds. Construction/start
  * recheck synchronously, but periodic revocation reads must not stall poll or
@@ -250,7 +261,7 @@ static int ca_native_format(AudioDeviceID device, uint32_t leg, ha_format *forma
         bytes != sizeof(AudioStreamID)) return 0;
     bytes = sizeof(asbd);
     if (ca_get(streams[0], kAudioStreamPropertyPhysicalFormat, kAudioObjectPropertyScopeGlobal, &asbd, &bytes) ||
-        asbd.mFormatID != kAudioFormatLinearPCM || asbd.mSampleRate < 1 || asbd.mSampleRate > 192000 ||
+        asbd.mFormatID != kAudioFormatLinearPCM || !isfinite(asbd.mSampleRate) || asbd.mSampleRate < 1 || asbd.mSampleRate > 192000 ||
         asbd.mFormatFlags & kAudioFormatFlagIsBigEndian) return 0;
     memset(format, 0, sizeof(*format)); format->struct_size = sizeof(*format); format->struct_version = HA_STRUCT_VERSION;
     format->sample_rate = (uint32_t)asbd.mSampleRate;
@@ -259,7 +270,8 @@ static int ca_native_format(AudioDeviceID device, uint32_t leg, ha_format *forma
     else if ((asbd.mFormatFlags & kAudioFormatFlagIsSignedInteger) && asbd.mBitsPerChannel == 16) format->sample_format = HA_PCM_S16;
     else return 0;
     format->channels = asbd.mChannelsPerFrame;
-    format->channel_layout = format->channels == 1 ? HA_LAYOUT_MONO : format->channels == 2 ? HA_LAYOUT_STEREO : 0;
+    /* ASBD supplies a count, not physical channel positions. */
+    format->channel_layout = HA_LAYOUT_DISCRETE;
     format->storage = asbd.mFormatFlags & kAudioFormatFlagIsNonInterleaved ? HA_PLANAR : HA_INTERLEAVED;
     return 1;
 }
@@ -401,6 +413,7 @@ static void ca_stream_free(ha_stream *s)
 static ha_result ca_open(ha_stream *s)
 {
     ca_stream *a = s->backend_state; uint32_t i; AudioDeviceID ids[2] = {0,0};
+    a->input = (unsigned char *)(a + 1);
     atomic_init(&a->callbacks, 0);
     atomic_init(&a->legs[0].callbacks, 0); atomic_init(&a->legs[1].callbacks, 0);
     for (i = 0; i < 2; ++i) {
@@ -497,7 +510,7 @@ const hail_backend_ops hail_coreaudio_backend = {
     .id = HA_BACKEND_COREAUDIO, .features = HA_FEATURE_COREAUDIO | HA_FEATURE_RENDER_REFERENCE | HA_FEATURE_NATIVE_FLUSH,
     .context_init = ca_context_init, .probe = ca_probe, .open = ca_open,
     .start = ca_start, .stop = ca_stop, .flush = ca_flush, .retire = ca_retire,
-    .context_bytes = sizeof(ca_context), .stream_bytes = sizeof(ca_stream),
+    .context_bytes = sizeof(ca_context), .stream_bytes = sizeof(ca_stream), .stream_extra_bytes = ca_extra_bytes,
     .refresh = ca_refresh, .context_free = ca_context_free, .stream_free = ca_stream_free,
     .context_poll = ca_context_poll
 };

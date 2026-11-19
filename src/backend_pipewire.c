@@ -291,13 +291,13 @@ static void stream_process(void *data)
             time.rate.num && time.delay >= 0 && time.delay <= 1920000 && time.rate.num <= 1000) {
             uint64_t delay = (uint64_t)time.delay * UINT64_C(1000000000) * time.rate.num / time.rate.denom;
             uint64_t frames_ns = (uint64_t)frames * UINT64_C(1000000000) / rate;
-            if (l->leg) {
-                uint64_t queued = time.queued <= 1920000 && time.buffered <= 1920000 ? time.queued + time.buffered : 0;
+            if (l->leg && time.queued <= 1920000 && time.buffered <= 1920000) {
+                uint64_t queued = time.queued + time.buffered;
                 uint64_t extra = queued * UINT64_C(1000000000) / rate;
                 if (delay <= UINT64_MAX - extra && (uint64_t)time.now <= UINT64_MAX - delay - extra) {
                     first_host = (uint64_t)time.now + delay + extra; time_flags = HA_TIME_HOST_VALID | HA_TIME_ESTIMATED;
                 }
-            } else if (delay <= UINT64_MAX - frames_ns && (uint64_t)time.now >= delay + frames_ns) {
+            } else if (!l->leg && delay <= UINT64_MAX - frames_ns && (uint64_t)time.now >= delay + frames_ns) {
                 first_host = (uint64_t)time.now - delay - frames_ns; time_flags = HA_TIME_HOST_VALID | HA_TIME_ESTIMATED;
             }
         }
@@ -367,8 +367,11 @@ static ha_result pipewire_open(ha_stream *s)
         atomic_store_explicit(&a->legs[i].prepared, 1, memory_order_release);
         raw.format = f->sample_format == HA_PCM_S16 ? SPA_AUDIO_FORMAT_S16 : SPA_AUDIO_FORMAT_F32;
         raw.rate = f->sample_rate; raw.channels = f->channels;
-        raw.position[0] = f->channels == 1 ? SPA_AUDIO_CHANNEL_MONO : SPA_AUDIO_CHANNEL_FL;
-        if (f->channels == 2) raw.position[1] = SPA_AUDIO_CHANNEL_FR;
+        if (f->channel_layout == HA_LAYOUT_DISCRETE) raw.flags = SPA_AUDIO_FLAG_UNPOSITIONED;
+        else {
+            raw.position[0] = f->channels == 1 ? SPA_AUDIO_CHANNEL_MONO : SPA_AUDIO_CHANNEL_FL;
+            if (f->channels == 2) raw.position[1] = SPA_AUDIO_CHANNEL_FR;
+        }
         params[0] = spa_format_audio_raw_build(&builder, SPA_PARAM_EnumFormat, &raw);
         if (pw_stream_connect(a->legs[i].stream, i ? PW_DIRECTION_OUTPUT : PW_DIRECTION_INPUT, PW_ID_ANY,
             PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_INACTIVE | PW_STREAM_FLAG_MAP_BUFFERS | PW_STREAM_FLAG_DONT_RECONNECT | PW_STREAM_FLAG_RT_PROCESS,

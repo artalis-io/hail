@@ -79,6 +79,9 @@ typedef int32_t ha_result;
 #define HA_PCM_F32 2u
 #define HA_LAYOUT_MONO 1u
 #define HA_LAYOUT_STEREO 2u
+/* Indexed channels with unknown physical positions. No implicit speaker map. */
+#define HA_LAYOUT_DISCRETE 3u
+#define HA_MAX_CHANNELS 32u
 #define HA_INTERLEAVED 1u
 #define HA_PLANAR 2u
 #define HA_EXACT_END_TO_END 0u
@@ -139,7 +142,7 @@ typedef struct ha_format {
 } ha_format;
 #define HA_FORMAT_INIT(rate, channels_, pcm) \
     { (uint32_t)sizeof(ha_format), HA_STRUCT_VERSION, (rate), (channels_), (pcm), \
-      ((channels_) == 1u ? HA_LAYOUT_MONO : HA_LAYOUT_STEREO), HA_INTERLEAVED, 0u }
+      ((channels_) == 1u ? HA_LAYOUT_MONO : (channels_) == 2u ? HA_LAYOUT_STEREO : HA_LAYOUT_DISCRETE), HA_INTERLEAVED, 0u }
 
 typedef struct ha_device_selector {
     uint32_t struct_size, struct_version;
@@ -226,6 +229,9 @@ typedef struct ha_stream_info {
     uint32_t directions, quantum_frames, capture_slots, playback_slots;
     uint32_t reference_slots, features, clock_relationship, conversion;
     ha_probe_info capture_negotiated, playback_negotiated;
+    /* Optional version-1 tail. Context-scoped identity matching ha_event.
+     * Zero if an older library did not supply this field. */
+    uint64_t stream_id;
 } ha_stream_info;
 
 typedef struct ha_block_info {

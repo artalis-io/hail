@@ -26,7 +26,7 @@ foreach ($shared in 'OFF','ON') {
         Invoke-Checked cmake @('--install',$build,'--prefix',$prefix) (Join-Path $build 'install.log')
         $consumer=Join-Path $build 'consumer'
         Invoke-Checked cmake @('-S',"$root/tests/consumer",'-B',$consumer,'-G','Ninja',
-            '-DCMAKE_C_COMPILER=clang-cl','-DCMAKE_CXX_COMPILER=clang-cl',"-DCMAKE_BUILD_TYPE=$config", "-DCMAKE_PREFIX_PATH=$prefix") (Join-Path $build 'consumer-configure.log')
+            '-DCMAKE_C_COMPILER=clang-cl','-DCMAKE_CXX_COMPILER=clang-cl',"-DCMAKE_BUILD_TYPE=$config", "-DCMAKE_PREFIX_PATH=$prefix",'-DHA_CONSUMER_DSP=ON') (Join-Path $build 'consumer-configure.log')
         Invoke-Checked cmake @('--build',$consumer,'--parallel') (Join-Path $build 'consumer-build.log')
         $oldPath=$env:PATH
         try {

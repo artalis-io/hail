@@ -298,6 +298,24 @@ static void allocation_failures(void)
     }
 }
 
+static void channel_bounds(void)
+{
+    tracker t={0}; ha_context *c=NULL; ha_stream *s=NULL;
+    ha_context_config cc=context_cfg(&t); ha_stream_config sc=stream_cfg(HA_CAPTURE);
+    ha_memory_plan p=HA_INIT(ha_memory_plan);
+    OK(ha_context_create(&cc,&c));
+    sc.capture_format.channels=0;
+    CHECK(ha_stream_plan(c,&sc,&p)==HA_FORMAT_UNSUPPORTED);
+    sc.capture_format.channels=HA_MAX_CHANNELS+1u; sc.capture_format.channel_layout=HA_LAYOUT_DISCRETE;
+    CHECK(ha_stream_plan(c,&sc,&p)==HA_FORMAT_UNSUPPORTED);
+    sc.capture_format.channels=4; sc.capture_format.channel_layout=HA_LAYOUT_STEREO;
+    CHECK(ha_stream_plan(c,&sc,&p)==HA_FORMAT_UNSUPPORTED);
+    sc.capture_format.channel_layout=HA_LAYOUT_DISCRETE; sc.capture_format.storage=HA_PLANAR;
+    CHECK(ha_stream_plan(c,&sc,&p)==HA_FORMAT_UNSUPPORTED);
+    sc.capture_format.storage=HA_INTERLEAVED; OK(ha_stream_open(c,&sc,&s));
+    close_stream(c,&s); OK(ha_context_destroy(&c)); CHECK(!t.live);
+}
+
 static void defaults_independence_and_partial_clock(void)
 {
     tracker t = {0}; ha_context *c; ha_stream *a, *b;
@@ -386,6 +404,6 @@ int main(void)
 {
     discovery_and_limits(); duplex_flush_and_flow(); faults_and_retirement();
     gate_schedules_and_wrap(); timing_formats_and_validation(); allocation_failures();
-    defaults_independence_and_partial_clock(); lifecycle_and_output_guards();
+    defaults_independence_and_partial_clock(); lifecycle_and_output_guards(); channel_bounds();
     puts("portable conformance passed"); return 0;
 }

@@ -8,12 +8,14 @@
 #include <stdlib.h>
 static struct pw_buffer *next_buffer;
 static unsigned returned;
+static int time_valid;
+static struct pw_time time_record;
 static struct pw_buffer *test_dequeue(struct pw_stream *stream)
 { (void)stream; return next_buffer; }
 static int test_queue(struct pw_stream *stream, struct pw_buffer *buffer)
 { (void)stream; (void)buffer; ++returned; return 0; }
 static int test_time(struct pw_stream *stream, struct pw_time *time, size_t size)
-{ (void)stream; (void)time; (void)size; return -ENOTSUP; }
+{ (void)stream; (void)size; if(!time_valid) return -ENOTSUP; *time=time_record; return 0; }
 #define pw_stream_dequeue_buffer test_dequeue
 #define pw_stream_queue_buffer test_queue
 #define pw_stream_get_time_n test_time
@@ -36,7 +38,8 @@ int main(void)
     struct spa_buffer buffer = {0}; struct pw_buffer pw = {0}; pw_hail_leg leg = {0};
     const int32_t strides[] = {-2, INT32_MIN, 1, 4, 0, 2};
     cc.backend = HA_BACKEND_VIRTUAL; CHECK(ha_context_create(&cc, &c) == HA_OK);
-    sc.directions = HA_CAPTURE; sc.capture_device = selector; sc.capture_format = format; sc.quantum_frames = 4;
+    sc.directions = HA_CAPTURE|HA_PLAYBACK; sc.capture_device = selector; sc.capture_format = format; sc.quantum_frames = 4;
+    sc.playback_device=selector; sc.playback_format=format; sc.reference_slots=2;
     CHECK(ha_stream_open(c, &sc, &s) == HA_OK);
     CHECK(ha_stream_start(s) == HA_PENDING); CHECK(ha_context_poll(c, NULL, 0, &count) == HA_OK);
     s->concurrent = 1; hail_rt_open(s, 0);
@@ -60,7 +63,18 @@ int main(void)
             if (!empty) CHECK(!memcmp(output, samples, sizeof(samples)));
         }
     }
-    atomic_store(&s->rt[0].error, 0); s->concurrent = 0;
+    atomic_store(&s->rt[0].error, 0);
+    leg.leg=1; hail_rt_open(s,1); time_valid=1;
+    time_record.now=INT64_C(10000000000); time_record.rate.num=1; time_record.rate.denom=48000;
+    for(unsigned invalid=0;invalid<3;++invalid) {
+        ha_block_info info=HA_INIT(ha_block_info); uint32_t frames;
+        time_record.queued=invalid==1?UINT64_MAX:0;
+        time_record.buffered=invalid==2?UINT64_MAX:0;
+        stream_process(&leg);
+        CHECK(ha_stream_read_reference(s,output,4,&frames,&info)==HA_OK && frames==4);
+        CHECK(((info.flags & HA_TIME_HOST_VALID)!=0)==(invalid==0));
+    }
+    s->concurrent = 0;
     CHECK(ha_stream_close_begin(s) == HA_PENDING); CHECK(ha_context_poll(c, NULL, 0, &count) == HA_OK);
     CHECK(ha_stream_close_finish(&s) == HA_OK); CHECK(ha_context_destroy(&c) == HA_OK);
     puts("PipeWire capture rejects unsupported strides and returns every buffer lease");

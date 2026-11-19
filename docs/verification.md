@@ -13,6 +13,12 @@ Source hashes, tool versions and per-target results are recorded in
 
 ## Current executed evidence
 
+The [Gate E assessment](gate-e.md) adds a separately configured installed-public
+[DSP consumer](../examples/dsp-consumer/README.md), bounded discrete multichannel
+PCM, optional stream/event identity and adapter timing validation fixes. It
+records exact virtual/data/lifecycle evidence and platform limits; modeled
+700-second operation is not physical audio qualification. Gate E remains PARTIAL.
+
 The [standalone native WASAPI follow-up](wasapi-native-only-results.md) passes
 all 16 predeclared exact low-grid cases and a separate native ASan profile.
 The ramp did not reproduce in that reduced scheduling/priming model; earlier
