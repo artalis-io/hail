@@ -23,7 +23,7 @@ also works with a virtual freestanding Hail package. It requires the optional
 virtual backend. Existing installed-consumer CI enables it through
 `-DHA_CONSUMER_DSP=ON`; no source-tree include directory is injected.
 
-Four deterministic profiles cover nominal zero drift/equal rates, independent
+Four main deterministic profiles cover nominal zero drift/equal rates, independent
 positive/negative drift, unequal 16/44.1/48 kHz leg rates, mono/stereo, 4/32-channel
 capture and 8-channel reference, variable blocks, capture/reference overflow,
 render underrun zeros, output backpressure, native-required delayed cancellation,
@@ -32,6 +32,13 @@ default pinning, loss/reconnect, denied open, rate change by reopen and pending
 retirement. The longest models 700 seconds; its wall runtime is not a latency
 measurement. Even the zero-drift virtual profile conservatively reports separate
 clock domains; actual shared-device clock reporting remains a native fact.
+
+A further 32 short profiles exercise every capture count 1..32 with the reverse
+playback counts 32..1. Each profile also cancels repeatedly while draining
+references, queues distinct obsolete PCM before cancellation, checks capture
+continuity and render discontinuities, and closes with pending flush while
+retirement is held. Close reports cancellation separately from retirement;
+application PCM gates reject further work until teardown finishes.
 
 The processor selects microphone channel zero and applies exact gain 0.5 into
 two bounded mono output slots. It keeps original capture time/rate, checks

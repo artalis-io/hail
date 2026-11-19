@@ -13,6 +13,18 @@ Source hashes, tool versions and per-target results are recorded in
 
 ## Current executed evidence
 
+The [final Gate E convergence pass](gate-e.md#convergence-follow-up--2026-11-19-base-a5b247b)
+fixes PipeWire ring/neutral-buffer defects and redirected qualification-process
+exit-code handling. Its [evidence index](evidence/gate-e-convergence-2026-11-19/summary.json)
+records native static/shared, installed consumers, ASan/UBSan, Clang ARM64 TSan,
+fuzzing and analysis. GCC ARM64 TSan still cannot initialize; Clang success is
+independent evidence. New CI jobs remain queued, including the device-free
+CoreAudio format seam. Two short WASAPI F32 software-loopback reruns pass but
+do not close historical intermittent numerical or physical qualification gaps.
+The existing WASAPI summarizer now also reads marker-matrix process records;
+`analyze_audio_timing.py` is an offline calibrated-trace adjunct, not a hardware
+measurement source. Gate E remains PARTIAL.
+
 The [Gate E assessment](gate-e.md) adds a separately configured installed-public
 [DSP consumer](../examples/dsp-consumer/README.md), bounded discrete multichannel
 PCM, optional stream/event identity and adapter timing validation fixes. It

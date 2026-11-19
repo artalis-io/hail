@@ -8,6 +8,14 @@ See [verification](verification.md), [CoreAudio loopback results](coreaudio-qual
 and the [WASAPI qualification design](wasapi-loopback-design.md) for exact evidence
 and remaining tests.
 
+The [Gate E convergence follow-up](gate-e.md) verifies native PipeWire ring
+offsets, size clamping, wrapped PCM and neutral/corrupt metadata. Capture uses
+one planned quantum of scratch only when wrapping or zero-filling; input SDK
+storage remains read-only. Filled output chunks clear recycled flags. Invalid
+queue-depth time estimates remain unavailable. SDK/host estimates and unknown
+uncertainty are unchanged; this does not add presentation receipts or physical
+alignment claims. The new CoreAudio ASBD seam awaits macOS CI execution.
+
 The [Windows qualification harness](wasapi-qualification.md) implements explicit-key
 physical/paired tests, fixture validation and a provisioned workflow. The
 [Shure native execution](native-windows-physical-results.md) now covers the full

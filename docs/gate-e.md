@@ -12,7 +12,8 @@ qualification requirements, not conclusions from virtual tests.
 | --- | --- | --- |
 | E1: valid SPA ring data rejected | Confirmed defect; new actual-callback regression fails on a5b247b | `backend_pipewire.c:stream_process` now takes offsets modulo maxsize, clamps size as SPA specifies, validates complete interleaved frames, and copies a wrapped quantum through planned scratch. Includes byte-unaligned splits. |
 | E2: neutral-media capture metadata ignored | Confirmed defect; new actual-callback regression returns nonzero PCM | EMPTY chunks and GAP headers produce zero PCM and HA_BLOCK_SILENCE. Corrupt packets still report loss/epoch transitions; silence is not fabricated loss. SDK storage is never modified. |
-| E3: recycled render flags retained | Source-confirmed defect: EMPTY can mislabel newly rendered nonzero PCM | Reset output chunk flags when filling it; actual callback regression submits a nonzero signal with a recycled EMPTY descriptor and checks the reference and SDK payload. |
+| E3: recycled render flags retained | Confirmed defect: actual a5b247b callback fills exact nonzero PCM but leaves EMPTY set | Reset output chunk flags when filling it; before/after callback reproduction and permanent regression check the nonzero SDK payload/reference and cleared descriptor. |
+| E4: redirected process exit code lost | Confirmed qualification-runner defect on Windows PowerShell; conditioning exited successfully but the observer recorded null and aborted | Retain the process handle in five WASAPI runners. The actual observer is tested with exit 0, exit 7 and watchdog termination under Windows PowerShell and pwsh. Null is never classified as success. Original qualification gate tests are preserved. |
 | WASAPI fractional PCM | Implemented copy path, insufficient platform transparency qualification | `tests/wasapi_buffers.c:fractional_capture_test` verifies exact F32 bytes, including signed zero and fractional S16-unit values seen at the SDK boundary. No rounding, clipping or tolerance adjustment is introduced. |
 | Repeated/closing cancellation and all discrete counts | Implemented but incomplete verification | Independent installed `examples/dsp-consumer/main.c` now tests each count 1..32, repeated native-required cancellation with distinct generation PCM and queued obsolete samples, capture continuity, render discontinuities, and close canceling pending flush while retirement is held. |
 | Variable blocks with concurrent roles | Implemented but incomplete verification | `tests/concurrency.cpp` varies each leg independently through 1..32 frames while reader/writer/reference/control overlap, including flush and shutdown. BUSY remains valid admission contention, not an acknowledged cancellation. |
@@ -27,7 +28,8 @@ post-mixer reference. Existing invalid-depth timing estimates remain invalid.
 
 The native descriptor rules follow the primary [SPA chunk contract](https://docs.pipewire.org/structspa__chunk.html)
 and [buffer flags](https://docs.pipewire.org/group__spa__buffer.html). They are
-also present in the PipeWire 1.0.5 SDK used for the ARM64 regression. Hail still
+also present in the [minimum 0.3.65 SDK's chunk definitions](https://raw.githubusercontent.com/PipeWire/pipewire/0.3.65/spa/include/spa/buffer/buffer.h)
+and in the PipeWire 1.0.5 SDK used for the ARM64 regression. Hail still
 rejects unsupported planes, strides, incomplete frames and oversized frame counts.
 
 ### WASAPI reproduction boundary
@@ -132,10 +134,89 @@ Linux ARM64 GCC ASan/UBSan: actual PipeWire descriptor regressions and 13/13
 available native tests passed (PipeWire server loopback excluded locally; ALSA
 null 2/4/32-channel tests included). Both new capture regressions were first
 executed against unchanged a5b247b production source and failed as expected.
-Windows Debug targeted WASAPI packet and concurrent-role tests passed. Full
-matrix, installed-consumer, sanitizer, analysis and bounded native rerun results
-are recorded in the convergence evidence update below once completed. No local
-macOS execution or physical timing result is implied.
+The later source changes add an explicit two-quantum wrapped-buffer test for
+first-frame positions and estimated timestamp interpolation. CoreAudio's prior
+nonfinite-rate correction now has a device-free actual-adapter regression in
+`tests/coreaudio_format.c`, registered for static macOS builds without opening a
+device. It also checks discrete channel counts and scratch plans. It has not
+executed locally; its macOS CI jobs are queued, so it is coverage added, not
+verification claimed.
+
+Retained [convergence index](evidence/gate-e-convergence-2026-11-19/summary.json)
+and [raw evidence](evidence/gate-e-convergence-2026-11-19/raw.zip) include failures,
+source snapshots/hashes, plans, configuration, process observations and logs.
+Implementation source begins at e47de77; subsequent commits refine qualification
+tools/tests. No local macOS execution or physical timing result is implied.
+
+| Executed follow-up | Result and scope |
+| --- | --- |
+| Windows x64 clang-cl, static Debug/Release | 16/16 each; exact export/boundary checks and installed consumers 3/3 per configuration |
+| Windows x64 clang-cl, shared Debug/Release | 12/12 each; exact DLL exports and installed consumers 3/3 per configuration |
+| Windows LLVM 23 ASan, matching runtime | 16/16; independent installed DSP consumer 1/1; later offline-tool regression also passed |
+| Linux ARM64 GCC 13.3 static/shared | 14/14 static, 9/9 shared; installed C/C++/DSP consumers 3/3 each; 27 exact public symbols |
+| Linux ARM64 GCC ASan/UBSan native | 14/14, including real private PipeWire 1.0.5 software loopback and ALSA 1.2.11 null duplex; installed consumers 3/3, long DSP case ~52 wall seconds |
+| Linux ARM64 Clang 18 native | 14/14, same private PipeWire and ALSA null scope |
+| Linux ARM64 Clang 18 TSan | Portable 8/8, native 14/14, installed C/C++/DSP consumers 3/3; native framework libraries are not themselves instrumented |
+| Linux ARM64 GCC TSan | Seven executables still fail at runtime initialization with unexpected memory mapping; Python test passes. Not a Hail race finding; Clang success does not erase this GCC limitation. No ASLR/security changes made. |
+| libFuzzer + ASan/UBSan, Clang 18 ARM64 | config/lifecycle/queue/faults: 30,000 runs each, all passed with retained seed/corpus/logs |
+| Linux freestanding boundary | Release conformance passes; ordinary freestanding archive has 27 public symbols, minimal no-virtual archive has 22; portable boundary checks pass |
+| Clang static analysis | Windows 10 invocations and Linux 8 invocations (six distinct production files including PipeWire/ALSA), no diagnostics |
+| Public concurrent-role CPU-contention smoke | 30/30 Windows runs with two fixed-memory SHA256 workers; 1..32 variable leg blocks, overlapping reads/writes/reference/flush/close. Whole-test median 17.98 ms, maximum 22.62 ms are **not callback duration measurements**. |
+| Offline qualification tools | Eight synthetic regression tests passed on Windows and Linux; actual matrix logs reduced by existing WASAPI summarizer |
+| Remote CI | Newly pushed jobs remain queued with no runner assigned at evidence capture. No pending macOS, x86 Linux or other CI job is reported as passed. Earlier implementation CI remains historical evidence. |
+
+Two verification-infrastructure failures are retained rather than hidden:
+the first new concurrency assertion incorrectly demanded PENDING despite a
+concurrent writer legitimately permitting BUSY; it was corrected before final
+validation. A strict non-instrumented archive symbol check was also invoked on
+an ASan archive and rejected GCC-generated `__odr_asan.hail_*` markers. Exact
+ordinary static/shared symbol checks passed; no assertion was suppressed or
+sanitizer marker exported as public API. A CTest-launched Windows PowerShell
+observer initially inherited PowerShell 7's module search path and could not
+load Get-FileHash; explicitly importing its own runtime's utility module fixes
+the test environment. Both original failures and final checks are retained.
+
+### Bounded Windows rerun observations
+
+The initial follow-up campaign stopped after successful conditioning because
+of E4: its recorded exit code was null; neither qualification case ran. It is
+retained separately. After the device-free observer regression and fix, a fresh
+predeclared campaign executed each historical configuration once, with no retry
+of either qualification case. Both F32 cases passed the unchanged oracle.
+The redirected-handle failure also matches the separately documented
+[PowerShell process-observer issue](https://github.com/PowerShell/PowerShell/issues/5421).
+
+| VB-CABLE profile, 48 kHz stereo F32 | 8 slots / requested 3 ms | 32 slots / requested 7 ms |
+| --- | --- | --- |
+| Sustained phase | 5.0156 s | 5.0080 s |
+| Correlated delivery-age blocks | 1009 | 1008 |
+| Delivery age median / P95 / P99 bucket upper bounds | 22.3 / 31.6 / 32.8 ms | 21.9 / 30.8 / 32.0 ms |
+| Observed delivery age min / max | 10.2573 / 34.7467 ms | 9.8436 / 32.8675 ms |
+| Flush acknowledgement, one trial each | 23.7487 ms | 26.1471 ms |
+| Last old-marker capture read after request | 103.8174 ms | 107.3581 ms |
+| Sustained capture loss / underrun / reference loss | 0 / 0 / 0 | 0 / 0 / 0 |
+| SDK capture fractional frames | 0 / 494,880 | 0 / 495,840 |
+
+Histogram bins are 100 microseconds; these are bucket bounds, not exact
+quantiles or calibrated device input latency. Host correlation uncertainty
+remains as the backend reports it; there is no physical confidence bound.
+Requested delay is not actual scheduling delay (17.8070 / 18.8606 ms observed).
+Deliberate starvation later in each test produces correctly observed loss and
+underruns; those must not be confused with the zero-loss sustained phases.
+Capture epoch remains continuous during cancellation; old selected records keep
+their generation. SDK render/capture traces and zero PCM errors support software
+generation isolation in these trials, not guarantees about post-mixer output.
+
+S16 SDK capture still altered digital silence during conditioning (17,499 of
+42,816 frames in the first completed campaign condition, maximum one S16 unit).
+The F32 short-run passes therefore do **not** resolve the original numerical
+qualification blocker. Defaults and the Shure microphone's gain/mute readbacks
+are unchanged. No new physical microphone acquisition was used for these trials.
+Input/output physical latency, calibrated round trip, callback deadline
+distributions, physical drift/reference alignment, last presentation and
+electrical/acoustic tails remain **unmeasured**, with the procedures above still
+required for every supported physical profile. One flush observation per profile
+does not establish P95/P99 acknowledgement behavior or a worst-case bound.
 
 No public header or exported function changed in this follow-up. The optional
 400-byte legacy info prefix and 408-byte current record remain as previously
