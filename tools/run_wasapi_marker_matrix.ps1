@@ -32,12 +32,15 @@ if($RegressionCases) {
 function Invoke-Observed([string]$Program,[string[]]$Arguments,[string]$Name,[int]$TimeoutSeconds) {
     $start=[DateTimeOffset]::UtcNow
     $process=Start-Process -FilePath $Program -ArgumentList $Arguments -WindowStyle Hidden -PassThru -RedirectStandardOutput "$output/$Name.stdout.log" -RedirectStandardError "$output/$Name.stderr.log"
+    # Windows PowerShell can lose ExitCode for redirected, uncached handles.
+    $null=$process.Handle
     $timedOut=$false
     try {
         while(!$process.WaitForExit(1000)) {
             if(([DateTimeOffset]::UtcNow-$start).TotalSeconds -gt $TimeoutSeconds){$timedOut=$true;$process.Kill();break}
         }
         $process.WaitForExit()
+        if($null -eq $process.ExitCode){throw 'Child exit code unavailable; trial cannot be classified'}
         [ordered]@{name=$Name;start_utc=$start.ToString('o');end_utc=[DateTimeOffset]::UtcNow.ToString('o');exit_code=$process.ExitCode;watchdog_expired=$timedOut;arguments=$Arguments;stdout_sha256=(Get-FileHash "$output/$Name.stdout.log").Hash;stderr_sha256=(Get-FileHash "$output/$Name.stderr.log").Hash}
     } finally { if(!$process.HasExited){$process.Kill();$process.WaitForExit()};$process.Dispose() }
 }

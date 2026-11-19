@@ -20,6 +20,7 @@ foreach($case in $cases){
     $arguments=@($fixture.capture.key,$fixture.playback.key,"$($case.unprimed)","$($case.delay_ms)","$($case.ack_delay_ms)")
     $start=[DateTimeOffset]::UtcNow
     $process=Start-Process -FilePath $exe -ArgumentList $arguments -WindowStyle Hidden -PassThru -RedirectStandardOutput "$output/$($case.name).stdout.log" -RedirectStandardError "$output/$($case.name).stderr.log"
+    $null=$process.Handle # Retain ExitCode with Windows PowerShell redirection.
     $timedOut=$false
     try {
         while(!$process.WaitForExit(1000)){if(([DateTimeOffset]::UtcNow-$start).TotalSeconds -gt 40){$timedOut=$true;$process.Kill();break}}

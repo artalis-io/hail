@@ -63,6 +63,7 @@ foreach ($case in $cases) {
     $start=[DateTimeOffset]::UtcNow
     $process=Start-Process -FilePath $exe -ArgumentList $arguments -WindowStyle Hidden -PassThru `
         -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+    $null=$process.Handle # Retain ExitCode with Windows PowerShell redirection.
     $samples=@()
     try {
         while (!$process.WaitForExit(1000)) {
