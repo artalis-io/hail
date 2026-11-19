@@ -1,0 +1,306 @@
+{
+  "observed_utc": "2026-11-19T11:09:36.355069+00:00",
+  "node": "spark-7468",
+  "machine": "aarch64",
+  "kernel": "7.0.0-1024-nvidia",
+  "managed_services": {
+    "exit_code": 0,
+    "stdout": "\n==> Managed inference services\n    SERVICE          STATE     ACTIVE  PORT   BACKEND    MODEL\n    exl3test         DEFINED   no      8090   exllamav3  safetensors/qwen3/8b/exl3-4.0bpw/main\n    flash-next       DEFINED   no      8080   llama.cpp  gguf/qwen3_8/flash_next/ud_q4_k_xl/main\n    qwen27-fast      DEFINED   no      8081   vllm       safetensors/qwen3_8/27b/nvfp4/main\n    qwen27-tp2       DEFINED   no      8085   sglang     safetensors/qwen3_8/27b/nvfp4/main\n    qwen38-fp4       DEFINED   yes     8086   vllm       safetensors/qwen3_8/flash-next/fp4-local/main\n    qwen38-fp4-tp2   DEFINED   no      8087   vllm       safetensors/qwen3_8/flash-next/fp4-local/main\n    sgdflash         DEFINED   no      8084   sglang     safetensors/qwen3_8/27b/nvfp4/main\n    sglang1          DEFINED   no      8082   sglang     safetensors/qwen3_8/27b/nvfp4/main\n    sgnextn          DEFINED   no      8083   sglang     safetensors/qwen3_8/27b/nvfp4/main\n\n",
+    "stderr": ""
+  },
+  "service_health": {
+    "exit_code": 0,
+    "stdout": "{\n  \"service\": \"qwen38-fp4\",\n  \"configured\": true,\n  \"active\": true,\n  \"listening\": true,\n  \"api_healthy\": true,\n  \"model_matches\": true,\n  \"detail\": \"/health -> 200; /v1/models -> qwen38-fp4\",\n  \"healthy\": true\n}\n\n",
+    "stderr": ""
+  },
+  "gateway_status": {
+    "exit_code": 0,
+    "stdout": "{\"schema_version\": 1, \"node\": \"spark-7468\", \"unit\": {\"active\": \"active\", \"enabled\": \"enabled\"}, \"ingress\": \"api.spark-7468.artalis.io\", \"findings\": [{\"level\": \"ok\", \"message\": \"hs-gateway answering on 127.0.0.1:8780\"}, {\"level\": \"ok\", \"message\": \"API hostname api.spark-7468.artalis.io reaches this gateway (instance cb7436a2a122040db7cd55c2)\"}], \"services\": [{\"alias\": \"qwen27-fast\", \"port\": 8081, \"capacity\": 8, \"healthy\": false, \"drained\": false, \"inflight\": 0, \"queued\": 0}, {\"alias\": \"qwen27-tp2\", \"port\": 8085, \"capacity\": 8, \"healthy\": false, \"drained\": false, \"inflight\": 0, \"queued\": 0, \"pair\": \"qwen27-tp2\", \"whole\": false, \"why\": \"no_watch\"}, {\"alias\": \"qwen38-fp4\", \"port\": 8086, \"capacity\": 8, \"healthy\": true, \"drained\": false, \"inflight\": 0, \"queued\": 0}, {\"alias\": \"qwen38-fp4-tp2\", \"port\": 8087, \"capacity\": 16, \"healthy\": false, \"drained\": false, \"inflight\": 0, \"queued\": 0, \"pair\": \"qwen38-fp4-tp2\", \"whole\": false, \"why\": \"no_watch\"}], \"problems\": [], \"warnings\": [], \"drain\": {\"all\": false, \"aliases\": [], \"since\": null, \"file\": \"ok\"}, \"running\": {\"instance\": \"cb7436a2a122040db7cd55c2\", \"started_at\": \"2026-11-18T09:59:32+0100\", \"code\": \"2c49a8786330c6627c68a5bcc092d31a4458010c43e6f6ac8705aa651ad088d0\", \"unit\": \"9dbc30ff4db297216bc84d478aac0c6d804abd630d18d33a2f6eae60974c8d84\"}, \"stale\": []}\n",
+    "stderr": ""
+  },
+  "gateway_source_sha256": "2c49a8786330c6627c68a5bcc092d31a4458010c43e6f6ac8705aa651ad088d0",
+  "service": {
+    "service": "qwen38-fp4",
+    "model": {
+      "format": "safetensors",
+      "family": "qwen3_8",
+      "variant": "flash-next",
+      "quant": "fp4-local",
+      "role": "main",
+      "file": "/data/models/safetensors/qwen3_8/flash-next/fp4-local",
+      "sha256": ""
+    },
+    "runtime": {
+      "backend": "vllm",
+      "llama_revision": null,
+      "patchset": null,
+      "runtime_id": "vllm-0.1.dev21830+g8244d1c44.d20261108+cp312+linux_aarch64+cu13+wheelset-b64f75177620",
+      "runtime_root": "/opt/herding-sparks/runtime/vllm/vllm-0.1.dev21830+g8244d1c44.d20261108+cp312+linux_aarch64+cu13+wheelset-b64f75177620",
+      "server_sha256": "21c58af10daa927ff3d0944cb39c283ae649f4ff657f23d26af35695e92942b2"
+    },
+    "server": {
+      "host": "127.0.0.1",
+      "port": 8086,
+      "alias": "qwen38-fp4",
+      "exposed": false,
+      "context": null,
+      "parallel": null,
+      "gpu_layers": null,
+      "flash_attention": null,
+      "spec_type": null,
+      "lazy_mode": null,
+      "batch_size": null,
+      "ubatch_size": null,
+      "threads": null
+    },
+    "vllm": {
+      "max_model_len": 262144,
+      "gpu_memory_utilization": 0.75,
+      "kv_cache_dtype": null
+    },
+    "recipe": {
+      "name": "qwen38-fp4-local-tp1",
+      "sha256": "e2518048602bdf6ff5b51362ec8ac5228466d4f6be67e0ae6803b65c165472f7",
+      "args": [
+        "--mamba-cache-mode",
+        "align",
+        "--enable-prefix-caching",
+        "--enable-chunked-prefill",
+        "--dtype",
+        "bfloat16",
+        "--kv-cache-dtype",
+        "fp8",
+        "--quantization",
+        "modelopt_mixed",
+        "--block-size",
+        "16",
+        "--load-format",
+        "b12x",
+        "--max-num-seqs",
+        "8",
+        "--max-num-batched-tokens",
+        "4096",
+        "--speculative-config",
+        "{\"method\":\"mtp\",\"num_speculative_tokens\":4}",
+        "--gdn-decode-kernel",
+        "b12x",
+        "--linear-backend",
+        "b12x",
+        "--moe-backend",
+        "b12x",
+        "--no-enable-flashinfer-autotune",
+        "--mm-encoder-tp-mode",
+        "data",
+        "--reasoning-parser",
+        "qwen3",
+        "--tool-call-parser",
+        "qwen3_xml",
+        "--enable-auto-tool-choice",
+        "--compilation-config",
+        "{\"pass_config\":{\"fuse_act_quant\":true}}"
+      ]
+    }
+  },
+  "model_config": {
+    "sha256": "b50dbc52a0c83b0cd2a44a372c1fb6b5e0e6827d22f2611c97d4d030f92f6b28",
+    "architectures": [
+      "Qwen4ExpForConditionalGeneration"
+    ],
+    "model_type": "qwen4_exp",
+    "top_level_audio_fields": []
+  },
+  "backend_models": {
+    "status": 200,
+    "body": {
+      "object": "list",
+      "data": [
+        {
+          "id": "qwen38-fp4",
+          "object": "model",
+          "created": 1795086576,
+          "owned_by": "vllm",
+          "root": "/data/models/safetensors/qwen3_8/flash-next/fp4-local",
+          "parent": null,
+          "max_model_len": 262144,
+          "permission": [
+            {
+              "id": "modelperm-9beae6f6c8b9625b",
+              "object": "model_permission",
+              "created": 1795086576,
+              "allow_create_engine": false,
+              "allow_sampling": true,
+              "allow_logprobs": true,
+              "allow_search_indices": false,
+              "allow_view": true,
+              "allow_fine_tuning": false,
+              "organization": "*",
+              "group": null,
+              "is_blocking": false
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "backend_openapi": {
+    "status": 200,
+    "paths": [
+      "/detokenize",
+      "/generative_scoring",
+      "/health",
+      "/invocations",
+      "/is_scaling_elastic_ep",
+      "/load",
+      "/metrics",
+      "/ping",
+      "/scale_elastic_ep",
+      "/tokenize",
+      "/v1/chat/completions",
+      "/v1/chat/completions/batch",
+      "/v1/completions",
+      "/v1/messages",
+      "/v1/messages/count_tokens",
+      "/v1/models",
+      "/v1/responses",
+      "/v1/responses/{response_id}",
+      "/v1/responses/{response_id}/cancel",
+      "/version"
+    ]
+  },
+  "gateway_http": {
+    "GET /hs-gateway/health": {
+      "status": 200,
+      "body": {
+        "status": "ok",
+        "credentials": "ok",
+        "drain": {
+          "all": false,
+          "aliases": [],
+          "since": null,
+          "file": "ok"
+        },
+        "services": {
+          "qwen38-fp4": {
+            "inflight": 0,
+            "queued": 0
+          }
+        },
+        "running": {
+          "instance": "cb7436a2a122040db7cd55c2",
+          "started_at": "2026-11-18T09:59:32+0100",
+          "code": "2c49a8786330c6627c68a5bcc092d31a4458010c43e6f6ac8705aa651ad088d0",
+          "unit": "9dbc30ff4db297216bc84d478aac0c6d804abd630d18d33a2f6eae60974c8d84"
+        }
+      }
+    },
+    "GET /v1/models": {
+      "status": 401,
+      "body": {
+        "error": {
+          "message": "Incorrect API key provided. Send 'Authorization: Bearer hsk_...'.",
+          "type": "invalid_request_error",
+          "param": null,
+          "code": "invalid_api_key"
+        }
+      }
+    },
+    "POST /v1/chat/completions": {
+      "status": 401,
+      "body": {
+        "error": {
+          "message": "Incorrect API key provided. Send 'Authorization: Bearer hsk_...'.",
+          "type": "invalid_request_error",
+          "param": null,
+          "code": "invalid_api_key"
+        }
+      }
+    },
+    "POST /v1/audio/transcriptions": {
+      "status": 404,
+      "body": {
+        "error": {
+          "message": "not found",
+          "type": "invalid_request_error",
+          "param": null,
+          "code": "not_found"
+        }
+      }
+    },
+    "POST /v1/audio/speech": {
+      "status": 404,
+      "body": {
+        "error": {
+          "message": "not found",
+          "type": "invalid_request_error",
+          "param": null,
+          "code": "not_found"
+        }
+      }
+    },
+    "POST /v1/realtime": {
+      "status": 404,
+      "body": {
+        "error": {
+          "message": "not found",
+          "type": "invalid_request_error",
+          "param": null,
+          "code": "not_found"
+        }
+      }
+    }
+  },
+  "text_stream": {
+    "performed": true,
+    "scope": "direct loopback backend, not authenticated gateway",
+    "status": 200,
+    "content_type": "text/event-stream; charset=utf-8",
+    "data_frames": 3,
+    "content": "OK",
+    "done": true,
+    "first_content_seconds": 0.18776056985370815,
+    "elapsed_seconds": 0.25589566584676504,
+    "max_tokens": 16,
+    "concurrent_requests": 1
+  },
+  "gateway_after": {
+    "status": 200,
+    "body": {
+      "status": "ok",
+      "credentials": "ok",
+      "drain": {
+        "all": false,
+        "aliases": [],
+        "since": null,
+        "file": "ok"
+      },
+      "services": {
+        "qwen38-fp4": {
+          "inflight": 0,
+          "queued": 0
+        }
+      },
+      "running": {
+        "instance": "cb7436a2a122040db7cd55c2",
+        "started_at": "2026-11-18T09:59:32+0100",
+        "code": "2c49a8786330c6627c68a5bcc092d31a4458010c43e6f6ac8705aa651ad088d0",
+        "unit": "9dbc30ff4db297216bc84d478aac0c6d804abd630d18d33a2f6eae60974c8d84"
+      }
+    }
+  },
+  "probe_scope": "existing node inspection; no credentials, audio or service changes",
+  "inspection_provenance": {
+    "hail_base_commit": "6591f963b5b33178c4c6b47f691b4638d85a6eab",
+    "local_appliance_checkout_commit": "45dfa23",
+    "local_appliance_checkout_dirty": true,
+    "local_checkout_used_as_live_truth": false,
+    "installed_gateway_source_matches_running_code": true,
+    "installed_gateway_source_sha256": "2c49a8786330c6627c68a5bcc092d31a4458010c43e6f6ac8705aa651ad088d0",
+    "installed_infer_source_sha256": "38b955373ff9e4b4da859a2fe9b5e5b78af2f642a4b05b88ba1a087429da5428",
+    "private_appliance_source_published": false,
+    "inference_requests": 1,
+    "inference_request_kind": "synthetic text, max_tokens=16, direct backend",
+    "credentials_read_or_created": false,
+    "model_or_service_changes": false,
+    "audio_opened_or_sent": false
+  }
+}

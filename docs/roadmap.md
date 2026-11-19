@@ -1,10 +1,11 @@
 # Hail and duplex speech-service roadmap
 
-This roadmap spans Hail and its prospective clients/services. It records the
-intended integration with a `herding-sparks` inference node; it does not claim
-that the node, model endpoints, gateway or speech adapter already exist or have
-been inspected. Their repository, endpoint URL, model names and supported audio
-protocols still need to be established. Hail remains a bounded native PCM
+This roadmap spans Hail and its prospective clients/services. The
+[2026-11-19 capability assessment](inference-node-capabilities.md) inspected the
+live `herding-sparks` node: its authenticated gateway and vLLM text streaming
+exist, while ASR, TTS and a duplex session interface remain missing from the
+inspected managed deployment. Speech runtime/model choices and audio protocols
+still need to be established. Hail remains a bounded native PCM
 transport, with no mandatory networking, speech, DSP, model runtime or Hull dependency.
 
 ## Intended system
@@ -154,9 +155,12 @@ VAD/AEC/noise processing stay outside the Hail core.
    and investigate low-latency hosted/physical fixture limits separately. Bring
    up the Windows rig and perform actual WASAPI capture/render/duplex qualification.
    Keep physical fixture gaps explicit.
-2. **Establish node capabilities.** Identify herding-sparks deployment/repository,
-   model IDs, formats, routes, incremental ASR/TTS support, cancellation and session
-   concurrency. Choose a concrete wire contract from observed capabilities.
+2. **Establish node capabilities.** Initial live inspection is recorded in the
+   [capability assessment](inference-node-capabilities.md): `qwen38-fp4` streams
+   text; the existing gateway authenticates and bounds admission but exposes no
+   speech/realtime routes. Next establish ASR/TTS services, authenticated client
+   streaming, cancellation and mixed-workload capacity, then choose the wire
+   contract from observed formats and incremental behavior.
 3. **One headset conversation.** Build the native adapter plus gateway path.
    Continuously send input while streamed TTS plays. Demonstrate user interruption,
    capture continuity, cancellation propagation and rejection of late old audio.
