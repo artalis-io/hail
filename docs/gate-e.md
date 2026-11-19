@@ -112,8 +112,8 @@ reader/writer/reference/flush/close and native handoff stress remain separate.
 | --- | --- |
 | Virtual | Four external consumer profiles and portable regressions; zero-drift same-cadence model still reports conservative independent domains, not a fabricated shared-hardware clock |
 | Windows WASAPI | Static/shared Debug/Release, exact exports and installed C/C++/DSP consumers; SDK buffer/retirement/oracle tests; LLVM 23 ASan. No fresh physical or paired numerical qualification |
-| Linux ARM64 | Isolated Spark portable build, installed public consumer and GCC ASan/UBSan; no audio device or inference service used. Native development packages absent on this node |
-| Linux PipeWire / ALSA | Source changes and native seam tests are covered by the general CI native Linux lanes; actual run references belong in evidence below. Existing null/isolated-loopback evidence is not physical hardware evidence |
+| Linux ARM64 | Isolated Spark portable build, installed public consumer and GCC ASan/UBSan. Development headers extracted into the temporary workspace; no system package, device or inference-service change |
+| Linux PipeWire / ALSA | ALSA 1.2.11 and PipeWire 1.0.5 compile; 9/9 device-free native/portable tests pass. Native ASan/UBSan passes 12/12 including real ALSA null duplex at 2/4/32 channels. These are not physical-device tests |
 | macOS CoreAudio | Source reviewed; general CI compiles the adapter and runs portable/installed consumer checks. Fresh physical timing/array/spatial-map/error-input tests remain open |
 
 An initial Windows ASan concurrency launch stalled while loading an ASan DLL
@@ -122,6 +122,17 @@ the failed run retained. Selecting the matching LLVM 23 runtime first on PATH
 passes the suite and external consumer. The initial run is not counted as a
 passing sanitizer check. See evidence for exact commands/results and CI scope.
 
+The Spark GCC TSan binaries fail during runtime initialization with `unexpected
+memory mapping` (7/7, before test execution). No ARM64 TSan success or race-freedom
+claim is made; no ASLR/security setting or suppression was changed. The failed
+run is retained separately from ASan and supported CI TSan evidence.
+
+An old-header client compiled using `hail.h` from `42537e2` successfully reads
+the 400-byte original stream-info record from the new library with tail canaries
+intact. This verifies that particular prefix compatibility, not a frozen ABI.
+Ten Clang analyzer invocations complete with no diagnostics. The external
+consumer's compiler commands resolve installed headers only.
+
 ## F. DSP readiness
 
 | External capability | Hail contract | Verification / blocker |
@@ -129,7 +140,7 @@ passing sanitizer check. See evidence for exact commands/results and CI scope.
 | AEC | Capture/reference PCM, independent timing/domains, epochs/gaps/generation and provenance implemented | Public boundary exercised; physical alignment, uncertainty calibration and echo performance blocked |
 | NS / AGC / VAD | Copied continuous PCM and explicit loss/reset metadata implemented | Mock processing/flow verified; algorithms intentionally external |
 | Resampling / drift compensation | Per-leg formats, frame/host correlations, rational interpolation and uncertainty implemented | Mismatched-rate/drift metadata verified; no production resampler or physical drift calibration claimed |
-| Channel processing | Mono/stereo and indexed 1..32 discrete channels implemented | 32-channel virtual and WASAPI seam copies verified; physical maps/arrays remain incomplete |
+| Channel processing | Mono/stereo and indexed 1..32 discrete channels implemented | 32-channel virtual/WASAPI seam copies and real ALSA null duplex verified; physical maps/arrays remain incomplete |
 | Continuous ASR | Bounded capture transfer, gap/loss detection and external aggregation possible | Public processor/output backpressure verified; no ASR/model runtime added or exercised |
 | Incremental TTS | Bounded partial writes, selected-reference progress, underrun zeros and generation rejection implemented | Public duplex/cancellation and threaded tests; exact hardware presentation progress unavailable |
 | Full-duplex interruption | Logical cancellation and native reset preserve capture; shutdown retirement remains separate | Virtual/native seam evidence; physical audible cessation and failed WASAPI paired transparency block full acceptance |

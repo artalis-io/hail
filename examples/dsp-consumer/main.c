@@ -25,6 +25,12 @@ static ha_stream_status status(ha_stream *s)
 static void drain(dsp_consumer *d)
 {
     dsp_output out;
+    if(d->count) {
+        const dsp_output *last=&d->output[(d->read+d->count-1u)%DSP_SLOTS];
+        for(uint32_t i=0;i<last->info.frames;++i) for(uint32_t ch=0;ch<d->format.capture_format.channels;++ch)
+            CHECK(d->capture_pcm[(size_t)i*d->format.capture_format.channels+ch]==
+                  (float)((last->info.first_frame+i)%256u)/512.0f+(float)ch/128.0f);
+    }
     while (dsp_take(d, &out)) for (uint32_t i = 0; i < out.info.frames; ++i)
         CHECK(out.mono[i] == (float)((out.info.first_frame + i) % 256u) / 1024.0f);
 }
@@ -39,13 +45,14 @@ static void step(ha_stream *s, dsp_consumer *d, uint64_t *position, uint32_t cap
     for (i = 0; i < capture; ++i) for (ch = 0; ch < cc; ++ch)
         input[(size_t)i * cc + ch] = (float)((*position + i) % 256u) / 512.0f + (float)ch / 128.0f;
     if (write_audio && render) {
-        for (i = 0; i < render * pc; ++i) output[i] = value;
+        for (i = 0; i < render; ++i) for(ch=0;ch<pc;++ch) output[(size_t)i*pc+ch]=value+(float)ch/128.0f;
         OK(ha_stream_write(s, output, render, d->generation, &n)); CHECK(n == render);
     }
     v.capture_frames = capture; v.playback_frames = render; v.flags = flags;
     v.capture_data = input; v.advance_ns = UINT64_C(1000000);
     OK(ha_virtual_step(s, &v, output, render, &b)); *position += capture;
-    if (write_audio) for (i = 0; i < render * pc; ++i) CHECK(output[i] == value);
+    if (write_audio) for (i = 0; i < render; ++i) for(ch=0;ch<pc;++ch)
+        CHECK(output[(size_t)i*pc+ch] == value+(float)ch/128.0f);
     if (pump) {
         OK(dsp_pump(d, s));
         if (d->reference_info.frames && d->reference_info.generation == d->generation && write_audio)
@@ -150,6 +157,7 @@ static void scenario(uint32_t rate, uint32_t capture_channels, uint32_t render_c
     cfg.capture_format.sample_rate = rate == 16000 ? 24000 : 16000;
     OK(ha_stream_open(c, &cfg, &s)); OK(ha_stream_get_info(s, &info));
     CHECK(info.capture_clock_domain != d.format.capture_clock_domain);
+    CHECK(info.stream_id != d.format.stream_id);
     OK(dsp_init(&d,&info)); position=0;
     CHECK(ha_stream_start(s)==HA_PENDING); poll_context(c);
     step(s,&d,&position,16,48,0,1,1,1);

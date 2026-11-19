@@ -313,7 +313,16 @@ static void channel_bounds(void)
     sc.capture_format.channel_layout=HA_LAYOUT_DISCRETE; sc.capture_format.storage=HA_PLANAR;
     CHECK(ha_stream_plan(c,&sc,&p)==HA_FORMAT_UNSUPPORTED);
     sc.capture_format.storage=HA_INTERLEAVED; OK(ha_stream_open(c,&sc,&s));
-    close_stream(c,&s); OK(ha_context_destroy(&c)); CHECK(!t.live);
+    close_stream(c,&s);
+    {
+        float pcm[HA_MAX_CHANNELS]; uint32_t frames; ha_block_info b=HA_INIT(ha_block_info);
+        sc.capture_format.channels=HA_MAX_CHANNELS; sc.capture_format.sample_format=HA_PCM_F32;
+        sc.quantum_frames=HA_MAX_QUANTUM; OK(ha_stream_open(c,&sc,&s)); start(c,s);
+        step(s,HA_MAX_QUANTUM,0,NULL,&b); OK(ha_stream_read(s,pcm,1,&frames,&b)); CHECK(frames==1);
+        for(uint32_t ch=0;ch<HA_MAX_CHANNELS;++ch) CHECK(pcm[ch]==(float)(-32768+(int32_t)ch*17)/32768.0f);
+        close_stream(c,&s);
+    }
+    OK(ha_context_destroy(&c)); CHECK(!t.live);
 }
 
 static void defaults_independence_and_partial_clock(void)

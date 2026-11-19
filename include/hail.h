@@ -28,7 +28,8 @@ extern "C" {
 
 /* Pre-1.0 API: not yet frozen. No public record may be packed.
  * All input records must be initialized with HA_INIT or a specialized initializer.
- * Outputs require size/version headers; unknown versions and short records fail.
+ * Outputs require size/version headers; unknown versions and short required
+ * prefixes fail. ha_stream_info has a documented optional stream_id tail.
  * Larger version-1 records are accepted; unknown tails are never read/written.
  * Unless specified otherwise, pointers are borrowed for the duration of a call.
  * API reference and threading contract: docs/api.md. */
