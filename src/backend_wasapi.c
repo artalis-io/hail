@@ -9,6 +9,10 @@
 #include <audioclient.h>
 #include <ksmedia.h>
 #include <propidl.h>
+#if HA_WASAPI_DIAGNOSTICS
+#include "wasapi_diagnostics.h"
+#include <math.h>
+#endif
 
 /* SDK interface IDs are private constants rather than INITGUID definitions,
  * which would add unrelated COM globals to a statically linked Hail archive. */
@@ -59,6 +63,9 @@ struct wa_context {
     ha_probe_info probe_info;
 };
 typedef struct wa_stream {
+#if HA_WASAPI_DIAGNOSTICS
+    hail_wa_diag trace; /* Snapshot after worker retirement only. */
+#endif
     ha_stream *owner;
     HANDLE thread, request, reply, audio[2];
     atomic_uint command, done;
@@ -72,6 +79,31 @@ typedef struct wa_stream {
     IAudioClock *clock;
     unsigned char silence[HA_MAX_QUANTUM * 8u];
 } wa_stream;
+
+#if HA_WASAPI_DIAGNOSTICS
+static void wa_trace_samples(wa_stream *a,uint32_t leg,const void *data,uint32_t frames,
+                             uint64_t host,uint64_t position,int silent)
+{
+    const ha_format *format=leg?&a->owner->info.playback_format:&a->owner->info.capture_format;
+    const float *samples=data; hail_wa_diag_leg *t=&a->trace.leg[leg]; uint32_t i;
+    if(format->sample_format!=HA_PCM_F32 || format->channels!=2 || format->sample_rate!=48000) return;
+    for(i=0;i<frames;++i) {
+        float left=silent?0:samples[i*2u],right=silent?0:samples[i*2u+1u];
+        double l=(double)left*32768.0,r=(double)right*32768.0;
+        ++t->frames;
+        if(!isfinite(l) || !isfinite(r)) { ++t->nonfinite; continue; }
+        t->asymmetric+=right!=-left;
+        if(l!=floor(l) || r!=floor(r)) {
+            ++t->fractional;
+            if(t->examples<HAIL_WA_DIAG_EXAMPLES) {
+                hail_wa_diag_example *e=&t->example[t->examples++]; uint64_t delta=(uint64_t)i*UINT64_C(1000000000)/48000u;
+                e->host_ns=host<=UINT64_MAX-delta?host+delta:0;
+                e->position=position<=UINT64_MAX-i?position+i:0; e->left=left; e->right=right;
+            }
+        }
+    }
+}
+#endif
 
 static ha_result wa_result(HRESULT hr)
 {
@@ -427,6 +459,9 @@ static void wa_capture(wa_stream *a)
         if (!frames || frames > a->frames[0] || frames > HA_MAX_QUANTUM || (!data && !(flags & AUDCLNT_BUFFERFLAGS_SILENT))) {
             IAudioCaptureClient_ReleaseBuffer(a->capture, frames); hr = E_FAIL; break;
         }
+#if HA_WASAPI_DIAGNOSTICS
+        wa_trace_samples(a,0,data,frames,qpc<=UINT64_MAX/100u?qpc*100u:0,pos,(flags&AUDCLNT_BUFFERFLAGS_SILENT)!=0);
+#endif
         {
             uint32_t offset = 0;
             while (offset < frames) {
@@ -483,6 +518,9 @@ static void wa_render(wa_stream *a)
         if (hail_native_render(s, buffer, n, host, 0, UINT64_MAX, flags) != HA_OK) {
             IAudioRenderClient_ReleaseBuffer(a->render, n, AUDCLNT_BUFFERFLAGS_SILENT); hr = E_FAIL; break;
         }
+#if HA_WASAPI_DIAGNOSTICS
+        wa_trace_samples(a,1,buffer,n,host,0,0);
+#endif
         hr = IAudioRenderClient_ReleaseBuffer(a->render, n, 0); available -= n; padding += n;
     }
     if (FAILED(hr)) hail_rt_error(s, 1, wa_result(hr), hr);

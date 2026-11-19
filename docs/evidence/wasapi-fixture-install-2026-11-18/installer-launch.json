@@ -1,0 +1,6 @@
+{
+  "attempted_utc": "2026-11-18T09:01:53.2653422+00:00",
+  "installer": "C:\\Users\\Mark\\artalis.io\\src\\hail\\build-wasapi-fixture\\pack46\\VBCABLE_Setup_x64.exe",
+  "error": "This command cannot be run due to the error: An error occurred trying to start process 'C:\\Users\\Mark\\artalis.io\\src\\hail\\build-wasapi-fixture\\pack46\\VBCABLE_Setup_x64.exe' with working directory 'C:\\Users\\Mark\\artalis.io\\src\\hail\\build-wasapi-fixture\\pack46'. The operation was canceled by the user.",
+  "state": "Installer launch failed; installation/reboot not performed by this command"
+}

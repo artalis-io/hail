@@ -3,9 +3,20 @@ param(
     [Parameter(Mandatory)][string[]]$Manifest,
     [Parameter(Mandatory)][string]$Executable,
     [Parameter(Mandatory)][string]$OutputDirectory,
+    [string]$ConditioningExecutable,
     [ValidateRange(600,3600)][int]$SustainedSeconds=600
 )
 $ErrorActionPreference = 'Stop'
+if (!$ConditioningExecutable) { $ConditioningExecutable=Join-Path (Split-Path $Executable -Parent) 'hail_wasapi_path.exe' }
+if (!(Test-Path -LiteralPath $ConditioningExecutable)) { throw 'Require the native path helper for explicit fixture silence conditioning.' }
+function Invoke-Condition($Fixture,[string]$Name) {
+    # Failed trials may leave nonzero downstream cable buffers. This separate
+    # preflight drives/observes exact silence before a fresh dynamic trial;
+    # it never resets or forgives the qualification oracle inside that trial.
+    & $ConditioningExecutable $Fixture.capture.key $Fixture.playback.key f32 --condition 2>&1 |
+        Tee-Object -FilePath (Join-Path $OutputDirectory "$Name.conditioning.log")
+    if ($LASTEXITCODE -ne 0) { throw "Fixture conditioning failed before $Name; no retry attempted." }
+}
 $fixtures = @()
 for ($index=0; $index -lt $Manifest.Count; $index++) {
     $fixtures += & "$PSScriptRoot/validate_wasapi_fixture.ps1" -Manifest $Manifest[$index] -Executable $Executable `
@@ -28,9 +39,11 @@ foreach ($rate in 16000,24000,44100,48000) {
             if ($profiles.Count -ne 1) { throw "Ambiguous fixture profile for $name" }
             $fixture=$profiles[0]
             foreach ($startup in 'primed','unprimed') {
+                Invoke-Condition $fixture "$name-$startup"
                 $arguments = @('--capture',$fixture.capture.key,'--playback',$fixture.playback.key,
                     '--rate',"$rate",'--channels',"$channels",'--pcm',$pcm,'--seconds','5')
                 if ($startup -eq 'unprimed') { $arguments += '--unprimed' }
+                if ($fixture.profile -eq 'transparent-s16-grid-low-v1') { $arguments += '--low-grid' }
                 & $Executable @arguments 2>&1 | Tee-Object -FilePath (Join-Path $OutputDirectory "$name-$startup.log")
                 if ($LASTEXITCODE -ne 0) { $failures.Add("$name-$startup") }
             }
@@ -38,10 +51,19 @@ foreach ($rate in 16000,24000,44100,48000) {
     }
 }
 $fixture=$fixtures[0]
-$arguments = @('--capture',$fixture.capture.key,'--playback',$fixture.playback.key,
-    '--rate',"$($fixture.sample_rate)",'--channels',"$($fixture.channels)",'--pcm','f32','--seconds',"$SustainedSeconds")
-& $Executable @arguments 2>&1 | Tee-Object -FilePath (Join-Path $OutputDirectory 'sustained.log')
-if ($LASTEXITCODE -ne 0) { $failures.Add('sustained') }
+$selected="$($fixture.sample_rate)-$($fixture.channels)-f32"
+if ($failures.Contains("$selected-primed") -or $failures.Contains("$selected-unprimed")) {
+    'BLOCKED: selected F32 profile failed a short startup case; no sustained trial attempted.' |
+        Set-Content -LiteralPath (Join-Path $OutputDirectory 'sustained.blocked.txt')
+    $failures.Add('sustained-precondition')
+} else {
+    Invoke-Condition $fixture 'sustained'
+    $arguments = @('--capture',$fixture.capture.key,'--playback',$fixture.playback.key,
+        '--rate',"$($fixture.sample_rate)",'--channels',"$($fixture.channels)",'--pcm','f32','--seconds',"$SustainedSeconds")
+    if ($fixture.profile -eq 'transparent-s16-grid-low-v1') { $arguments += '--low-grid' }
+    & $Executable @arguments 2>&1 | Tee-Object -FilePath (Join-Path $OutputDirectory 'sustained.log')
+    if ($LASTEXITCODE -ne 0) { $failures.Add('sustained') }
+}
 [ordered]@{completed_utc=[DateTimeOffset]::UtcNow.ToString('o'); failures=@($failures);
     endpoint_disable_reenable='not executed by this harness; provisioner-controlled lifecycle trial required';
     physical_audio='not exercised by paired virtual fixture'; physical_latency='not measured'} |

@@ -1,0 +1,246 @@
+{
+  "recorded_utc": "2026-11-18T09:32:50.9673593+00:00",
+  "source_head": "a9792ef7b80db7647c08b4a0c6d9ad278db1668e",
+  "diagnostic_source_sha256": "1D007BE28B3C5B7A97DD666C8A5E3B9DD81317620DF68E093708D540A8E43FDE",
+  "diagnostic_executable_sha256": "A551CC4691E0D8D7DAE379AD7D1D1BE08D2A60A532FA3DE91414916946CDE0F7",
+  "qualification": "failed; four strict 48000 stereo cases; sustained explicitly aborted; other profiles unqualified",
+  "device_free_validation": "Rebuilt static Release; 9/9 CTests passed, including oracle negative controls",
+  "trials": [
+    {
+      "name": "48000-2-f32-primed.log",
+      "observations": [
+        "sustained_capture_metadata_gaps=0 sustained_capture_epoch_changes=0 startup_underruns=0",
+        "sustained_ns=5001366000 capture_loss=0 playback_underruns=0 reference_loss=0 process_cpu_ns=31250000",
+        "flush_capture_metadata_gaps=0 flush_capture_epoch_changes=0",
+        "capture_frames=441600 nonzero=389519 zeros=52081 peak=0.984996796 rms=0.479310505 verified_A=289440 verified_B=43503 verified_C=7913 bad=48939 metadata_gaps=1 clock_changes=0 reference_frames=452448 reference_silence=57376 flush_ack_ns=30793800 capture_frames_during_flush_trial=49920 poll_calls=603 poll_max_ns=12600 io_max_ns=16735000 hail_peak_bytes=620272 working_set=11173888 peak_working_set=11190272",
+        "FAIL line=548 check=verified[3]>rate/3u native_error=0"
+      ]
+    },
+    {
+      "name": "48000-2-f32-unprimed.log",
+      "observations": [
+        "sustained_capture_metadata_gaps=0 sustained_capture_epoch_changes=0 startup_underruns=4896",
+        "sustained_ns=5008015900 capture_loss=0 playback_underruns=0 reference_loss=0 process_cpu_ns=0",
+        "flush_capture_metadata_gaps=0 flush_capture_epoch_changes=0",
+        "capture_frames=444480 nonzero=388832 zeros=55648 peak=0.984996796 rms=0.478645478 verified_A=288384 verified_B=43360 verified_C=7915 bad=49451 metadata_gaps=1 clock_changes=0 reference_frames=456768 reference_silence=62720 flush_ack_ns=31900000 capture_frames_during_flush_trial=49216 poll_calls=598 poll_max_ns=9800 io_max_ns=16783100 hail_peak_bytes=620272 working_set=11190272 peak_working_set=11206656",
+        "FAIL line=548 check=verified[3]>rate/3u native_error=0"
+      ]
+    },
+    {
+      "name": "48000-2-s16-primed.log",
+      "observations": [
+        "sustained_capture_metadata_gaps=0 sustained_capture_epoch_changes=0 startup_underruns=0",
+        "sustained_ns=5007361100 capture_loss=0 playback_underruns=0 reference_loss=0 process_cpu_ns=0",
+        "flush_capture_metadata_gaps=0 flush_capture_epoch_changes=0",
+        "capture_frames=438720 nonzero=409375 zeros=29345 peak=0.985015869 rms=0.48139848 verified_A=178308 verified_B=26235 verified_C=30629 bad=276383 metadata_gaps=1 clock_changes=0 reference_frames=451968 reference_silence=57344 flush_ack_ns=30194300 capture_frames_during_flush_trial=48960 poll_calls=605 poll_max_ns=152000 io_max_ns=16670700 hail_peak_bytes=489200 working_set=11022336 peak_working_set=11038720",
+        "FAIL line=549 check=!bad native_error=0"
+      ]
+    },
+    {
+      "name": "48000-2-s16-unprimed.log",
+      "observations": [
+        "sustained_capture_metadata_gaps=0 sustained_capture_epoch_changes=0 startup_underruns=3936",
+        "sustained_ns=5008405000 capture_loss=0 playback_underruns=0 reference_loss=0 process_cpu_ns=31250000",
+        "flush_capture_metadata_gaps=0 flush_capture_epoch_changes=0",
+        "capture_frames=442560 nonzero=411279 zeros=31281 peak=0.985015869 rms=0.48008426 verified_A=177949 verified_B=26956 verified_C=30414 bad=278288 metadata_gaps=1 clock_changes=0 reference_frames=455328 reference_silence=60800 flush_ack_ns=31633500 capture_frames_during_flush_trial=49440 poll_calls=598 poll_max_ns=9800 io_max_ns=16829000 hail_peak_bytes=489200 working_set=11034624 peak_working_set=11051008",
+        "FAIL line=549 check=!bad native_error=0"
+      ]
+    }
+  ],
+  "microphone": "not opened; no microphone PCM retained",
+  "defaults_preserved": true,
+  "shure_session_settings_preserved": true,
+  "artifacts": [
+    {
+      "path": "capture-before.json",
+      "sha256": "4A5776B7ECEDB22F7A5839C717C7CE861C537FD5FAF1EE646BC3952A47FB9E1B",
+      "bytes": 200
+    },
+    {
+      "path": "compact-evidence.py",
+      "sha256": "B329BB74F64223F1E00F81A25B59AB988C75998BF0BBAEA4059C47BB6CB27E66",
+      "bytes": 1458
+    },
+    {
+      "path": "default-roles-after.jsonl",
+      "sha256": "8517AA0330FB42354EA2810639F2CFF12D70B5B84314BBEE470C3D29A5B5B125",
+      "bytes": 636
+    },
+    {
+      "path": "default-roles.jsonl",
+      "sha256": "8517AA0330FB42354EA2810639F2CFF12D70B5B84314BBEE470C3D29A5B5B125",
+      "bytes": 636
+    },
+    {
+      "path": "inspect.cpp",
+      "sha256": "1D46BA8E4A9AA46999C1415DBB0579628B617460E4966A62BADA7A184BD260E4",
+      "bytes": 2526
+    },
+    {
+      "path": "manifest-48000-2.json",
+      "sha256": "5EF2E80C2302A70655CE43CE7E05D3855511B867D104FE47E5CFFB5507FB7B48",
+      "bytes": 2403
+    },
+    {
+      "path": "playback-before.json",
+      "sha256": "D9F089BE524AF00ACE88F7CE9F2CE5AF326DEF72C1C4591DEA9961EC2E1FCFBB",
+      "bytes": 398
+    },
+    {
+      "path": "playback-unity.json",
+      "sha256": "333DF35579839A9B915A507F7630C8C777D14733A4A4ECA18723B3DADA019CDD",
+      "bytes": 228
+    },
+    {
+      "path": "provision-record.ps1",
+      "sha256": "437B5769B823CDB6A169204A3AB6BABE91D4F2AFF5A0202D51B5962640450FDE",
+      "bytes": 4884
+    },
+    {
+      "path": "provisioning.json",
+      "sha256": "78A289EB10EFD861262DE1F3AC7747125ECB0625736E86CDC7BF62F4D1C4A719",
+      "bytes": 189427
+    },
+    {
+      "path": "runs\\16000-1-f32.unqualified.txt",
+      "sha256": "9CF43395F9C2F54DC838D5E605D9C335C29C7997B98A168D7377101C7AB25FD6",
+      "bytes": 120
+    },
+    {
+      "path": "runs\\16000-1-s16.unqualified.txt",
+      "sha256": "7CD83A8D1C66245A912E504882E5F7D130B485EBB2D850A49534E0D27240998B",
+      "bytes": 120
+    },
+    {
+      "path": "runs\\16000-2-f32.unqualified.txt",
+      "sha256": "E9D8BF15FEC52F98E3C9D16A5D59F417FC3A06FE54D69CD30C5BBBBCE575CF9C",
+      "bytes": 120
+    },
+    {
+      "path": "runs\\16000-2-s16.unqualified.txt",
+      "sha256": "3A354C7FC177468F2E3FBF96B99F0543F536F09A82B732B2D256F8E338BA893A",
+      "bytes": 120
+    },
+    {
+      "path": "runs\\24000-1-f32.unqualified.txt",
+      "sha256": "EB23EE3AAF6DADE4E6DF4967AD0FB8F29F4E7F0614626CFCD4571DCBDAF6616B",
+      "bytes": 120
+    },
+    {
+      "path": "runs\\24000-1-s16.unqualified.txt",
+      "sha256": "20C86F2B1B44CE98D5D96912B5CF3FE9B3406E861F209A804BD0A93D80C38036",
+      "bytes": 120
+    },
+    {
+      "path": "runs\\24000-2-f32.unqualified.txt",
+      "sha256": "BCD1C576E72C6204FAFA8740E1419D7C965A9D9BA26EE743FAF2374B1450AAEB",
+      "bytes": 120
+    },
+    {
+      "path": "runs\\24000-2-s16.unqualified.txt",
+      "sha256": "0EE1C177E2152097D20B07AA8512682DF83485E282AD5A9D13FEF1599CED7A65",
+      "bytes": 120
+    },
+    {
+      "path": "runs\\44100-1-f32.unqualified.txt",
+      "sha256": "6DC5CFE24DCBC179BBDE2E4162CE6B0F4C87CD6662F03544F14B04255CF533B4",
+      "bytes": 120
+    },
+    {
+      "path": "runs\\44100-1-s16.unqualified.txt",
+      "sha256": "6E6FD18A622C7F15F6FA3A032E3E20ECD48AF179B38C862718F2A504C45467C7",
+      "bytes": 120
+    },
+    {
+      "path": "runs\\44100-2-f32.unqualified.txt",
+      "sha256": "DB1B17EBC19CD7628743C8341D55F1BC12FC673FD203E1846DB6FEEF033CD570",
+      "bytes": 120
+    },
+    {
+      "path": "runs\\44100-2-s16.unqualified.txt",
+      "sha256": "CCB3907D30C84D5AB64BB4B0B2246595719664797E2A5C76996DAB8531C4A916",
+      "bytes": 120
+    },
+    {
+      "path": "runs\\48000-1-f32.unqualified.txt",
+      "sha256": "DC5CFF187F437F9C70DB8819C72C2956C957FECADC44F7B0D9D4E41D9BD5614C",
+      "bytes": 120
+    },
+    {
+      "path": "runs\\48000-1-s16.unqualified.txt",
+      "sha256": "FC5423296E1F44420FE3F5A56F2C673F220096BBECFD0D79635914AF238FBF25",
+      "bytes": 120
+    },
+    {
+      "path": "runs\\48000-2-f32-primed.log",
+      "sha256": "DE8903027EB8A8D80F2DB6C887AF8942A6C9724AF6431014C2E1E5052A95B505",
+      "bytes": 10592
+    },
+    {
+      "path": "runs\\48000-2-f32-unprimed.log",
+      "sha256": "2104C050D7797EF8F649707FE0AD5CAD48D01164A63F2A4BA8AD84CD2301DFFB",
+      "bytes": 10332
+    },
+    {
+      "path": "runs\\48000-2-s16-primed.log",
+      "sha256": "57BC45B27FF00DE750CC163BF721A00042E7EF6E4AAFEDAAB1F59958F7D1F749",
+      "bytes": 10745
+    },
+    {
+      "path": "runs\\48000-2-s16-unprimed.log",
+      "sha256": "A5A13C67F030AE9A70C7853D919871950280F3D81C89BCC20156A0C4DEA1BDD1",
+      "bytes": 10366
+    },
+    {
+      "path": "runs\\diagnostic-f32-native.log",
+      "sha256": "3F543E9416D8656786C03B26A6263F61E597483521D53C3417213492CE392DE1",
+      "bytes": 7644
+    },
+    {
+      "path": "runs\\diagnostic-s16-native.log",
+      "sha256": "B174FD2EBD1E7E5212ECCCFF9D3481A61AF5D18B5D9EA998FF93E342C63D0622",
+      "bytes": 7920
+    },
+    {
+      "path": "runs\\fixtures\\0\\fixture-validation.json",
+      "sha256": "EAC3D516C1FEB9F27E050C207E280C0BC684E8E27A1F85A83976F07D02F8BA13",
+      "bytes": 5840
+    },
+    {
+      "path": "runs\\sandbox-diagnostics.zip",
+      "sha256": "882EE05772937BF30DC865BCBB9F4DE42B8342EB099E3CDE1834E4B3EDF508D7",
+      "bytes": 1396
+    },
+    {
+      "path": "runs\\summary.json",
+      "sha256": "8C75EE4FB21313A4AF2D07C35B499E0EE2E171B2493B7848EE37CCEE03C88260",
+      "bytes": 710
+    },
+    {
+      "path": "runs\\sustained-aborted.txt",
+      "sha256": "A49671A238FE06F169C0C03F3E09331A2CAEBEEA53BB9C3B6756AEED687507DD",
+      "bytes": 151
+    },
+    {
+      "path": "runs\\sustained.log",
+      "sha256": "040F623AFBD8830549FB36E9E1B892CB1B7EB0DC60A07ACE3CC4F2354060BE7C",
+      "bytes": 1211
+    },
+    {
+      "path": "shure-level-after.json",
+      "sha256": "807B983DFFD8E4F0365C4081B8DA886777477097F3E4DEBC50DF46366767A8D6",
+      "bytes": 35
+    },
+    {
+      "path": "shure-level.json",
+      "sha256": "807B983DFFD8E4F0365C4081B8DA886777477097F3E4DEBC50DF46366767A8D6",
+      "bytes": 35
+    },
+    {
+      "path": "validation\\fixture-validation.json",
+      "sha256": "CD950D089D5EC29AB4C5B4861CD88F12D4E9D8CA2C6E5681A55945DDF13CF9CB",
+      "bytes": 5840
+    }
+  ],
+  "artifact_encoding": "Registry binary values losslessly encoded as base64 with byte count and SHA-256; UTF-16 text normalized to UTF-8."
+}

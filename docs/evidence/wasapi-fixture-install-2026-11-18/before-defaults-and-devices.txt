@@ -1,0 +1,10 @@
+1 playback Speakers (Steam Streaming Microphone)
+2 playback MOTIV Mix Virtual Input (Shure Virtual Audio)
+3 playback 38GN950 (2- NVIDIA High Definition Audio)
+4 playback Speakers (Steam Streaming Speakers)
+5 playback Headphones (2- Shure MV7+) [default]
+6 playback Headphones (Oculus Virtual Audio Device)
+7 capture Microphone (Steam Streaming Microphone)
+8 capture MOTIV Mix Virtual Output (Shure Virtual Audio)
+9 capture Headset Microphone (Oculus Virtual Audio Device)
+10 capture Microphone (2- Shure MV7+) [default]

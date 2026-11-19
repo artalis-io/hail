@@ -1,0 +1,25 @@
+{
+  "completed_utc": "2026-11-18T23:45:40.3832779+00:00",
+  "planned_cases": 16,
+  "executed_cases": 16,
+  "failed_cases": [],
+  "hail_qualification": "not performed by native-only program",
+  "physical_latency": "not measured",
+  "outcome": "fractional ramp not reproduced",
+  "passed_cases": 16,
+  "defaults_and_shure_settings_unchanged": true,
+  "asan_native_profile": "separate primed/7/16 pass; not part of fixed matrix",
+  "provenance": {
+    "matrix_source_commit": "83299c96cbd2378edc3a3023adf52eb90001bfb7",
+    "packaging_base_commit": "83299c96cbd2378edc3a3023adf52eb90001bfb7",
+    "source_sha256": "cb03550c8c4247963bd2315c8ab684a46be1864960e3d65a677b7fe36df13ca4",
+    "matrix_executable_sha256": "d510f6409fe5a18297f75e945e8e6192c58be3503f413d890914270c55725263",
+    "compiler": "clang version 19.1.5\nTarget: x86_64-pc-windows-msvc\nThread model: posix\nInstalledDir: C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\Llvm\\x64\\bin",
+    "pipewire_review_source": "https://github.com/PipeWire/pipewire/blob/1.0.5/src/pipewire/stream.c"
+  },
+  "artifacts": {
+    "matrix.csv": "fbfb2605307c635f5db46e9c9cb2e9451094e20ccf8a28a255211e0789c5ad88",
+    "raw.zip": "3f261741807f449b6494a9d2dc32ea13bf76f2925a3d72b507837e4325303d96",
+    "standalone.zip": "96df2c6d9e5863fc44de4cd5a8a561b4fc3065a6fe2ca57168dafd419e1db997"
+  }
+}

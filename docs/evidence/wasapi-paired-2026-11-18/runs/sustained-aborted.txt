@@ -1,0 +1,1 @@
+Sustained child stopped after all four short cases failed the strict oracle; configuration requires diagnosis before another sustained qualification.

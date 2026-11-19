@@ -9,8 +9,19 @@ capture/playback, static/shared Debug/Release samples, 30 lifecycle cycles and a
 facts. Matching LLVM 23 ASan now passes device-free and native trials; LLVM 19's
 startup failure is preserved. Input settings were restored and no PCM retained.
 Owner-coordinated real USB loss/reopen now passes with fresh endpoint IDs/domains
-and balanced teardown. Controlled paired-fixture execution and calibrated physical
-timing remain outstanding; full production qualification is not claimed.
+and balanced teardown. The subsequent [VB-CABLE paired campaign](native-windows-paired-results.md)
+failed all four strict PCM cases despite successful driver/endpoint validation.
+Successful paired qualification and calibrated physical timing remain outstanding;
+full production qualification is not claimed.
+
+The later [stage-isolation report](wasapi-path-results.md) demonstrates exact
+low-grid F32 short/ASan paired trials after a test-only stop-tail boundary fix.
+Native SDK comparisons locate high-level render processing and S16 conversion
+noise independently of Hail. The original-profile and S16 exact failures remain
+retained; the full paired matrix is still incomplete.
+Later conditioned unprimed flush failed on fractional samples too; the initial
+ten-minute measured phase reported zero transport loss but failed the numerical
+frame minimum. The second sustained attempt was blocked by its short-case gate.
 
 ## Initial implementation-only pass (before physical authorization)
 

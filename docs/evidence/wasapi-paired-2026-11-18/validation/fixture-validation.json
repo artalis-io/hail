@@ -1,0 +1,143 @@
+{
+  "validated_utc": "2026-11-18T09:16:23.7811623+00:00",
+  "manifest_sha256": "5EF2E80C2302A70655CE43CE7E05D3855511B867D104FE47E5CFFB5507FB7B48",
+  "executable_sha256": "1A2FF945954FE26696877292D8E3688F85DD5727CDB56464DF7D8C4BB71024D4",
+  "fixture": {
+    "schema_version": 1,
+    "profile": "transparent-s16-grid",
+    "origin": "https://vb-audio.com/Cable/",
+    "version": "3.5.2.0",
+    "pnp_instance_id": "ROOT\\MEDIA\\0001",
+    "owner_approved": true,
+    "license_automation_approved": true,
+    "license_terms": "Owner-authorized standalone workflow evaluation only, per saved checkpoint and current user resumption. No purchase, redistribution or unattended driver installation approved. https://vb-audio.com/Services/licensing.htm",
+    "installation_procedure": "Owner installed staged signed package using standalone vendor setup and normal administrator consent; independently inspected installed driver and PnP ancestry after reboot.",
+    "reboot_record": "LastBootUpTime=2026-11-18T10:10:20.5000000+01:00; later than pre-install checkpoint 2026-11-18T08:54:06Z",
+    "exclusive": true,
+    "reservation_owner": "Hail qualification in this session; exact ROOT\\MEDIA\\0001 pair; no active sessions observed before reservation",
+    "reservation_expires_utc": "2026-11-18T13:16:19.4909463+01:00",
+    "unity_gain": true,
+    "effects_disabled": true,
+    "sample_rate": 48000,
+    "channels": 2,
+    "package": {
+      "path": "C:\\Users\\Mark\\artalis.io\\src\\hail\\build-wasapi-fixture\\VBCABLE_Driver_Pack46.zip",
+      "sha256": "BC44E8974191A5A2427D6C979E2DAB08DBB09925F3F435DFA2F0BA3E45B6EB90"
+    },
+    "driver": {
+      "path": "C:/Windows/System32/DriverStore/FileRepository/vbmmecable64_win10.inf_amd64_9ed1e8995f3f9e21/vbaudio_cable64_win10.sys",
+      "inf_name": "oem54.inf",
+      "signer_thumbprint": "6022340C9F4CB00307DF8DB036D392ADAC766212",
+      "sha256": "7EBCBBE7004D185F7B29613CD27FDC2DD71C1712224B767A74D2F66BDC33A7EF"
+    },
+    "capture": {
+      "key": "{0.0.1.00000000}.{87d84b71-17b7-4d13-89df-b4b95b98aa6d}",
+      "pnp_instance_id": "SWD\\MMDEVAPI\\{0.0.1.00000000}.{87d84b71-17b7-4d13-89df-b4b95b98aa6d}"
+    },
+    "playback": {
+      "key": "{0.0.0.00000000}.{266bf420-96a2-47b5-a831-f6a6dbc0ae03}",
+      "pnp_instance_id": "SWD\\MMDEVAPI\\{0.0.0.00000000}.{266bf420-96a2-47b5-a831-f6a6dbc0ae03}"
+    },
+    "configuration_evidence": "provisioning.json and capture-before/playback-unity.json: matching 48k stereo, unity master/channel gains, unmuted, no active sessions; empty endpoint FxProperties and no APO/effect registration in vendor INF. No physical monitoring configured by this session; native exact PCM remains mandatory."
+  },
+  "signature_status": "Valid",
+  "installed_driver": {
+    "DeviceID": "ROOT\\MEDIA\\0001",
+    "DriverVersion": "3.5.2.0",
+    "InfName": "oem54.inf",
+    "IsSigned": true,
+    "Signer": "Microsoft Windows Hardware Compatibility Publisher"
+  },
+  "hail_endpoints": [
+    {
+      "direction": 2,
+      "key": "{0.0.0.00000000}.{0462fff5-ebb6-47fe-982d-1a1114cb76c8}",
+      "name": "Speakers (Steam Streaming Microphone)"
+    },
+    {
+      "direction": 2,
+      "key": "{0.0.0.00000000}.{140f121a-9803-43bc-8295-174939be1a2c}",
+      "name": "MOTIV Mix Virtual Input (Shure Virtual Audio)"
+    },
+    {
+      "direction": 2,
+      "key": "{0.0.0.00000000}.{256018b9-c333-46d7-8159-70752e88dbf9}",
+      "name": "38GN950 (2- NVIDIA High Definition Audio)"
+    },
+    {
+      "direction": 2,
+      "key": "{0.0.0.00000000}.{266bf420-96a2-47b5-a831-f6a6dbc0ae03}",
+      "name": "CABLE Input (VB-Audio Virtual Cable)"
+    },
+    {
+      "direction": 2,
+      "key": "{0.0.0.00000000}.{5e7d3e18-4987-4d5d-a10f-af0bcdcba10b}",
+      "name": "Speakers (Steam Streaming Speakers)"
+    },
+    {
+      "direction": 2,
+      "key": "{0.0.0.00000000}.{6e8c8429-b7e1-4431-b05c-86a29ef73477}",
+      "name": "Headphones (2- Shure MV7+)"
+    },
+    {
+      "direction": 2,
+      "key": "{0.0.0.00000000}.{81a6d660-02fb-4183-9930-2e72182f3f43}",
+      "name": "Headphones (Oculus Virtual Audio Device)"
+    },
+    {
+      "direction": 2,
+      "key": "{0.0.0.00000000}.{d032c822-934c-4468-af76-62e00b56851d}",
+      "name": "CABLE In 16ch (VB-Audio Virtual Cable)"
+    },
+    {
+      "direction": 1,
+      "key": "{0.0.1.00000000}.{007426d2-00af-4b76-b34b-03ca2b15eb0e}",
+      "name": "Microphone (Steam Streaming Microphone)"
+    },
+    {
+      "direction": 1,
+      "key": "{0.0.1.00000000}.{32da0ca2-3280-4999-9858-b2826fd04239}",
+      "name": "MOTIV Mix Virtual Output (Shure Virtual Audio)"
+    },
+    {
+      "direction": 1,
+      "key": "{0.0.1.00000000}.{764df5ca-f8d6-486d-8435-ad13f93b8105}",
+      "name": "Headset Microphone (Oculus Virtual Audio Device)"
+    },
+    {
+      "direction": 1,
+      "key": "{0.0.1.00000000}.{87d84b71-17b7-4d13-89df-b4b95b98aa6d}",
+      "name": "CABLE Output (VB-Audio Virtual Cable)"
+    },
+    {
+      "direction": 1,
+      "key": "{0.0.1.00000000}.{bf16f049-5379-4d2e-a4d9-a15a142424d8}",
+      "name": "Microphone (2- Shure MV7+)"
+    }
+  ],
+  "os": {
+    "Caption": "Microsoft Windows 11 Pro",
+    "Version": "10.0.26300",
+    "BuildNumber": "26300",
+    "OSArchitecture": "64-bit"
+  },
+  "cpu": {
+    "Name": "AMD Ryzen 9 5950X 16-Core Processor            ",
+    "NumberOfLogicalProcessors": 32
+  },
+  "services": [
+    {
+      "Name": "AudioEndpointBuilder",
+      "Status": 4
+    },
+    {
+      "Name": "Audiosrv",
+      "Status": 4
+    }
+  ],
+  "power": "Power Scheme GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c  (High performance)",
+  "source": "a9792ef7b80db7647c08b4a0c6d9ad278db1668e",
+  "working_tree": [
+    "?? docs/evidence/wasapi-paired-2026-11-18/"
+  ]
+}

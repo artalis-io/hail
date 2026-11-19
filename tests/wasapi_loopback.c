@@ -16,6 +16,24 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#if HA_WASAPI_DIAGNOSTICS
+#include "hail_internal.h"
+#include "wasapi_diagnostics.h"
+static hail_wa_diag sdk_trace;
+static void report_sdk_trace(void)
+{
+    unsigned leg,i;
+    for(leg=0;leg<2;++leg) {
+        hail_wa_diag_leg *t=&sdk_trace.leg[leg];
+        printf("sdk_boundary=%s frames=%llu fractional=%llu asymmetric=%llu nonfinite=%llu\n",leg?"render_buffer_before_release":"capture_buffer_before_hail",
+            (unsigned long long)t->frames,(unsigned long long)t->fractional,(unsigned long long)t->asymmetric,(unsigned long long)t->nonfinite);
+        for(i=0;i<t->examples;++i) {
+            hail_wa_diag_example *e=&t->example[i];
+            printf("sdk_example leg=%u host_ns=%llu position=%llu left_s16=%.17g right_s16=%.17g\n",leg,(unsigned long long)e->host_ns,(unsigned long long)e->position,(double)e->left*32768.0,(double)e->right*32768.0);
+        }
+    }
+}
+#endif
 
 #define Q 256u
 #define NS UINT64_C(1000000000)
@@ -29,6 +47,13 @@ static ha_stream *stream;
 static uint32_t rate=48000, channels=2, pcm=HA_PCM_F32, directions=HA_CAPTURE|HA_PLAYBACK;
 static unsigned seconds=5, physical, unprimed, instrumented;
 static unsigned lifecycle_cycles;
+static unsigned low_grid;
+static unsigned playback_slots=32,flush_delay_ms;
+/* Stop/reset discards pending PCM. Only the new generation has a continuity
+ * contract after restart; validate residual older samples, but do not assume
+ * their old sequence survived a deliberate stop/reset. I/O-owner state. */
+static unsigned restart_target;
+static uint64_t restart_tail_frames;
 static atomic_uint quit, write_generation, hold_capture, io_failed, io_ready, expect_loss;
 static atomic_ullong captured;
 /* The I/O thread owns all plain fields below until it has joined. */
@@ -95,6 +120,7 @@ static ha_device_selector select_key(const char *key,uint32_t direction)
     CHECK(matches==1); s.kind=HA_SELECT_PERSISTENT_KEY; s.key_bytes=(uint32_t)strlen(key);
     memcpy(s.key,key,s.key_bytes+1u); return s;
 }
+#include "wasapi_marker_trace.h"
 static void describe(const char *key,uint32_t direction)
 {
     static const GUID cls={0xbcde0395,0xe52f,0x467c,{0x8e,0x3d,0xc4,0x57,0x92,0x91,0x69,0x2e}};
@@ -155,19 +181,32 @@ static double sample(const pcm_buffer *p,uint32_t i)
 { return pcm==HA_PCM_F32?(double)p->f[i]:(double)p->s[i]/32768.0; }
 static void verify_frame(double left,double right)
 {
-    uint32_t value,marker,code;
+    uint32_t value,marker,code,span=low_grid?2048u:8192u;
     if(!isfinite(left) || !isfinite(right)) { ++bad; return; }
     if(fabs(left)>capture_peak) capture_peak=fabs(left);
     capture_square+=left*left; ++capture_samples;
     if(left==0 && right==0) { ++zero_frames; return; }
     ++nonzero_frames;
     if(physical) return;
-    if(left<0.25 || left>=1.0 || right!=-left || left*32768.0!=(double)(uint32_t)(left*32768.0)) { ++bad; return; }
-    value=(uint32_t)(left*32768.0); marker=value/8192u; code=value&8191u;
-    if(marker<1 || marker>3 || (seen && marker<last_marker)) { ++bad; return; }
-    if(seen && marker==last_marker && code!=((last_code+1u)&8191u)) {
-        if(instrumented && gap_credit && ((code-last_code-1u)&8191u)<4096u) gap_credit=0;
-        else ++bad;
+    if(left<(double)span/32768.0 || left>=(double)(span*4u)/32768.0 || right!=-left || left*32768.0!=(double)(uint32_t)(left*32768.0)) {
+        if(bad<8) printf("oracle_sample_failure phase=%u left_s16_grid=%.17g right_s16_grid=%.17g\n",atomic_load(&phase),left*32768.0,right*32768.0);
+        ++bad; return;
+    }
+    value=(uint32_t)(left*32768.0); marker=value/span; code=value&(span-1u);
+    if(marker<1 || marker>3 || (seen && marker<last_marker)) {
+        if(bad<8) printf("oracle_marker_failure phase=%u marker=%u previous_marker=%u code=%u\n",atomic_load(&phase),marker,last_marker,code);
+        ++bad; return;
+    }
+    if(restart_target && marker<restart_target) {
+        ++restart_tail_frames; seen=1; last_marker=marker; last_code=code; return;
+    }
+    if(restart_target) restart_target=0;
+    if(seen && marker==last_marker && code!=((last_code+1u)&(span-1u))) {
+        if(instrumented && gap_credit && ((code-last_code-1u)&(span-1u))<span/2u) gap_credit=0;
+        else {
+            if(bad<8) printf("oracle_sequence_failure phase=%u marker=%u code=%u previous_code=%u gap_credit=%u\n",atomic_load(&phase),marker,code,last_code,gap_credit);
+            ++bad;
+        }
     }
     seen=1; last_marker=marker; last_code=code; ++verified[marker];
     if(!marker_capture_ns[marker]) marker_capture_ns[marker]=observation_ns;
@@ -217,6 +256,12 @@ static void read_capture(void)
         }
         for(i=0;i<n;++i) {
             double left=sample(&p,i*channels), right=channels==2?sample(&p,i*channels+1u):-left;
+            if(marker_trace) {
+                uint64_t host=b.host_time_ns+(uint64_t)i*NS/rate;
+                trace_observe(TRACE_HAIL,left,right,host,b.device_position+i,b.flags);
+                if(marker_taps && (b.flags&(HA_TIME_HOST_VALID|HA_TIME_DEVICE_VALID))==(HA_TIME_HOST_VALID|HA_TIME_DEVICE_VALID))
+                    trace_pair(0,b.device_position+i,host,(float)left,(float)right);
+            }
             verify_frame(left,right);
         }
     }
@@ -231,15 +276,16 @@ static void drain_reference(void)
         if(r==HA_INVALID_STATE && atomic_load(&expect_loss)) return;
         if(r!=HA_OK || !n || n>Q) { atomic_store(&io_failed,1); return; }
         reference_frames+=n;
+        if(marker_trace) for(i=0;i<n;++i) trace_observe(TRACE_REFERENCE,sample(&p,i*channels),sample(&p,i*channels+1u),b.host_time_ns+(uint64_t)i*NS/rate,b.first_frame+i,b.flags);
         if(b.flags&HA_BLOCK_SILENCE) for(i=0;i<n;++i) if(sample(&p,i*channels)==0) ++reference_silence;
         if(b.flags&HA_TIME_DEVICE_VALID) ++bad; /* WASAPI render does not report DAC frames. */
     }
 }
 static void pattern(pcm_buffer *p,uint32_t marker,uint32_t position)
 {
-    uint32_t i,c;
+    uint32_t i,c,span=low_grid?2048u:8192u;
     for(i=0;i<Q;++i) {
-        int32_t value=(int32_t)(marker*8192u+((position+i)&8191u));
+        int32_t value=(int32_t)(marker*span+((position+i)&(span-1u)));
         if(physical) { int32_t t=(int32_t)((position+i)%96u); value=(t<48?t:96-t)*21-504; }
         for(c=0;c<channels;++c) {
             int32_t v=c?-value:value;
@@ -251,10 +297,12 @@ static void pattern(pcm_buffer *p,uint32_t marker,uint32_t position)
 static DWORD WINAPI io_worker(void *unused)
 {
     uint32_t generation=1,position=unprimed?0u:8u*Q; uint64_t previous=now_ns(); (void)unused;
+    trace_start();
     atomic_store(&io_ready,1);
     while(!atomic_load(&quit)) {
         unsigned attempt; uint32_t wanted=atomic_load(&write_generation); uint64_t current=now_ns(),elapsed=current-previous;
         previous=current; ++io_hist[elapsed/1000000u<1023?elapsed/1000000u:1023]; if(elapsed>io_max) io_max=elapsed;
+        trace_drain();
         if((directions&HA_CAPTURE) && !atomic_load(&hold_capture)) read_capture();
         if(directions&HA_PLAYBACK) drain_reference();
         if(wanted && (directions&HA_PLAYBACK)) {
@@ -271,6 +319,7 @@ static DWORD WINAPI io_worker(void *unused)
         }
         Sleep(1);
     }
+    trace_stop();
     return 0;
 }
 static void launch_io(uint32_t generation)
@@ -283,6 +332,7 @@ static void join_io(void)
 {
     atomic_store(&quit,1); CHECK(WaitForSingleObject(io_thread,5000)==WAIT_OBJECT_0);
     CHECK(CloseHandle(io_thread)); io_thread=NULL; CHECK(!atomic_load(&io_failed));
+    trace_report();
 }
 static void run_for(unsigned ms)
 {
@@ -298,7 +348,13 @@ static void close_stream(void)
 {
     uint64_t deadline=now_ns()+5u*NS; ha_result r;
     CHECK(ha_stream_close_begin(stream)==HA_PENDING);
-    do { progress(); r=ha_stream_close_finish(&stream); CHECK(r==HA_OK || r==HA_PENDING); CHECK(now_ns()<deadline); Sleep(1); } while(r==HA_PENDING);
+    do {
+        progress();
+#if HA_WASAPI_DIAGNOSTICS
+        if(stream->retire_ready) sdk_trace=*(const hail_wa_diag *)stream->backend_state;
+#endif
+        r=ha_stream_close_finish(&stream); CHECK(r==HA_OK || r==HA_PENDING); CHECK(now_ns()<deadline); Sleep(1);
+    } while(r==HA_PENDING);
     CHECK(!stream && ha_stream_close_finish(&stream)==HA_OK);
 }
 static unsigned number(const char *s,unsigned min,unsigned max)
@@ -309,13 +365,24 @@ static unsigned number(const char *s,unsigned min,unsigned max)
 static int oracle_self_test(void)
 {
     uint32_t format,c,m,i; uint64_t previous_bad;
+    double first=low_grid?0.0625:0.25;
+    double second=low_grid?0.125:0.5;
+    double third=low_grid?0.1875:0.75;
+    unsigned base=low_grid?2048u:8192u;
     /* Hand-authored values independently exercise the oracle's negative paths. */
     verify_frame(0,0); CHECK(!nonzero_frames && !verified[1] && !verified[2] && !verified[3]);
-    verify_frame(0.25,-0.25); verify_frame(8193.0/32768.0,-8193.0/32768.0); CHECK(!bad && verified[1]==2);
-    previous_bad=bad; verify_frame(0.25,0.25); CHECK(bad==previous_bad+1);
-    previous_bad=bad; verify_frame(8195.0/32768.0,-8195.0/32768.0); CHECK(bad==previous_bad+1);
-    verify_frame(0.5,-0.5); previous_bad=bad; verify_frame(0.25,-0.25); CHECK(bad==previous_bad+1);
-    previous_bad=bad; verify_frame(0.25001,-0.25001); CHECK(bad==previous_bad+1);
+    verify_frame(first,-first); verify_frame((base+1.0)/32768.0,-(base+1.0)/32768.0); CHECK(!bad && verified[1]==2);
+    previous_bad=bad; verify_frame(first,first); CHECK(bad==previous_bad+1);
+    previous_bad=bad; verify_frame((base+3.0)/32768.0,-(base+3.0)/32768.0); CHECK(bad==previous_bad+1);
+    verify_frame(second,-second); previous_bad=bad; verify_frame(first,-first); CHECK(bad==previous_bad+1);
+    previous_bad=bad; verify_frame(first+0.00001,-first-0.00001); CHECK(bad==previous_bad+1);
+    bad=0; seen=0; restart_target=3;
+    verify_frame(second,-second); verify_frame(second+17.0/32768.0,-second-17.0/32768.0);
+    CHECK(!bad && restart_tail_frames==2 && restart_target==3);
+    previous_bad=bad; verify_frame(second,second); CHECK(bad==previous_bad+1 && restart_target==3);
+    verify_frame(third,-third); CHECK(restart_target==0);
+    previous_bad=bad; verify_frame(third+2.0/32768.0,-third-2.0/32768.0); CHECK(bad==previous_bad+1);
+    previous_bad=bad; verify_frame(second,-second); CHECK(bad==previous_bad+1);
     for(format=HA_PCM_S16;format<=HA_PCM_F32;++format) for(c=1;c<=2;++c) {
         pcm=format; channels=c; bad=0; seen=0;
         for(m=1;m<=3;++m) {
@@ -414,11 +481,14 @@ int main(int argc,char **argv)
     CHECK(frequency<=UINT64_MAX/NS);
     CHECK(setvbuf(stdout,NULL,_IONBF,0)==0);
     if(argc==2 && !strcmp(argv[1],"--self-test")) return oracle_self_test();
+    if(argc==2 && !strcmp(argv[1],"--self-test-low-grid")) { low_grid=1; return oracle_self_test(); }
+    if(argc==2 && !strcmp(argv[1],"--self-test-marker-trace")) return trace_self_test();
     for(i=1;i<(unsigned)argc;++i) {
         if(!strcmp(argv[i],"--list")) list=1;
         else if(!strcmp(argv[i],"--physical")) physical=1;
         else if(!strcmp(argv[i],"--unprimed")) unprimed=1;
         else if(!strcmp(argv[i],"--instrumented")) instrumented=1;
+        else if(!strcmp(argv[i],"--low-grid")) low_grid=1;
         else {
             CHECK(i+1u<(unsigned)argc);
             if(!strcmp(argv[i],"--capture")) capture_key=argv[++i];
@@ -426,6 +496,13 @@ int main(int argc,char **argv)
             else if(!strcmp(argv[i],"--loss-events")) loss_events=argv[++i];
             else if(!strcmp(argv[i],"--seconds")) seconds=number(argv[++i],1,3600);
             else if(!strcmp(argv[i],"--lifecycle-cycles")) lifecycle_cycles=number(argv[++i],1,256);
+            else if(!strcmp(argv[i],"--playback-slots")) { playback_slots=number(argv[++i],8,32); CHECK(playback_slots==8 || playback_slots==32); }
+            else if(!strcmp(argv[i],"--flush-delay-ms")) flush_delay_ms=number(argv[++i],0,1000);
+            else if(!strcmp(argv[i],"--marker-taps")) {
+                const char *mode=argv[++i]; marker_trace=1;
+                CHECK(!strcmp(mode,"none") || !strcmp(mode,"capture") || !strcmp(mode,"both"));
+                marker_taps=!strcmp(mode,"both")?2u:!strcmp(mode,"capture")?1u:0u;
+            }
             else if(!strcmp(argv[i],"--rate")) rate=number(argv[++i],8000,192000);
             else if(!strcmp(argv[i],"--channels")) channels=number(argv[++i],1,2);
             else if(!strcmp(argv[i],"--pcm")) { ++i; CHECK(!strcmp(argv[i],"s16") || !strcmp(argv[i],"f32")); pcm=!strcmp(argv[i],"s16")?HA_PCM_S16:HA_PCM_F32; }
@@ -443,9 +520,18 @@ int main(int argc,char **argv)
         CHECK(ha_context_destroy(&context)==HA_OK); CHECK(!live_bytes && allocations==frees); return 0;
     }
     directions=(capture_key?HA_CAPTURE:0u)|(playback_key?HA_PLAYBACK:0u);
+    CHECK(!marker_trace || (!physical && low_grid && pcm==HA_PCM_F32 && rate==48000 && channels==2 && capture_key && playback_key));
+#if HA_WASAPI_DIAGNOSTICS
+    CHECK(!physical && low_grid && pcm==HA_PCM_F32 && rate==48000 && channels==2 && capture_key && playback_key);
+#endif
+    trace_capture_key=capture_key; trace_playback_key=playback_key;
+    printf("numerical_profile=%s\n",low_grid?"transparent-s16-grid-low-v1":"transparent-s16-grid");
+#if HA_WASAPI_DIAGNOSTICS
+    printf("diagnostic_profile=wasapi-sdk-boundary opt_in_static_build=1 sdk_observer_opens_clients=0 marker_tap_clients=%u numerical_tolerance=0\n",marker_taps);
+#endif
     CHECK(directions && (physical || directions==(HA_CAPTURE|HA_PLAYBACK)));
     sc.directions=directions; sc.negotiation=HA_EXACT_APPLICATION;
-    sc.quantum_frames=Q; sc.capture_slots=capture_key?32u:0u; sc.playback_slots=playback_key?32u:0u; sc.reference_slots=playback_key?64:0;
+    sc.quantum_frames=Q; sc.capture_slots=capture_key?32u:0u; sc.playback_slots=playback_key?playback_slots:0u; sc.reference_slots=playback_key?64:0;
     { ha_format format=HA_FORMAT_INIT(rate,channels,pcm); sc.capture_format=format; sc.playback_format=format; }
     if(capture_key) { sc.capture_device=select_key(capture_key,HA_CAPTURE); describe(capture_key,HA_CAPTURE); }
     if(playback_key) { sc.playback_device=select_key(playback_key,HA_PLAYBACK); describe(playback_key,HA_PLAYBACK); }
@@ -489,6 +575,8 @@ int main(int argc,char **argv)
     if(!instrumented) CHECK(after.capture_lost_frames==baseline.capture_lost_frames && after.playback_underrun_frames==baseline.playback_underrun_frames && after.reference_lost_frames==baseline.reference_lost_frames && !steady_gaps && !steady_clocks);
     if(playback_key) {
         uint64_t new_generation,deadline=now_ns()+5u*NS;
+        uint64_t delay_begin=now_ns(); run_for(flush_delay_ms);
+        printf("flush_setup playback_slots=%u requested_delay_ms=%u observed_delay_ns=%llu marker_taps=%u\n",playback_slots,flush_delay_ms,(unsigned long long)(now_ns()-delay_begin),marker_taps);
         begin=now_ns(); flush_request_ns=begin; capture_at_flush=atomic_load(&captured);
         atomic_store(&phase,2); preflush_gaps=atomic_load(&metadata_gaps); preflush_clocks=atomic_load(&clock_changes);
         CHECK(ha_stream_flush_playback(stream,HA_FLUSH_NATIVE_REQUIRED,&new_generation)==HA_PENDING);
@@ -503,6 +591,7 @@ int main(int argc,char **argv)
         printf("flush_capture_metadata_gaps=%llu flush_capture_epoch_changes=%llu\n",(unsigned long long)flush_gaps,(unsigned long long)flush_clocks);
         if(!instrumented) CHECK(!flush_gaps && !flush_clocks);
         if(!physical) {
+            printf("oracle_before_restart verified_A=%llu verified_B=%llu bad=%llu\n",(unsigned long long)verified[1],(unsigned long long)verified[2],(unsigned long long)bad);
             CHECK(verified[1]>rate/3u && verified[2]>rate/3u);
             if(!instrumented) CHECK(!metadata_gaps && !clock_changes);
         }
@@ -511,6 +600,7 @@ int main(int argc,char **argv)
     generation=(uint32_t)status().playback_generation;
     last_frame=last_epoch=last_raw=last_host=0; capture_blocks=0; seen=0; gap_credit=0;
     atomic_store(&phase,3);
+    if(!physical) restart_target=3;
     CHECK(ha_stream_start(stream)==HA_PENDING); await_state(HA_RUNNING); launch_io(playback_key?generation:0u); run_for(1000);
     if(playback_key) { atomic_store(&write_generation,0); run_for(400); }
     starved=status();
@@ -519,6 +609,7 @@ int main(int argc,char **argv)
     if(capture_key) { atomic_store(&hold_capture,1); run_for(32u*Q*1000u/rate+200u); atomic_store(&hold_capture,0); run_for(500); }
     overflow=status(); if(capture_key) CHECK(overflow.capture_lost_frames>starved.capture_lost_frames);
     join_io();
+    printf("restart_old_tail_frames=%llu\n",(unsigned long long)restart_tail_frames);
     printf("injected_capture_loss_frames=%llu injected_playback_underrun_frames=%llu host_valid_blocks=%llu device_valid_blocks=%llu native_silent_blocks=%llu unknown_gap_blocks=%llu meaningful_capture_minus90dbfs=%u\n",
         (unsigned long long)(overflow.capture_lost_frames-starved.capture_lost_frames),
         (unsigned long long)(starved.playback_underrun_frames-after.playback_underrun_frames),
@@ -545,10 +636,13 @@ int main(int argc,char **argv)
         printf("last_A_capture_read_relative_to_flush_request_ns=%lld downstream_software_path_only=1\n",
             (long long)((int64_t)marker_last_capture_ns[1]-(int64_t)flush_request_ns));
     }
+#if HA_WASAPI_DIAGNOSTICS
+    close_stream(); report_sdk_trace();
+#endif
     if(!physical) CHECK(verified[3]>rate/3u);
     CHECK(!bad); if(capture_key) CHECK(nonzero_frames>rate/3u);
     if(playback_key) CHECK(reference_silence>0);
-    close_stream(); CHECK(ha_context_destroy(&context)==HA_OK && !context);
+    if(stream) close_stream(); CHECK(ha_context_destroy(&context)==HA_OK && !context);
     CHECK(ha_context_destroy(&context)==HA_OK && allocations==frees && !live_bytes);
     printf("PASS allocations=%llu frees=%llu ledger_bytes=%llu\n",(unsigned long long)allocations,(unsigned long long)frees,(unsigned long long)live_bytes);
     return 0;

@@ -13,11 +13,42 @@ static const GUID cls={0xbcde0395,0xe52f,0x467c,{0x8e,0x3d,0xc4,0x57,0x92,0x91,0
 static const GUID en={0xa95664d2,0x9614,0x4f35,{0xa7,0x46,0xde,0x8d,0xb6,0x36,0x17,0xe6}};
 static const GUID ep={0x1be09788,0x6894,0x4089,{0x85,0x86,0x9a,0x2a,0x6c,0x26,0x5a,0xc5}};
 static const GUID vol={0x5cdf2c82,0x841e,0x4546,{0x97,0x22,0x0c,0xf7,0x40,0x78,0x22,0x9a}};
+static void json_key(const char *key)
+{
+    const unsigned char *p=(const unsigned char *)key; putchar('"');
+    for(;*p;++p) {
+        if(*p=='"' || *p=='\\') { putchar('\\'); putchar(*p); }
+        else if(*p<32) printf("\\u%04x",*p);
+        else putchar(*p);
+    }
+    putchar('"');
+}
+static int defaults(void)
+{
+    IMMDeviceEnumerator *enumerator=NULL; HRESULT hr; unsigned flow,role; int failed=0;
+    hr=CoInitializeEx(NULL,COINIT_MULTITHREADED); if(FAILED(hr)) return 1;
+    hr=CoCreateInstance(&cls,NULL,CLSCTX_ALL,&en,(void **)&enumerator);
+    if(FAILED(hr)) { CoUninitialize(); return 1; }
+    for(flow=0;flow<2;++flow) for(role=0;role<3;++role) {
+        IMMDevice *device=NULL; LPWSTR id=NULL; char key[2048];
+        hr=IMMDeviceEnumerator_GetDefaultAudioEndpoint(enumerator,flow?eCapture:eRender,(ERole)role,&device);
+        if(SUCCEEDED(hr)) hr=IMMDevice_GetId(device,&id);
+        if(SUCCEEDED(hr) && (!id || !WideCharToMultiByte(CP_UTF8,WC_ERR_INVALID_CHARS,id,-1,key,sizeof(key),NULL,NULL))) hr=E_FAIL;
+        printf("{\"direction\":%u,\"role\":%u,\"key\":",flow?1u:2u,role);
+        if(SUCCEEDED(hr)) json_key(key); else printf("null");
+        printf(",\"native_code\":%ld}\n",(long)hr);
+        if(FAILED(hr) && hr!=HRESULT_FROM_WIN32(ERROR_NOT_FOUND)) failed=1;
+        if(id) CoTaskMemFree(id);
+        if(device) IMMDevice_Release(device);
+    }
+    IMMDeviceEnumerator_Release(enumerator); CoUninitialize(); return failed;
+}
 int main(int argc,char **argv)
 {
     IMMDeviceEnumerator *enumerator=NULL; IMMDevice *device=NULL; IMMEndpoint *endpoint=NULL;
     IAudioEndpointVolume *volume=NULL; WCHAR key[512]; HRESULT hr; EDataFlow direction=eAll;
     float gain=0,target=0; BOOL muted=FALSE; char *end=NULL; unsigned setting=0;
+    if(argc==2 && !strcmp(argv[1],"--defaults")) return defaults();
     if(argc!=2 && argc!=4) return 2;
     if(argc==4) {
         double requested=strtod(argv[2],&end);

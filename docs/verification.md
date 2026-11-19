@@ -13,6 +13,13 @@ Source hashes, tool versions and per-target results are recorded in
 
 ## Current executed evidence
 
+The [standalone native WASAPI follow-up](wasapi-native-only-results.md) passes
+all 16 predeclared exact low-grid cases and a separate native ASan profile.
+The ramp did not reproduce in that reduced scheduling/priming model; earlier
+Hail SDK-boundary failures remain unresolved. The subsequent
+[C audit](c-audit-2026-11-19.md) and [axis audit](axis-audit.md) record current
+Windows checks and source-only coverage of other platforms.
+
 Owner-authorized [Shure Windows execution](native-windows-physical-results.md)
 now passes 32 strict duplex format/startup cases, standalone capture/playback,
 all static/shared Debug/Release samples, 30 native lifecycle cycles and a
@@ -21,8 +28,32 @@ changes. A real converted-capture clock-fact defect was fixed; all failed
 lower-rate cases are preserved. Matching LLVM 23 ASan passes device-free and
 native trials, including an independent intentional-overrun runtime check.
 Owner-coordinated real USB loss/reopen passed with fresh endpoint IDs/clock domains
-and balanced teardown. No microphone PCM was retained. Controlled paired-fixture,
-physical timestamp accuracy and calibrated latency remain unqualified.
+and balanced teardown. No microphone PCM was retained. The installed
+[VB-CABLE pair](native-windows-paired-results.md) then failed all four strict
+48 kHz stereo PCM cases. Controlled paired-fixture correctness, physical
+timestamp accuracy and calibrated latency remain unqualified.
+
+The subsequent [stage-isolation follow-up](wasapi-path-results.md) passes the
+separately predeclared low-grid F32 primed/unprimed short and native ASan cases.
+Independent SDK paths locate high-level render processing and S16 conversion
+noise; a demonstrated test-only old-tail continuity assertion was corrected
+with independent negative tests. These F32 subset results do not qualify the
+full original-profile/S16/rate/channel paired matrix.
+In particular, a later conditioned unprimed low-grid case failed on 479
+fractional flush-phase samples. The first ten-minute attempt had zero measured
+transport loss but failed its numerical frame minimum, and the second attempt
+was not started because the short-case precondition failed. No complete paired
+transition or sustained numerical pass is claimed.
+
+The [marker-stream follow-up](wasapi-marker-results.md) then executed all 24
+ordinary observer cells and all 16 SDK-boundary cells, once each. Each matrix
+retains one failure. The failing SDK capture lease already contains 478
+fractional frames while the submitted render buffer has none; eight captured
+examples exactly match Hail's output. All 7,012,128 aligned pairs in the
+extra-client passing cases match, but they do not reproduce or excuse the
+failure. Default builds, SDK-boundary builds, consumers/exports and native ASan
+diagnostics pass their separate checks; full exact native-transition
+qualification remains open at the Windows/virtual-cable path.
 
 On 2026-11-18, native Windows ClangCL static Debug/Release each passed nine
 device-free CTests; shared Debug/Release each passed five, and all four installed

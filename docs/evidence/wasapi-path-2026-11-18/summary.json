@@ -1,0 +1,1147 @@
+{
+  "recorded_utc": "2026-11-18T10:29:13.234139+00:00",
+  "source_head": "263466d8c0c6d8b8f8628dd96a492a2ea21f718a",
+  "numerical_profiles": {
+    "original": "failed and retained separately",
+    "low": "transparent-s16-grid-low-v1; exact zero tolerance; passing short/ASan cases but conditioned unprimed flush failed; sustained numerical minimum failed; S16 failed; no full pass"
+  },
+  "provenance": "Constant native runs use the audio-path source at 31fb55e; original executable hash not recorded. Corrected loopback trials use source at 4f54199. Final diagnostic bounds/observer builds are recorded by file hashes below.",
+  "sources": [
+    {
+      "path": "tests/wasapi_loopback.c",
+      "sha256": "9FEC728E1391D7ECA465FEAD1180ED704EE3598439FB2044C59C6A40CE5E3D90"
+    },
+    {
+      "path": "tests/wasapi_path.c",
+      "sha256": "974D1C96B81D0BD597C7030096ABDC57B5A75201E1954738CB6EF2269CA8DCF8"
+    }
+  ],
+  "executables": [
+    {
+      "path": "build-windows-validation/OFF-Release/hail_wasapi_loopback.exe",
+      "sha256": "C1A98EA9E8FDCD2DC8F6D1CDFB32F42333C98C9BB5A3BB75B34DC895E82D4C68"
+    },
+    {
+      "path": "build-windows-validation/OFF-Release/hail_wasapi_path.exe",
+      "sha256": "BB111373D4E7A44E9DC5E1C174439266899BEFF321FC17724694F06598073245"
+    },
+    {
+      "path": "build-windows-asan23/hail_wasapi_loopback.exe",
+      "sha256": "6FBF4562BA67ABDB30C7A093D452558EAAD48B0D5C5C6E0BF0519E6E9AD06606"
+    },
+    {
+      "path": "build-windows-asan23/hail_wasapi_path.exe",
+      "sha256": "794F3826F5EAB1C8A41AAB7E821471EE443BE78FFFBBFD877DADB3A1EB4E1343"
+    }
+  ],
+  "trials": [
+    {
+      "path": "condition-after-contamination.log",
+      "observations": [
+        "diagnostic=constant-s16-grid levels=8 phase_ms=1500 settle_ms=600 hail_pcm=2 oracle_tolerance=0 qualification=0",
+        "level=0 stage=hail_reference frames=42720 mismatches=0 nonzero=0 max_error_s16_units=0 flags=65",
+        "level=0 stage=native_render_loopback_f32 frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0",
+        "level=0 stage=native_cable_f32 frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0",
+        "level=0 stage=native_cable_s16 frames=43200 mismatches=17648 nonzero=17648 max_error_s16_units=1 flags=0",
+        "level=0 stage=hail_capture frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=3"
+      ]
+    },
+    {
+      "path": "condition-asan.log",
+      "observations": [
+        "diagnostic=constant-s16-grid levels=8 phase_ms=1500 settle_ms=600 hail_pcm=2 oracle_tolerance=0 qualification=0",
+        "level=0 stage=hail_reference frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=65",
+        "level=0 stage=native_render_loopback_f32 frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0",
+        "level=0 stage=native_cable_f32 frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0",
+        "level=0 stage=native_cable_s16 frames=43200 mismatches=17673 nonzero=17673 max_error_s16_units=1 flags=0",
+        "level=0 stage=hail_capture frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=3"
+      ]
+    },
+    {
+      "path": "condition-before-unprimed.log",
+      "observations": [
+        "diagnostic=constant-s16-grid levels=8 phase_ms=1500 settle_ms=600 hail_pcm=2 oracle_tolerance=0 qualification=0",
+        "level=0 stage=hail_reference frames=43680 mismatches=0 nonzero=0 max_error_s16_units=0 flags=65",
+        "level=0 stage=native_render_loopback_f32 frames=43680 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0",
+        "level=0 stage=native_cable_f32 frames=43680 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0",
+        "level=0 stage=native_cable_s16 frames=43680 mismatches=17838 nonzero=17838 max_error_s16_units=1 flags=0",
+        "level=0 stage=hail_capture frames=43680 mismatches=0 nonzero=0 max_error_s16_units=0 flags=3"
+      ]
+    },
+    {
+      "path": "constant-f32-asan-bounded.log",
+      "observations": [
+        "diagnostic=constant-s16-grid levels=8 phase_ms=1500 settle_ms=600 hail_pcm=2 oracle_tolerance=0 qualification=0",
+        "level=0 stage=hail_reference frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=65",
+        "level=0 stage=native_render_loopback_f32 frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0",
+        "level=0 stage=native_cable_f32 frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0",
+        "level=0 stage=native_cable_s16 frames=43200 mismatches=17667 nonzero=17667 max_error_s16_units=1 flags=0",
+        "level=0 stage=hail_capture frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=3",
+        "level=8192 stage=hail_reference frames=43680 mismatches=0 nonzero=43680 max_error_s16_units=0 flags=65",
+        "level=8192 stage=native_render_loopback_f32 frames=43680 mismatches=0 nonzero=43680 max_error_s16_units=0 flags=0",
+        "level=8192 stage=native_cable_f32 frames=43680 mismatches=0 nonzero=43680 max_error_s16_units=0 flags=0",
+        "level=8192 stage=native_cable_s16 frames=43680 mismatches=17827 nonzero=43680 max_error_s16_units=1 flags=0",
+        "level=8192 stage=hail_capture frames=43680 mismatches=0 nonzero=43680 max_error_s16_units=0 flags=3",
+        "level=16384 stage=hail_reference frames=42720 mismatches=0 nonzero=42720 max_error_s16_units=0 flags=65",
+        "level=16384 stage=native_render_loopback_f32 frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=0",
+        "level=16384 stage=native_cable_f32 frames=42720 mismatches=0 nonzero=42720 max_error_s16_units=0 flags=0",
+        "level=16384 stage=native_cable_s16 frames=42720 mismatches=17361 nonzero=42720 max_error_s16_units=1 flags=0",
+        "level=16384 stage=hail_capture frames=42720 mismatches=0 nonzero=42720 max_error_s16_units=0 flags=3",
+        "level=24576 stage=hail_reference frames=44160 mismatches=0 nonzero=44160 max_error_s16_units=0 flags=65",
+        "level=24576 stage=native_render_loopback_f32 frames=44160 mismatches=0 nonzero=44160 max_error_s16_units=0 flags=0",
+        "level=24576 stage=native_cable_f32 frames=44160 mismatches=0 nonzero=44160 max_error_s16_units=0 flags=0",
+        "level=24576 stage=native_cable_s16 frames=44160 mismatches=17940 nonzero=44160 max_error_s16_units=1 flags=0",
+        "level=24576 stage=hail_capture frames=44160 mismatches=0 nonzero=44160 max_error_s16_units=0 flags=3",
+        "level=30000 stage=hail_reference frames=42720 mismatches=0 nonzero=42720 max_error_s16_units=0 flags=65",
+        "level=30000 stage=native_render_loopback_f32 frames=42720 mismatches=0 nonzero=42720 max_error_s16_units=0 flags=0",
+        "level=30000 stage=native_cable_f32 frames=42720 mismatches=0 nonzero=42720 max_error_s16_units=0 flags=0",
+        "level=30000 stage=native_cable_s16 frames=42720 mismatches=17366 nonzero=42720 max_error_s16_units=1 flags=0",
+        "level=30000 stage=hail_capture frames=42720 mismatches=0 nonzero=42720 max_error_s16_units=0 flags=3",
+        "level=32000 stage=hail_reference frames=43680 mismatches=0 nonzero=43680 max_error_s16_units=0 flags=65",
+        "level=32000 stage=native_render_loopback_f32 frames=43680 mismatches=0 nonzero=43680 max_error_s16_units=0 flags=0",
+        "level=32000 stage=native_cable_f32 frames=43680 mismatches=0 nonzero=43680 max_error_s16_units=0 flags=0",
+        "level=32000 stage=native_cable_s16 frames=43680 mismatches=17717 nonzero=43680 max_error_s16_units=1 flags=0",
+        "level=32000 stage=hail_capture frames=43680 mismatches=0 nonzero=43680 max_error_s16_units=0 flags=3",
+        "level=32700 stage=hail_reference frames=43680 mismatches=0 nonzero=43680 max_error_s16_units=0 flags=65",
+        "level=32700 stage=native_render_loopback_f32 frames=43680 mismatches=43680 nonzero=43680 max_error_s16_units=423.5 flags=0",
+        "level=32700 stage=native_cable_f32 frames=43680 mismatches=43680 nonzero=43680 max_error_s16_units=423.5 flags=0",
+        "level=32700 stage=native_cable_s16 frames=43680 mismatches=43680 nonzero=43680 max_error_s16_units=425 flags=0",
+        "level=32700 stage=hail_capture frames=43680 mismatches=43680 nonzero=43680 max_error_s16_units=423.5 flags=3",
+        "level=0 stage=hail_reference frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=65",
+        "level=0 stage=native_render_loopback_f32 frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0",
+        "level=0 stage=native_cable_f32 frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0",
+        "level=0 stage=native_cable_s16 frames=43200 mismatches=17663 nonzero=17663 max_error_s16_units=1 flags=0",
+        "level=0 stage=hail_capture frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=3",
+        "COMPLETE diagnostic only; mismatches remain failures of transparency, not accepted conversion"
+      ]
+    },
+    {
+      "path": "constant-f32-fixed.log",
+      "observations": [
+        "diagnostic=constant-s16-grid levels=8 phase_ms=1500 settle_ms=600 hail_pcm=2 oracle_tolerance=0 qualification=0",
+        "level=0 stage=hail_reference frames=42720 mismatches=0 nonzero=0 max_error_s16_units=0 flags=65",
+        "level=0 stage=native_render_loopback_f32 frames=42720 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0",
+        "level=0 stage=native_cable_f32 frames=42720 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0",
+        "level=0 stage=native_cable_s16 frames=42720 mismatches=17463 nonzero=17463 max_error_s16_units=1 flags=0",
+        "level=0 stage=hail_capture frames=42720 mismatches=0 nonzero=0 max_error_s16_units=0 flags=3",
+        "level=8192 stage=hail_reference frames=43680 mismatches=0 nonzero=43680 max_error_s16_units=0 flags=65",
+        "level=8192 stage=native_render_loopback_f32 frames=43680 mismatches=0 nonzero=43680 max_error_s16_units=0 flags=0",
+        "level=8192 stage=native_cable_f32 frames=43680 mismatches=0 nonzero=43680 max_error_s16_units=0 flags=0",
+        "level=8192 stage=native_cable_s16 frames=43680 mismatches=17806 nonzero=43680 max_error_s16_units=1 flags=0",
+        "level=8192 stage=hail_capture frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=3",
+        "level=16384 stage=hail_reference frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=65",
+        "level=16384 stage=native_render_loopback_f32 frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=0",
+        "level=16384 stage=native_cable_f32 frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=0",
+        "level=16384 stage=native_cable_s16 frames=43200 mismatches=17564 nonzero=43200 max_error_s16_units=1 flags=0",
+        "level=16384 stage=hail_capture frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=3",
+        "level=24576 stage=hail_reference frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=65",
+        "level=24576 stage=native_render_loopback_f32 frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=0",
+        "level=24576 stage=native_cable_f32 frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=0",
+        "level=24576 stage=native_cable_s16 frames=43200 mismatches=17538 nonzero=43200 max_error_s16_units=1 flags=0",
+        "level=24576 stage=hail_capture frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=3",
+        "level=30000 stage=hail_reference frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=65",
+        "level=30000 stage=native_render_loopback_f32 frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=0",
+        "level=30000 stage=native_cable_f32 frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=0",
+        "level=30000 stage=native_cable_s16 frames=43200 mismatches=17549 nonzero=43200 max_error_s16_units=1 flags=0",
+        "level=30000 stage=hail_capture frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=3",
+        "level=32000 stage=hail_reference frames=43680 mismatches=0 nonzero=43680 max_error_s16_units=0 flags=65",
+        "level=32000 stage=native_render_loopback_f32 frames=43680 mismatches=0 nonzero=43680 max_error_s16_units=0 flags=0",
+        "level=32000 stage=native_cable_f32 frames=43680 mismatches=0 nonzero=43680 max_error_s16_units=0 flags=0",
+        "level=32000 stage=native_cable_s16 frames=43680 mismatches=17746 nonzero=43680 max_error_s16_units=1 flags=0",
+        "level=32000 stage=hail_capture frames=43680 mismatches=0 nonzero=43680 max_error_s16_units=0 flags=3",
+        "level=32700 stage=hail_reference frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=65",
+        "level=32700 stage=native_render_loopback_f32 frames=43200 mismatches=43200 nonzero=43200 max_error_s16_units=423.5 flags=0",
+        "level=32700 stage=native_cable_f32 frames=43200 mismatches=43200 nonzero=43200 max_error_s16_units=423.5 flags=0",
+        "level=32700 stage=native_cable_s16 frames=43200 mismatches=43200 nonzero=43200 max_error_s16_units=425 flags=0",
+        "level=32700 stage=hail_capture frames=43200 mismatches=43200 nonzero=43200 max_error_s16_units=423.5 flags=3",
+        "level=0 stage=hail_reference frames=43680 mismatches=0 nonzero=0 max_error_s16_units=0 flags=65",
+        "level=0 stage=native_render_loopback_f32 frames=43680 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0",
+        "level=0 stage=native_cable_f32 frames=43680 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0",
+        "level=0 stage=native_cable_s16 frames=43680 mismatches=17896 nonzero=17896 max_error_s16_units=1 flags=0",
+        "level=0 stage=hail_capture frames=43680 mismatches=0 nonzero=0 max_error_s16_units=0 flags=3",
+        "COMPLETE diagnostic only; mismatches remain failures of transparency, not accepted conversion"
+      ]
+    },
+    {
+      "path": "constant-f32.log",
+      "observations": [
+        "FAIL line=33 expression=ha_context_poll(context,NULL,0,NULL)==HA_OK"
+      ]
+    },
+    {
+      "path": "constant-native-flush.log",
+      "observations": [
+        "diagnostic=constant-native-flush phase_ms=1500 settle_ms=600 hail_pcm=2 oracle_tolerance=0 qualification=0",
+        "level=0 stage=hail_reference frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=65 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_render_loopback_f32 frames=42720 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_cable_f32 frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_cable_s16 frames=43200 mismatches=17648 nonzero=17648 max_error_s16_units=1 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=hail_capture frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=3 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8192 stage=hail_reference frames=42816 mismatches=480 nonzero=42336 max_error_s16_units=8192 flags=89 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8192 stage=native_render_loopback_f32 frames=43200 mismatches=1440 nonzero=41760 max_error_s16_units=8192 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8192 stage=native_cable_f32 frames=43200 mismatches=1440 nonzero=41760 max_error_s16_units=8192 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8192 stage=native_cable_s16 frames=43200 mismatches=18488 nonzero=42342 max_error_s16_units=8193 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8192 stage=hail_capture frames=43200 mismatches=1440 nonzero=41760 max_error_s16_units=8192 flags=3 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=hail_reference frames=42720 mismatches=0 nonzero=0 max_error_s16_units=0 flags=65 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_render_loopback_f32 frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_cable_f32 frames=42720 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_cable_s16 frames=42720 mismatches=17462 nonzero=17462 max_error_s16_units=1 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=hail_capture frames=42720 mismatches=0 nonzero=0 max_error_s16_units=0 flags=3 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "COMPLETE diagnostic only; mismatches remain failures of transparency, not accepted conversion"
+      ]
+    },
+    {
+      "path": "constant-odd-flush-no-loopback-asan.log",
+      "observations": [
+        "diagnostic=constant-native-flush phase_ms=1500 settle_ms=600 hail_pcm=2 oracle_tolerance=0 qualification=0 render_monitor_active=0",
+        "level=0 stage=hail_reference frames=42720 mismatches=0 nonzero=0 max_error_s16_units=0 flags=65 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_render_loopback_f32 frames=0 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_cable_f32 frames=42720 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_cable_s16 frames=42720 mismatches=17463 nonzero=17463 max_error_s16_units=1 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=hail_capture frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=3 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8193 stage=hail_reference frames=42816 mismatches=960 nonzero=41856 max_error_s16_units=8193 flags=89 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8193 stage=native_render_loopback_f32 frames=0 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8193 stage=native_cable_f32 frames=43200 mismatches=1919 nonzero=41281 max_error_s16_units=8193 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8193 stage=native_cable_s16 frames=43200 mismatches=18864 nonzero=42036 max_error_s16_units=8194 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8193 stage=hail_capture frames=43200 mismatches=1919 nonzero=41281 max_error_s16_units=8193 flags=3 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=hail_reference frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=65 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_render_loopback_f32 frames=0 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_cable_f32 frames=43680 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_cable_s16 frames=43680 mismatches=17838 nonzero=17838 max_error_s16_units=1 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=hail_capture frames=43680 mismatches=0 nonzero=0 max_error_s16_units=0 flags=3 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "COMPLETE diagnostic only; mismatches remain failures of transparency, not accepted conversion"
+      ]
+    },
+    {
+      "path": "constant-odd-flush-no-loopback.log",
+      "observations": [
+        "diagnostic=constant-native-flush phase_ms=1500 settle_ms=600 hail_pcm=2 oracle_tolerance=0 qualification=0 render_monitor_active=0",
+        "level=0 stage=hail_reference frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=65 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_render_loopback_f32 frames=0 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_cable_f32 frames=42816 mismatches=0 nonzero=0 max_error_s16_units=0 flags=1 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_cable_s16 frames=42816 mismatches=17505 nonzero=17505 max_error_s16_units=1 flags=1 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=hail_capture frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=3 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8193 stage=hail_reference frames=42336 mismatches=960 nonzero=41376 max_error_s16_units=8193 flags=89 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8193 stage=native_render_loopback_f32 frames=0 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8193 stage=native_cable_f32 frames=41856 mismatches=1440 nonzero=40416 max_error_s16_units=8193 flags=1 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8193 stage=native_cable_s16 frames=41856 mismatches=18040 nonzero=40986 max_error_s16_units=8194 flags=1 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8193 stage=hail_capture frames=42240 mismatches=1440 nonzero=40800 max_error_s16_units=8193 flags=3 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=hail_reference frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=65 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_render_loopback_f32 frames=0 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_cable_f32 frames=42432 mismatches=0 nonzero=0 max_error_s16_units=0 flags=1 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_cable_s16 frames=42432 mismatches=17354 nonzero=17354 max_error_s16_units=1 flags=1 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=hail_capture frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=3 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "COMPLETE diagnostic only; mismatches remain failures of transparency, not accepted conversion"
+      ]
+    },
+    {
+      "path": "constant-odd-native-flush.log",
+      "observations": [
+        "diagnostic=constant-native-flush phase_ms=1500 settle_ms=600 hail_pcm=2 oracle_tolerance=0 qualification=0",
+        "level=0 stage=hail_reference frames=43680 mismatches=0 nonzero=0 max_error_s16_units=0 flags=65 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_render_loopback_f32 frames=43680 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_cable_f32 frames=43680 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_cable_s16 frames=43680 mismatches=17858 nonzero=17858 max_error_s16_units=1 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=hail_capture frames=43680 mismatches=0 nonzero=0 max_error_s16_units=0 flags=3 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8193 stage=hail_reference frames=42816 mismatches=960 nonzero=41856 max_error_s16_units=8193 flags=89 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8193 stage=native_render_loopback_f32 frames=42720 mismatches=960 nonzero=41760 max_error_s16_units=8193 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8193 stage=native_cable_f32 frames=42720 mismatches=1446 nonzero=41274 max_error_s16_units=8193 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8193 stage=native_cable_s16 frames=42720 mismatches=18398 nonzero=41848 max_error_s16_units=8194 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=8193 stage=hail_capture frames=42720 mismatches=1446 nonzero=41274 max_error_s16_units=8193 flags=3 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=hail_reference frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=65 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_render_loopback_f32 frames=42720 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_cable_f32 frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=native_cable_s16 frames=43200 mismatches=17667 nonzero=17667 max_error_s16_units=1 flags=0 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "level=0 stage=hail_capture frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=3 fractional_frames=0 first_fractional_left=0 first_fractional_right=0",
+        "COMPLETE diagnostic only; mismatches remain failures of transparency, not accepted conversion"
+      ]
+    },
+    {
+      "path": "constant-s16.log",
+      "observations": [
+        "diagnostic=constant-s16-grid levels=8 phase_ms=1500 settle_ms=600 hail_pcm=1 oracle_tolerance=0 qualification=0",
+        "level=0 stage=hail_reference frames=43680 mismatches=0 nonzero=0 max_error_s16_units=0 flags=65",
+        "level=0 stage=native_render_loopback_f32 frames=43680 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0",
+        "level=0 stage=native_cable_f32 frames=43680 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0",
+        "level=0 stage=native_cable_s16 frames=43680 mismatches=17838 nonzero=17838 max_error_s16_units=1 flags=0",
+        "level=0 stage=hail_capture frames=43680 mismatches=17838 nonzero=17838 max_error_s16_units=1 flags=3",
+        "level=8192 stage=hail_reference frames=43680 mismatches=0 nonzero=43680 max_error_s16_units=0 flags=65",
+        "level=8192 stage=native_render_loopback_f32 frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=0",
+        "level=8192 stage=native_cable_f32 frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=0",
+        "level=8192 stage=native_cable_s16 frames=43200 mismatches=17621 nonzero=43200 max_error_s16_units=1 flags=0",
+        "level=8192 stage=hail_capture frames=43200 mismatches=17621 nonzero=43200 max_error_s16_units=1 flags=3",
+        "level=16384 stage=hail_reference frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=65",
+        "level=16384 stage=native_render_loopback_f32 frames=42720 mismatches=0 nonzero=42720 max_error_s16_units=0 flags=0",
+        "level=16384 stage=native_cable_f32 frames=42720 mismatches=0 nonzero=42720 max_error_s16_units=0 flags=0",
+        "level=16384 stage=native_cable_s16 frames=42720 mismatches=17372 nonzero=42720 max_error_s16_units=1 flags=0",
+        "level=16384 stage=hail_capture frames=42720 mismatches=17372 nonzero=42720 max_error_s16_units=1 flags=3",
+        "level=24576 stage=hail_reference frames=42720 mismatches=0 nonzero=42720 max_error_s16_units=0 flags=65",
+        "level=24576 stage=native_render_loopback_f32 frames=42720 mismatches=0 nonzero=42720 max_error_s16_units=0 flags=0",
+        "level=24576 stage=native_cable_f32 frames=42720 mismatches=0 nonzero=42720 max_error_s16_units=0 flags=0",
+        "level=24576 stage=native_cable_s16 frames=42720 mismatches=17332 nonzero=42720 max_error_s16_units=1 flags=0",
+        "level=24576 stage=hail_capture frames=42720 mismatches=17332 nonzero=42720 max_error_s16_units=1 flags=3",
+        "level=30000 stage=hail_reference frames=42240 mismatches=0 nonzero=42240 max_error_s16_units=0 flags=65",
+        "level=30000 stage=native_render_loopback_f32 frames=42720 mismatches=0 nonzero=42720 max_error_s16_units=0 flags=0",
+        "level=30000 stage=native_cable_f32 frames=42720 mismatches=0 nonzero=42720 max_error_s16_units=0 flags=0",
+        "level=30000 stage=native_cable_s16 frames=42720 mismatches=17341 nonzero=42720 max_error_s16_units=1 flags=0",
+        "level=30000 stage=hail_capture frames=42720 mismatches=17341 nonzero=42720 max_error_s16_units=1 flags=3",
+        "level=32000 stage=hail_reference frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=65",
+        "level=32000 stage=native_render_loopback_f32 frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=0",
+        "level=32000 stage=native_cable_f32 frames=42720 mismatches=0 nonzero=42720 max_error_s16_units=0 flags=0",
+        "level=32000 stage=native_cable_s16 frames=42720 mismatches=17323 nonzero=42720 max_error_s16_units=1 flags=0",
+        "level=32000 stage=hail_capture frames=42720 mismatches=17323 nonzero=42720 max_error_s16_units=1 flags=3",
+        "level=32700 stage=hail_reference frames=43200 mismatches=0 nonzero=43200 max_error_s16_units=0 flags=65",
+        "level=32700 stage=native_render_loopback_f32 frames=43200 mismatches=43200 nonzero=43200 max_error_s16_units=423.5 flags=0",
+        "level=32700 stage=native_cable_f32 frames=43200 mismatches=43200 nonzero=43200 max_error_s16_units=423.5 flags=0",
+        "level=32700 stage=native_cable_s16 frames=43200 mismatches=43200 nonzero=43200 max_error_s16_units=425 flags=0",
+        "level=32700 stage=hail_capture frames=43200 mismatches=43200 nonzero=43200 max_error_s16_units=425 flags=3",
+        "level=0 stage=hail_reference frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=65",
+        "level=0 stage=native_render_loopback_f32 frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0",
+        "level=0 stage=native_cable_f32 frames=43200 mismatches=0 nonzero=0 max_error_s16_units=0 flags=0",
+        "level=0 stage=native_cable_s16 frames=43200 mismatches=17678 nonzero=17678 max_error_s16_units=1 flags=0",
+        "level=0 stage=hail_capture frames=43200 mismatches=17678 nonzero=17678 max_error_s16_units=1 flags=3",
+        "COMPLETE diagnostic only; mismatches remain failures of transparency, not accepted conversion"
+      ]
+    },
+    {
+      "path": "contaminate-s16.log",
+      "observations": [
+        "numerical_profile=transparent-s16-grid-low-v1",
+        "oracle_sample_failure phase=0 left_s16_grid=-1 right_s16_grid=0",
+        "oracle_sample_failure phase=0 left_s16_grid=0 right_s16_grid=-1",
+        "oracle_sample_failure phase=0 left_s16_grid=-1 right_s16_grid=0",
+        "oracle_sample_failure phase=0 left_s16_grid=1 right_s16_grid=0",
+        "oracle_sample_failure phase=0 left_s16_grid=-1 right_s16_grid=0",
+        "oracle_sample_failure phase=0 left_s16_grid=-1 right_s16_grid=0",
+        "oracle_sample_failure phase=0 left_s16_grid=1 right_s16_grid=0",
+        "oracle_sample_failure phase=0 left_s16_grid=1 right_s16_grid=0",
+        "sustained_capture_metadata_gaps=0 sustained_capture_epoch_changes=0 startup_underruns=0",
+        "sustained_ns=1012190600 capture_loss=0 playback_underruns=0 reference_loss=0 process_cpu_ns=0",
+        "flush_capture_metadata_gaps=0 flush_capture_epoch_changes=0",
+        "oracle_before_restart verified_A=8814 verified_B=25956 bad=123087",
+        "FAIL line=540 check=verified[1]>rate/3u && verified[2]>rate/3u native_error=0"
+      ]
+    },
+    {
+      "path": "contaminated-f32.log",
+      "observations": [
+        "numerical_profile=transparent-s16-grid-low-v1",
+        "oracle_marker_failure phase=0 marker=1 previous_marker=2 code=0",
+        "oracle_marker_failure phase=0 marker=1 previous_marker=2 code=1",
+        "oracle_marker_failure phase=0 marker=1 previous_marker=2 code=2",
+        "oracle_marker_failure phase=0 marker=1 previous_marker=2 code=3",
+        "oracle_marker_failure phase=0 marker=1 previous_marker=2 code=4",
+        "oracle_marker_failure phase=0 marker=1 previous_marker=2 code=5",
+        "oracle_marker_failure phase=0 marker=1 previous_marker=2 code=6",
+        "oracle_marker_failure phase=0 marker=1 previous_marker=2 code=7",
+        "sustained_capture_metadata_gaps=0 sustained_capture_epoch_changes=0 startup_underruns=0",
+        "sustained_ns=1012555500 capture_loss=0 playback_underruns=0 reference_loss=0 process_cpu_ns=0",
+        "FAIL line=540 check=verified[1]>rate/3u && verified[2]>rate/3u native_error=0",
+        "flush_capture_metadata_gaps=0 flush_capture_epoch_changes=0",
+        "oracle_before_restart verified_A=0 verified_B=43098 bad=97921"
+      ]
+    },
+    {
+      "path": "low-grid-f32-asan.log",
+      "observations": [
+        "numerical_profile=transparent-s16-grid-low-v1",
+        "sustained_capture_metadata_gaps=0 sustained_capture_epoch_changes=0 startup_underruns=0",
+        "sustained_ns=5004181700 capture_loss=0 playback_underruns=0 reference_loss=0 process_cpu_ns=46875000",
+        "flush_capture_metadata_gaps=0 flush_capture_epoch_changes=0",
+        "restart_old_tail_frames=1414",
+        "capture_frames=441120 nonzero=389093 zeros=52027 peak=0.249969482 rms=0.120471996 verified_A=289440 verified_B=42175 verified_C=56064 bad=0 metadata_gaps=1 clock_changes=0 reference_frames=452448 reference_silence=57888 flush_ack_ns=30189000 capture_frames_during_flush_trial=49440 poll_calls=601 poll_max_ns=23500 io_max_ns=16895400 hail_peak_bytes=620272 working_set=15855616 peak_working_set=15933440",
+        "PASS allocations=2 frees=2 ledger_bytes=0"
+      ]
+    },
+    {
+      "path": "low-grid-f32-boundary-fixed.log",
+      "observations": [
+        "numerical_profile=transparent-s16-grid-low-v1",
+        "sustained_capture_metadata_gaps=0 sustained_capture_epoch_changes=0 startup_underruns=0",
+        "sustained_ns=5015395000 capture_loss=0 playback_underruns=0 reference_loss=0 process_cpu_ns=31250000",
+        "flush_capture_metadata_gaps=0 flush_capture_epoch_changes=0",
+        "restart_old_tail_frames=944",
+        "capture_frames=440640 nonzero=390191 zeros=50449 peak=0.249969482 rms=0.120942304 verified_A=289440 verified_B=43231 verified_C=56576 bad=0 metadata_gaps=1 clock_changes=0 reference_frames=452448 reference_silence=56896 flush_ack_ns=31790700 capture_frames_during_flush_trial=50400 poll_calls=601 poll_max_ns=9200 io_max_ns=16710900 hail_peak_bytes=620272 working_set=11177984 peak_working_set=11194368",
+        "PASS allocations=2 frees=2 ledger_bytes=0"
+      ]
+    },
+    {
+      "path": "low-grid-f32-conditioned-primed.log",
+      "observations": [
+        "numerical_profile=transparent-s16-grid-low-v1",
+        "sustained_capture_metadata_gaps=0 sustained_capture_epoch_changes=0 startup_underruns=0",
+        "sustained_ns=5002964000 capture_loss=0 playback_underruns=0 reference_loss=0 process_cpu_ns=0",
+        "flush_capture_metadata_gaps=0 flush_capture_epoch_changes=0",
+        "oracle_before_restart verified_A=289920 verified_B=42058 bad=0",
+        "restart_old_tail_frames=1368",
+        "capture_frames=440640 nonzero=389922 zeros=50718 peak=0.249969482 rms=0.120760698 verified_A=289920 verified_B=42058 verified_C=56576 bad=0 metadata_gaps=1 clock_changes=0 reference_frames=452928 reference_silence=57856 flush_ack_ns=31716600 capture_frames_during_flush_trial=49440 poll_calls=598 poll_max_ns=7100 io_max_ns=16751400 hail_peak_bytes=620272 working_set=11169792 peak_working_set=11186176",
+        "PASS allocations=2 frees=2 ledger_bytes=0"
+      ]
+    },
+    {
+      "path": "low-grid-f32-conditioned-unprimed.log",
+      "observations": [
+        "numerical_profile=transparent-s16-grid-low-v1",
+        "sustained_capture_metadata_gaps=0 sustained_capture_epoch_changes=0 startup_underruns=4896",
+        "sustained_ns=5002294800 capture_loss=0 playback_underruns=0 reference_loss=0 process_cpu_ns=0",
+        "oracle_sample_failure phase=2 left_s16_grid=3221.375 right_s16_grid=-3221.5",
+        "oracle_sample_failure phase=2 left_s16_grid=3210.875 right_s16_grid=-3211",
+        "oracle_sample_failure phase=2 left_s16_grid=3200.375 right_s16_grid=-3200.5",
+        "oracle_sample_failure phase=2 left_s16_grid=3189.875 right_s16_grid=-3190",
+        "oracle_sample_failure phase=2 left_s16_grid=3179.375 right_s16_grid=-3179.5",
+        "oracle_sample_failure phase=2 left_s16_grid=3168.75 right_s16_grid=-3168.875",
+        "oracle_sample_failure phase=2 left_s16_grid=3158.25 right_s16_grid=-3158.375",
+        "oracle_sample_failure phase=2 left_s16_grid=3147.625 right_s16_grid=-3147.75",
+        "flush_capture_metadata_gaps=0 flush_capture_epoch_changes=0",
+        "oracle_before_restart verified_A=287905 verified_B=41658 bad=479",
+        "restart_old_tail_frames=1367",
+        "capture_frames=444480 nonzero=387985 zeros=56495 peak=0.249969482 rms=0.120050682 verified_A=287905 verified_B=41658 verified_C=56576 bad=479 metadata_gaps=1 clock_changes=0 reference_frames=455808 reference_silence=63232 flush_ack_ns=32591700 capture_frames_during_flush_trial=48960 poll_calls=600 poll_max_ns=6000 io_max_ns=16749400 hail_peak_bytes=620272 working_set=11165696 peak_working_set=11182080",
+        "FAIL line=585 check=!bad native_error=0"
+      ]
+    },
+    {
+      "path": "low-grid-f32-initial.log",
+      "observations": [
+        "numerical_profile=transparent-s16-grid-low-v1",
+        "sustained_capture_metadata_gaps=0 sustained_capture_epoch_changes=0 startup_underruns=0",
+        "sustained_ns=5009497500 capture_loss=0 playback_underruns=0 reference_loss=0 process_cpu_ns=46875000",
+        "flush_capture_metadata_gaps=0 flush_capture_epoch_changes=0",
+        "oracle_sequence_failure phase=3 marker=2 code=147 previous_code=1425 gap_credit=0",
+        "capture_frames=441600 nonzero=390623 zeros=50977 peak=0.249969482 rms=0.120864395 verified_A=289440 verified_B=44607 verified_C=56576 bad=1 metadata_gaps=1 clock_changes=0 reference_frames=451968 reference_silence=56416 flush_ack_ns=30228600 capture_frames_during_flush_trial=49920 poll_calls=605 poll_max_ns=6400 io_max_ns=16644200 hail_peak_bytes=620272 working_set=11218944 peak_working_set=11235328",
+        "FAIL line=558 check=!bad native_error=0"
+      ]
+    },
+    {
+      "path": "low-grid-f32-sustained.stderr.log",
+      "observations": [
+        "FAIL line=536 check=verified[1]>rate/3u && verified[2]>rate/3u native_error=0"
+      ]
+    },
+    {
+      "path": "low-grid-f32-sustained.stdout.log",
+      "observations": [
+        "numerical_profile=transparent-s16-grid-low-v1",
+        "sustained_capture_metadata_gaps=0 sustained_capture_epoch_changes=0 startup_underruns=0",
+        "sustained_ns=600020599100 capture_loss=0 playback_underruns=0 reference_loss=0 process_cpu_ns=1078125000",
+        "flush_capture_metadata_gaps=0 flush_capture_epoch_changes=0"
+      ]
+    },
+    {
+      "path": "low-grid-f32-unprimed.log",
+      "observations": [
+        "numerical_profile=transparent-s16-grid-low-v1",
+        "sustained_capture_metadata_gaps=0 sustained_capture_epoch_changes=0 startup_underruns=3936",
+        "sustained_ns=5004204300 capture_loss=0 playback_underruns=0 reference_loss=0 process_cpu_ns=0",
+        "flush_capture_metadata_gaps=0 flush_capture_epoch_changes=0",
+        "restart_old_tail_frames=371",
+        "capture_frames=443040 nonzero=387938 zeros=55102 peak=0.249969482 rms=0.120338402 verified_A=288384 verified_B=42095 verified_C=57088 bad=0 metadata_gaps=1 clock_changes=0 reference_frames=453888 reference_silence=60800 flush_ack_ns=30799300 capture_frames_during_flush_trial=48960 poll_calls=597 poll_max_ns=9200 io_max_ns=16761200 hail_peak_bytes=620272 working_set=11177984 peak_working_set=11198464",
+        "PASS allocations=2 frees=2 ledger_bytes=0"
+      ]
+    },
+    {
+      "path": "low-grid-s16-primed.stderr.log",
+      "observations": [
+        "FAIL line=536 check=verified[1]>rate/3u && verified[2]>rate/3u native_error=0"
+      ]
+    },
+    {
+      "path": "low-grid-s16-primed.stdout.log",
+      "observations": [
+        "numerical_profile=transparent-s16-grid-low-v1",
+        "oracle_sample_failure phase=0 left_s16_grid=-1 right_s16_grid=0",
+        "oracle_sample_failure phase=0 left_s16_grid=0 right_s16_grid=-1",
+        "oracle_sample_failure phase=0 left_s16_grid=-1 right_s16_grid=0",
+        "oracle_sample_failure phase=0 left_s16_grid=1 right_s16_grid=0",
+        "oracle_sample_failure phase=0 left_s16_grid=-1 right_s16_grid=0",
+        "oracle_sample_failure phase=0 left_s16_grid=-1 right_s16_grid=0",
+        "oracle_sample_failure phase=0 left_s16_grid=1 right_s16_grid=0",
+        "oracle_sample_failure phase=0 left_s16_grid=1 right_s16_grid=0",
+        "sustained_capture_metadata_gaps=0 sustained_capture_epoch_changes=0 startup_underruns=448",
+        "sustained_ns=5017319000 capture_loss=0 playback_underruns=0 reference_loss=0 process_cpu_ns=0",
+        "flush_capture_metadata_gaps=0 flush_capture_epoch_changes=0"
+      ]
+    },
+    {
+      "path": "low-grid-s16-unprimed.stderr.log",
+      "observations": [
+        "FAIL line=536 check=verified[1]>rate/3u && verified[2]>rate/3u native_error=0"
+      ]
+    },
+    {
+      "path": "low-grid-s16-unprimed.stdout.log",
+      "observations": [
+        "numerical_profile=transparent-s16-grid-low-v1",
+        "oracle_sample_failure phase=0 left_s16_grid=5567 right_s16_grid=-5568",
+        "oracle_sequence_failure phase=0 marker=2 code=1473 previous_code=1471 gap_credit=0",
+        "oracle_sample_failure phase=0 left_s16_grid=5570 right_s16_grid=-5571",
+        "oracle_sequence_failure phase=0 marker=2 code=1475 previous_code=1473 gap_credit=0",
+        "oracle_sample_failure phase=0 left_s16_grid=5577 right_s16_grid=-5578",
+        "oracle_sequence_failure phase=0 marker=2 code=1483 previous_code=1481 gap_credit=0",
+        "oracle_sample_failure phase=0 left_s16_grid=5584 right_s16_grid=-5583",
+        "oracle_sample_failure phase=0 left_s16_grid=5583 right_s16_grid=-5584",
+        "sustained_capture_metadata_gaps=0 sustained_capture_epoch_changes=0 startup_underruns=6816",
+        "sustained_ns=5010239900 capture_loss=0 playback_underruns=0 reference_loss=0 process_cpu_ns=0",
+        "flush_capture_metadata_gaps=0 flush_capture_epoch_changes=0"
+      ]
+    }
+  ],
+  "raw_archive": {
+    "path": "raw.zip",
+    "sha256": "74DB1A66DFC1F74DD67CF8422FB78D15F8E96D2771EA83E8BD1EF1042E43DE9C",
+    "entries": [
+      {
+        "path": "build-wasapi-path/asan-build-conditioned.log",
+        "bytes": 272,
+        "sha256": "A5346F62B50ADE472C62E2E984F2966B56075884FE4E57EEDD3F36098E8D7B29"
+      },
+      {
+        "path": "build-wasapi-path/asan-build-final.log",
+        "bytes": 130,
+        "sha256": "BEA414BB3EF386E20B6F7FF8B4A1AD1C9991B02BCD0D488A54E349CC347AF132"
+      },
+      {
+        "path": "build-wasapi-path/asan-build.log",
+        "bytes": 1384,
+        "sha256": "30EC0C3C27D6F5369E978841CB1DBD6A5AA72AF34E19C64195843F9E7DD97CC3"
+      },
+      {
+        "path": "build-wasapi-path/asan-ctest-conditioned.log",
+        "bytes": 1281,
+        "sha256": "3A7EEDB8CABA4AD2578DB090C10731838AEDD1E221140F55BF218CF1014A9590"
+      },
+      {
+        "path": "build-wasapi-path/asan-ctest-final.log",
+        "bytes": 1281,
+        "sha256": "4881DF2D1CD598A7A08DFC57FC8250AFAEC5D88964F5393229F8CD3DFCD27593"
+      },
+      {
+        "path": "build-wasapi-path/asan-ctest.log",
+        "bytes": 1281,
+        "sha256": "A571A62142D592355F4A5F817A42C45CF3C91567350D164735CBB84F180825E1"
+      },
+      {
+        "path": "build-wasapi-path/condition-after-contamination.log",
+        "bytes": 933,
+        "sha256": "C6DFE9B63BF2939D1DB841CD6A86B2085B882C559E9FC44FAC30F035D681F5F8"
+      },
+      {
+        "path": "build-wasapi-path/condition-asan.log",
+        "bytes": 933,
+        "sha256": "488E45BD53016248C5EBF7DF8F793A3EB1049AC32FD1EF92CD6DE92D0E43D92F"
+      },
+      {
+        "path": "build-wasapi-path/condition-before-unprimed.log",
+        "bytes": 933,
+        "sha256": "F90B8FCE22D1A525D51B2734770762D799BB888209286219677952D6E20C8A02"
+      },
+      {
+        "path": "build-wasapi-path/constant-f32-asan-bounded.log",
+        "bytes": 4661,
+        "sha256": "CFEE82080763E2F455FC0C0D571C8AFCAAFC8BD4947E2AB8E4D7CDBD24500E19"
+      },
+      {
+        "path": "build-wasapi-path/constant-f32-fixed.log",
+        "bytes": 4661,
+        "sha256": "4BAB4E44BD1A7ADC1BA5629FF4E344C1A88A15CEB2AA1BE88D061516594AB072"
+      },
+      {
+        "path": "build-wasapi-path/constant-f32.log",
+        "bytes": 261,
+        "sha256": "21AEC3DA15509940E574098BA97CC0785D5CC4FA9DFB78121EBF301E268C552A"
+      },
+      {
+        "path": "build-wasapi-path/constant-native-flush.log",
+        "bytes": 2996,
+        "sha256": "1810B2EF77319AD889B7E3E3397A65FD731038B4273A621CA0B332B2D25CFC42"
+      },
+      {
+        "path": "build-wasapi-path/constant-odd-flush-no-loopback-asan.log",
+        "bytes": 2998,
+        "sha256": "59C3D40C9716E43728C5CA2F1948FDF479C92BDA0850130C02416BE337091EF6"
+      },
+      {
+        "path": "build-wasapi-path/constant-odd-flush-no-loopback.log",
+        "bytes": 2998,
+        "sha256": "F7C2C9FF697021A4A62405D604B47731BDEE943B5EE518C62FBA1E1FADECBA45"
+      },
+      {
+        "path": "build-wasapi-path/constant-odd-native-flush.log",
+        "bytes": 2995,
+        "sha256": "3D0C93AD11E35042C3BCC42715AB20FAAAB10E84CE62A21ADB349CAAE59DA7B5"
+      },
+      {
+        "path": "build-wasapi-path/constant-s16.log",
+        "bytes": 4695,
+        "sha256": "5B5D7C5BE9F6685399B37A4041B3BA66331C74DBE630DAD639382D5D35D9DE50"
+      },
+      {
+        "path": "build-wasapi-path/contaminate-s16.log",
+        "bytes": 2164,
+        "sha256": "CE900919D18F81DA96E082C49BFD89072CA48F39E3489633ADA23DF8D6BA6436"
+      },
+      {
+        "path": "build-wasapi-path/contaminated-f32.log",
+        "bytes": 2163,
+        "sha256": "D534ED714D0EB2F0B7D7F6D375EA511253D4231FE952EF6C1FBA61199CB60154"
+      },
+      {
+        "path": "build-wasapi-path/low-grid-f32-asan.log",
+        "bytes": 10103,
+        "sha256": "752F7E893662FA0F27675E7C4A883817A8466BD5B908DB4C440650B885279830"
+      },
+      {
+        "path": "build-wasapi-path/low-grid-f32-boundary-fixed.log",
+        "bytes": 10577,
+        "sha256": "95A8A2B0EE4BE7ADF5F3000EB2F7006431FFC7192F92403945F35C10DC2A6C82"
+      },
+      {
+        "path": "build-wasapi-path/low-grid-f32-conditioned-primed.log",
+        "bytes": 10054,
+        "sha256": "D7680BED20DAA3B2EE958AD237CE80232767885F0C8046DB87CF89824013A81A"
+      },
+      {
+        "path": "build-wasapi-path/low-grid-f32-conditioned-unprimed.log",
+        "bytes": 10819,
+        "sha256": "B71654234A31EF13B59246BBAE29C7139A3AD36333770C98664293854EA49F42"
+      },
+      {
+        "path": "build-wasapi-path/low-grid-f32-initial.log",
+        "bytes": 11175,
+        "sha256": "23971D97777D9FA87915A201B8951C46C54318E2DA0816EA8AE3B17CB720F657"
+      },
+      {
+        "path": "build-wasapi-path/low-grid-f32-sustained.stderr.log",
+        "bytes": 79,
+        "sha256": "DB506FB1D541233B39E1BCFE1FAFD4F899CF85D7011C03A4174DD94DC6935CB3"
+      },
+      {
+        "path": "build-wasapi-path/low-grid-f32-sustained.stdout.log",
+        "bytes": 1514,
+        "sha256": "3E0F984757263617A242B644A2EB18C50B3A73CA0BE57DC981D64360FC768316"
+      },
+      {
+        "path": "build-wasapi-path/low-grid-f32-unprimed.log",
+        "bytes": 10383,
+        "sha256": "94723C8AEDE79F762EB44A21D54431B8A6467C82C8624CF8675F8549100840EE"
+      },
+      {
+        "path": "build-wasapi-path/low-grid-manifest.json",
+        "bytes": 2433,
+        "sha256": "A54ACC8FF951B588854D767C763EA3E29081BEF4AE0179CFF5C37FD727F01A4A"
+      },
+      {
+        "path": "build-wasapi-path/low-grid-s16-primed.stderr.log",
+        "bytes": 79,
+        "sha256": "DB506FB1D541233B39E1BCFE1FAFD4F899CF85D7011C03A4174DD94DC6935CB3"
+      },
+      {
+        "path": "build-wasapi-path/low-grid-s16-primed.stdout.log",
+        "bytes": 2020,
+        "sha256": "0E7BF7235B9F2C11695E04CCEB52EB3348FFF36B64CE9EBF8FD3EC9EB7CEE642"
+      },
+      {
+        "path": "build-wasapi-path/low-grid-s16-unprimed.stderr.log",
+        "bytes": 79,
+        "sha256": "DB506FB1D541233B39E1BCFE1FAFD4F899CF85D7011C03A4174DD94DC6935CB3"
+      },
+      {
+        "path": "build-wasapi-path/low-grid-s16-unprimed.stdout.log",
+        "bytes": 2111,
+        "sha256": "9F99C30696FD01C8F28E3261BB4A7A13EBE9C6CE02C344E63E0259A6B097023B"
+      },
+      {
+        "path": "build-wasapi-path/package.py",
+        "bytes": 3817,
+        "sha256": "CD6195CDD34D0D2D9C41FAB658D5743508D38CC76C4C2BDF35F39C9F6A3E2CBF"
+      },
+      {
+        "path": "build-wasapi-path/remaining-trials.json",
+        "bytes": 82545,
+        "sha256": "F562ECB1911785245531B744777D3564F9911682E6A370BE8D155FD8D8D3498C"
+      },
+      {
+        "path": "build-wasapi-path/run-conditioned.ps1",
+        "bytes": 2323,
+        "sha256": "90C0B512D0AE1DC8A87668512986F0B7BA8BFFB6CA8BB70198BB1B4C94185A06"
+      },
+      {
+        "path": "build-wasapi-path/run-remaining.ps1",
+        "bytes": 2408,
+        "sha256": "2BA0FF10A4EBA08364DFEE00919B2BF894DD29C25A7834CFC5040D59EFA00C74"
+      },
+      {
+        "path": "build-wasapi-path/runner-gate-tests.log",
+        "bytes": 103,
+        "sha256": "ADED9EF59B3FD62023F7492488788A33E6DC66B5097C6BED6DE0DEEEABB1B1FD"
+      },
+      {
+        "path": "build-wasapi-path/second-sustained-gate.json",
+        "bytes": 221,
+        "sha256": "00491E848728FEB1E6DB08C3ED9EEB820D4ABAD2D96E538B4D401FC27BCEB9F4"
+      },
+      {
+        "path": "build-wasapi-path/shure-level-after.json",
+        "bytes": 35,
+        "sha256": "807B983DFFD8E4F0365C4081B8DA886777477097F3E4DEBC50DF46366767A8D6"
+      },
+      {
+        "path": "build-wasapi-path/validation/fixture-validation.json",
+        "bytes": 5816,
+        "sha256": "D346E8C53CB97E2B02CA0DD4B7CD840E1DD30DB9706035B1F6843D9E4BFD70D8"
+      },
+      {
+        "path": "build-wasapi-path/windows-builds-conditioned.log",
+        "bytes": 418,
+        "sha256": "E94066030E36F9062DE7AC5EC39D4D0F191BFA30F115562B7A672F040F700D1B"
+      },
+      {
+        "path": "build-wasapi-path/windows-builds-final.log",
+        "bytes": 418,
+        "sha256": "E94066030E36F9062DE7AC5EC39D4D0F191BFA30F115562B7A672F040F700D1B"
+      },
+      {
+        "path": "build-wasapi-path/windows-builds.log",
+        "bytes": 418,
+        "sha256": "E94066030E36F9062DE7AC5EC39D4D0F191BFA30F115562B7A672F040F700D1B"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/16000-1-f32.unqualified.txt",
+        "bytes": 120,
+        "sha256": "9CF43395F9C2F54DC838D5E605D9C335C29C7997B98A168D7377101C7AB25FD6"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/16000-1-s16.unqualified.txt",
+        "bytes": 120,
+        "sha256": "7CD83A8D1C66245A912E504882E5F7D130B485EBB2D850A49534E0D27240998B"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/16000-2-f32.unqualified.txt",
+        "bytes": 120,
+        "sha256": "E9D8BF15FEC52F98E3C9D16A5D59F417FC3A06FE54D69CD30C5BBBBCE575CF9C"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/16000-2-s16.unqualified.txt",
+        "bytes": 120,
+        "sha256": "3A354C7FC177468F2E3FBF96B99F0543F536F09A82B732B2D256F8E338BA893A"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/24000-1-f32.unqualified.txt",
+        "bytes": 120,
+        "sha256": "EB23EE3AAF6DADE4E6DF4967AD0FB8F29F4E7F0614626CFCD4571DCBDAF6616B"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/24000-1-s16.unqualified.txt",
+        "bytes": 120,
+        "sha256": "20C86F2B1B44CE98D5D96912B5CF3FE9B3406E861F209A804BD0A93D80C38036"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/24000-2-f32.unqualified.txt",
+        "bytes": 120,
+        "sha256": "BCD1C576E72C6204FAFA8740E1419D7C965A9D9BA26EE743FAF2374B1450AAEB"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/24000-2-s16.unqualified.txt",
+        "bytes": 120,
+        "sha256": "0EE1C177E2152097D20B07AA8512682DF83485E282AD5A9D13FEF1599CED7A65"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/44100-1-f32.unqualified.txt",
+        "bytes": 120,
+        "sha256": "6DC5CFE24DCBC179BBDE2E4162CE6B0F4C87CD6662F03544F14B04255CF533B4"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/44100-1-s16.unqualified.txt",
+        "bytes": 120,
+        "sha256": "6E6FD18A622C7F15F6FA3A032E3E20ECD48AF179B38C862718F2A504C45467C7"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/44100-2-f32.unqualified.txt",
+        "bytes": 120,
+        "sha256": "DB1B17EBC19CD7628743C8341D55F1BC12FC673FD203E1846DB6FEEF033CD570"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/44100-2-s16.unqualified.txt",
+        "bytes": 120,
+        "sha256": "CCB3907D30C84D5AB64BB4B0B2246595719664797E2A5C76996DAB8531C4A916"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/48000-1-f32.unqualified.txt",
+        "bytes": 120,
+        "sha256": "DC5CFF187F437F9C70DB8819C72C2956C957FECADC44F7B0D9D4E41D9BD5614C"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/48000-1-s16.unqualified.txt",
+        "bytes": 120,
+        "sha256": "FC5423296E1F44420FE3F5A56F2C673F220096BBECFD0D79635914AF238FBF25"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/48000-2-f32-primed.conditioning.log",
+        "bytes": 43,
+        "sha256": "9DE345D79A45CBF981AFB0AC39B028133C92BB6BE332CBAB971B7524E688E0F5"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/48000-2-f32-primed.log",
+        "bytes": 45,
+        "sha256": "FA6A6BB313DA0FCF57F5109F79BC2FEFF2D0E86140E36C35F32D2E0DE05E026F"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/48000-2-f32-unprimed.conditioning.log",
+        "bytes": 43,
+        "sha256": "9DE345D79A45CBF981AFB0AC39B028133C92BB6BE332CBAB971B7524E688E0F5"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/48000-2-f32-unprimed.log",
+        "bytes": 45,
+        "sha256": "FA6A6BB313DA0FCF57F5109F79BC2FEFF2D0E86140E36C35F32D2E0DE05E026F"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/48000-2-s16-primed.conditioning.log",
+        "bytes": 43,
+        "sha256": "9DE345D79A45CBF981AFB0AC39B028133C92BB6BE332CBAB971B7524E688E0F5"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/48000-2-s16-unprimed.conditioning.log",
+        "bytes": 43,
+        "sha256": "9DE345D79A45CBF981AFB0AC39B028133C92BB6BE332CBAB971B7524E688E0F5"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/condition.ps1",
+        "bytes": 65,
+        "sha256": "8923DCD5F9C5BCBD87B3EEEAEB6DB0D3FDD74BB056BDC31175973AF70EF5A3A4"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/invocation.log",
+        "bytes": 350,
+        "sha256": "3E1DF9B86D8AF6B5DFF96B7F57F949E4C44BC4A1445E3265AF2B2B695ED30D9B"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/native.ps1",
+        "bytes": 191,
+        "sha256": "5BB4F5FB22207B0FAA69ADB5E6BF9D75B75CDE4A8B15B81CEF8F6048D4F1299F"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/runner.ps1",
+        "bytes": 4575,
+        "sha256": "EE41F98E177E3DD5411EA639D8E6A189107F9CEFB98EDB1B25242C23CD035A3C"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/summary.json",
+        "bytes": 636,
+        "sha256": "0FE70298F0C9167D35B421D58D8BA9706A64FFF79A28799E9BD853EFD6534DEE"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/sustained.conditioning.log",
+        "bytes": 43,
+        "sha256": "9DE345D79A45CBF981AFB0AC39B028133C92BB6BE332CBAB971B7524E688E0F5"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/sustained.log",
+        "bytes": 45,
+        "sha256": "FA6A6BB313DA0FCF57F5109F79BC2FEFF2D0E86140E36C35F32D2E0DE05E026F"
+      },
+      {
+        "path": "build-wasapi-runner-test/accept-f32/validate_wasapi_fixture.ps1",
+        "bytes": 193,
+        "sha256": "985990FCBB86B2DCD2FF05FE1232693A474E360E816519DC0F26DF9AD097674C"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/16000-1-f32.unqualified.txt",
+        "bytes": 120,
+        "sha256": "9CF43395F9C2F54DC838D5E605D9C335C29C7997B98A168D7377101C7AB25FD6"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/16000-1-s16.unqualified.txt",
+        "bytes": 120,
+        "sha256": "7CD83A8D1C66245A912E504882E5F7D130B485EBB2D850A49534E0D27240998B"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/16000-2-f32.unqualified.txt",
+        "bytes": 120,
+        "sha256": "E9D8BF15FEC52F98E3C9D16A5D59F417FC3A06FE54D69CD30C5BBBBCE575CF9C"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/16000-2-s16.unqualified.txt",
+        "bytes": 120,
+        "sha256": "3A354C7FC177468F2E3FBF96B99F0543F536F09A82B732B2D256F8E338BA893A"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/24000-1-f32.unqualified.txt",
+        "bytes": 120,
+        "sha256": "EB23EE3AAF6DADE4E6DF4967AD0FB8F29F4E7F0614626CFCD4571DCBDAF6616B"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/24000-1-s16.unqualified.txt",
+        "bytes": 120,
+        "sha256": "20C86F2B1B44CE98D5D96912B5CF3FE9B3406E861F209A804BD0A93D80C38036"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/24000-2-f32.unqualified.txt",
+        "bytes": 120,
+        "sha256": "BCD1C576E72C6204FAFA8740E1419D7C965A9D9BA26EE743FAF2374B1450AAEB"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/24000-2-s16.unqualified.txt",
+        "bytes": 120,
+        "sha256": "0EE1C177E2152097D20B07AA8512682DF83485E282AD5A9D13FEF1599CED7A65"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/44100-1-f32.unqualified.txt",
+        "bytes": 120,
+        "sha256": "6DC5CFE24DCBC179BBDE2E4162CE6B0F4C87CD6662F03544F14B04255CF533B4"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/44100-1-s16.unqualified.txt",
+        "bytes": 120,
+        "sha256": "6E6FD18A622C7F15F6FA3A032E3E20ECD48AF179B38C862718F2A504C45467C7"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/44100-2-f32.unqualified.txt",
+        "bytes": 120,
+        "sha256": "DB1B17EBC19CD7628743C8341D55F1BC12FC673FD203E1846DB6FEEF033CD570"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/44100-2-s16.unqualified.txt",
+        "bytes": 120,
+        "sha256": "CCB3907D30C84D5AB64BB4B0B2246595719664797E2A5C76996DAB8531C4A916"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/48000-1-f32.unqualified.txt",
+        "bytes": 120,
+        "sha256": "DC5CFF187F437F9C70DB8819C72C2956C957FECADC44F7B0D9D4E41D9BD5614C"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/48000-1-s16.unqualified.txt",
+        "bytes": 120,
+        "sha256": "FC5423296E1F44420FE3F5A56F2C673F220096BBECFD0D79635914AF238FBF25"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/48000-2-f32-primed.conditioning.log",
+        "bytes": 43,
+        "sha256": "9DE345D79A45CBF981AFB0AC39B028133C92BB6BE332CBAB971B7524E688E0F5"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/48000-2-f32-primed.log",
+        "bytes": 45,
+        "sha256": "FA6A6BB313DA0FCF57F5109F79BC2FEFF2D0E86140E36C35F32D2E0DE05E026F"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/48000-2-f32-unprimed.conditioning.log",
+        "bytes": 43,
+        "sha256": "9DE345D79A45CBF981AFB0AC39B028133C92BB6BE332CBAB971B7524E688E0F5"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/48000-2-s16-primed.conditioning.log",
+        "bytes": 43,
+        "sha256": "9DE345D79A45CBF981AFB0AC39B028133C92BB6BE332CBAB971B7524E688E0F5"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/48000-2-s16-unprimed.conditioning.log",
+        "bytes": 43,
+        "sha256": "9DE345D79A45CBF981AFB0AC39B028133C92BB6BE332CBAB971B7524E688E0F5"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/condition.ps1",
+        "bytes": 65,
+        "sha256": "8923DCD5F9C5BCBD87B3EEEAEB6DB0D3FDD74BB056BDC31175973AF70EF5A3A4"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/invocation.log",
+        "bytes": 217,
+        "sha256": "CB9EA8198A558648DFB6B138B16F1F23264418AA4BC3C28ADB0E51EEDDB35749"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/native.ps1",
+        "bytes": 191,
+        "sha256": "5BB4F5FB22207B0FAA69ADB5E6BF9D75B75CDE4A8B15B81CEF8F6048D4F1299F"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/runner.ps1",
+        "bytes": 4575,
+        "sha256": "EE41F98E177E3DD5411EA639D8E6A189107F9CEFB98EDB1B25242C23CD035A3C"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/summary.json",
+        "bytes": 696,
+        "sha256": "E975CDCA25F6D208E577CE49EDBAED343DC760226FC49A05DBADA0398B996476"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/sustained.blocked.txt",
+        "bytes": 90,
+        "sha256": "B7EA04AFA7B010982DFDC3BE34682C10C242A16ABFB64DC445CE51D580CDE680"
+      },
+      {
+        "path": "build-wasapi-runner-test/reject-unprimed/validate_wasapi_fixture.ps1",
+        "bytes": 193,
+        "sha256": "985990FCBB86B2DCD2FF05FE1232693A474E360E816519DC0F26DF9AD097674C"
+      },
+      {
+        "path": "build-windows-validation/OFF-Debug/build.log",
+        "bytes": 130,
+        "sha256": "BEA414BB3EF386E20B6F7FF8B4A1AD1C9991B02BCD0D488A54E349CC347AF132"
+      },
+      {
+        "path": "build-windows-validation/OFF-Debug/configure.log",
+        "bytes": 162,
+        "sha256": "1F28106A3B815F6A9DD0EB76FA9093D294614AA6288E7A794F77E99551C1EE2F"
+      },
+      {
+        "path": "build-windows-validation/OFF-Debug/consumer-build.log",
+        "bytes": 23,
+        "sha256": "71AA391EC7D7E291B419A7F40FBA91919E14AC2394AB4E8B66ED126E267D70F6"
+      },
+      {
+        "path": "build-windows-validation/OFF-Debug/consumer-configure.log",
+        "bytes": 171,
+        "sha256": "64EB43069ED2701E7DAF9E428601D8778E446A396A32D0FBD17A9232F48A49DB"
+      },
+      {
+        "path": "build-windows-validation/OFF-Debug/consumer-ctest.log",
+        "bytes": 355,
+        "sha256": "5E745596252A9B8A09996A7AFBE9A0F8B9BE28B10F85AEB3B23AB2668008785D"
+      },
+      {
+        "path": "build-windows-validation/OFF-Debug/contracts.log",
+        "bytes": 81,
+        "sha256": "E11B8B1B5B92869B3BDCDE9A04A3EAF9B6495D51F5AA33DFE72C0DB1947B94BD"
+      },
+      {
+        "path": "build-windows-validation/OFF-Debug/ctest.log",
+        "bytes": 1295,
+        "sha256": "63D510DAF0F4DC156C4A856F7B61635EEC8902914ECB09B59091485E4CA99833"
+      },
+      {
+        "path": "build-windows-validation/OFF-Debug/install.log",
+        "bytes": 1134,
+        "sha256": "FD1AA736AECEE5EE368972536DDE8C5394959D05FB9077D741BC673E72CC37C0"
+      },
+      {
+        "path": "build-windows-validation/OFF-Release/build.log",
+        "bytes": 23,
+        "sha256": "71AA391EC7D7E291B419A7F40FBA91919E14AC2394AB4E8B66ED126E267D70F6"
+      },
+      {
+        "path": "build-windows-validation/OFF-Release/configure.log",
+        "bytes": 164,
+        "sha256": "E81536F75650B6D216E461626742025CE89EB35C80DAF4FCD2DD2E032CBF12CF"
+      },
+      {
+        "path": "build-windows-validation/OFF-Release/consumer-build.log",
+        "bytes": 23,
+        "sha256": "71AA391EC7D7E291B419A7F40FBA91919E14AC2394AB4E8B66ED126E267D70F6"
+      },
+      {
+        "path": "build-windows-validation/OFF-Release/consumer-configure.log",
+        "bytes": 173,
+        "sha256": "2048884288E335036E42E2CC195F447EDDDBD6FAF414F5AECA93063875B4DF54"
+      },
+      {
+        "path": "build-windows-validation/OFF-Release/consumer-ctest.log",
+        "bytes": 357,
+        "sha256": "7B07EAEDC00EDCAADF8BF5DFF3D673EDBCE3C8B9C690593B366C168E30E7DEAC"
+      },
+      {
+        "path": "build-windows-validation/OFF-Release/contracts.log",
+        "bytes": 81,
+        "sha256": "E11B8B1B5B92869B3BDCDE9A04A3EAF9B6495D51F5AA33DFE72C0DB1947B94BD"
+      },
+      {
+        "path": "build-windows-validation/OFF-Release/ctest.log",
+        "bytes": 1297,
+        "sha256": "392550DA1ED51EC01EC21892DD1BB0A6255D89928B5E80623B6A341672C3016E"
+      },
+      {
+        "path": "build-windows-validation/OFF-Release/install.log",
+        "bytes": 1156,
+        "sha256": "050D0BB95FDA9B6A94AEE5E04CACDE740AA9E823DA1DEC551D35B97C0BE69938"
+      },
+      {
+        "path": "build-windows-validation/ON-Debug/build.log",
+        "bytes": 171,
+        "sha256": "4EE4D44ECECA2E1185ECBFC657AB33F9F68C488586AA5AE2DF81A0416194D94F"
+      },
+      {
+        "path": "build-windows-validation/ON-Debug/configure.log",
+        "bytes": 161,
+        "sha256": "E165EA4C51452B719B811ECC1545FFDC074EE73D728CA8668E0A877486545A76"
+      },
+      {
+        "path": "build-windows-validation/ON-Debug/consumer-build.log",
+        "bytes": 23,
+        "sha256": "71AA391EC7D7E291B419A7F40FBA91919E14AC2394AB4E8B66ED126E267D70F6"
+      },
+      {
+        "path": "build-windows-validation/ON-Debug/consumer-configure.log",
+        "bytes": 170,
+        "sha256": "222317874AC028A4FD34B1C972F09A27340735701CA3CF79EEB9A1461EA0F558"
+      },
+      {
+        "path": "build-windows-validation/ON-Debug/consumer-ctest.log",
+        "bytes": 354,
+        "sha256": "48B5BDA2E763DE0C7F0D0E64B93D87FFF8783006030A065D336E8DB28EAF44F8"
+      },
+      {
+        "path": "build-windows-validation/ON-Debug/contracts.log",
+        "bytes": 81,
+        "sha256": "E11B8B1B5B92869B3BDCDE9A04A3EAF9B6495D51F5AA33DFE72C0DB1947B94BD"
+      },
+      {
+        "path": "build-windows-validation/ON-Debug/ctest.log",
+        "bytes": 834,
+        "sha256": "7F864CD1EDBD34C242D6BC95BBFB0AF7D25EDC664F33E7426097B8B4212A86E5"
+      },
+      {
+        "path": "build-windows-validation/ON-Debug/install.log",
+        "bytes": 1232,
+        "sha256": "C9D8EB485768B2C5928FA7940C10F8639B806F3F30A8F41376AFE0A5AF6E8218"
+      },
+      {
+        "path": "build-windows-validation/ON-Release/build.log",
+        "bytes": 476,
+        "sha256": "925D6BE578788FDED06FFE39A17E7DA775428DB8B4C9BA62C4723B1580A68782"
+      },
+      {
+        "path": "build-windows-validation/ON-Release/configure.log",
+        "bytes": 163,
+        "sha256": "050827D797A7D6F263F7040D8DA58BCED7FD681A88B4EF5432D860B7D403E6A0"
+      },
+      {
+        "path": "build-windows-validation/ON-Release/consumer-build.log",
+        "bytes": 90,
+        "sha256": "60EAA09015CA5F058F5C7D742240DFE651B17BE8BD051E653DC6458017C8BC34"
+      },
+      {
+        "path": "build-windows-validation/ON-Release/consumer-configure.log",
+        "bytes": 172,
+        "sha256": "2326E805B5F2CC9DDECEFC6C50909371F314F7E3A9A9763D06A8A5038FE687D9"
+      },
+      {
+        "path": "build-windows-validation/ON-Release/consumer-ctest.log",
+        "bytes": 356,
+        "sha256": "DBC8743861968729DBE3608362A2DD44AF2FC985EB341489582831512328539F"
+      },
+      {
+        "path": "build-windows-validation/ON-Release/contracts.log",
+        "bytes": 81,
+        "sha256": "E11B8B1B5B92869B3BDCDE9A04A3EAF9B6495D51F5AA33DFE72C0DB1947B94BD"
+      },
+      {
+        "path": "build-windows-validation/ON-Release/ctest.log",
+        "bytes": 836,
+        "sha256": "09277F9DA753DE6F02F4E4CDA0A64E6447713E926FD507EE58DB6F39E3A9C948"
+      },
+      {
+        "path": "build-windows-validation/ON-Release/install.log",
+        "bytes": 1256,
+        "sha256": "29399807CF422201BA6E86F728FE451E33B9C2FA3A57512ED2ADD57E075E1BE6"
+      }
+    ]
+  },
+  "limitations": [
+    "Unresolved fractional flush samples; no complete paired transition pass",
+    "First measured 600-second phase had zero transport loss but failed numerical minimum; second long attempt gated out",
+    "No S16 conversion oracle or original-profile pass",
+    "No new rates/channels qualified",
+    "No physical latency or audible-tail bound",
+    "No microphone PCM retained"
+  ]
+}
