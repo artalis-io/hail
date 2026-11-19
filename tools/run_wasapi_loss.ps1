@@ -20,6 +20,7 @@ try {
         '--channels',"$($fixture.channels)",'--pcm','f32','--unprimed','--loss-events',$prefix)
     $process=Start-Process -FilePath $Executable -ArgumentList $arguments -PassThru -WindowStyle Hidden `
         -RedirectStandardOutput (Join-Path $OutputDirectory 'loss.stdout.log') -RedirectStandardError (Join-Path $OutputDirectory 'loss.stderr.log')
+    $null=$process.Handle # Retain ExitCode with Windows PowerShell redirection.
     if (!$events.ready.WaitOne(15000)) { throw 'Native loss trial did not become ready.' }
     # These explicitly supplied scripts implement the owner's approved mechanism.
     # Hail never guesses which device to disable or installs/reboots a driver.

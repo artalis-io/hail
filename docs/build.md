@@ -6,6 +6,15 @@ need a C++11 compiler and thread library. Neither is required for the library
 when `HA_BUILD_TESTS=OFF`. Native adapters add only their selected OS dependencies.
 CoreAudio and WASAPI default on for their OS; Linux backends are opt-in.
 
+For external DSP interoperability, build the
+[independent installed consumer](../examples/dsp-consumer/README.md). It needs
+the optional virtual backend and includes no private Hail source/header. The
+ordinary installed C/C++ consumer project enables it with
+`-DHA_CONSUMER_DSP=ON`; platform CI uses that option. Native multichannel formats
+must still be probed/qualified for the selected endpoint. Linux native CTest
+adds `alsa_null_4ch` and `alsa_null_32ch`; these use libasound's null endpoint,
+never a physical device, and skip explicitly if that endpoint is unavailable.
+
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
 cmake --build build --parallel

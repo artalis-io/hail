@@ -82,11 +82,11 @@ int main()
            !ready_reference.load(std::memory_order_acquire)) std::this_thread::yield();
     ha_virtual_step_info step = HA_INIT(ha_virtual_step_info);
     ha_block_info info = HA_INIT(ha_block_info);
-    step.capture_frames = 32; step.playback_frames = 32;
     int16_t out[32];
     for (unsigned i = 0; i < 20000; ++i) {
+        step.capture_frames = 1u + i % 32u; step.playback_frames = 32u - i % 32u;
         CHECK(ha_virtual_step(s, &step, out, 32, &info) == HA_OK);
-        for (auto value : out) CHECK(value == 0 || value == 1234);
+        for (uint32_t j=0; j<step.playback_frames; ++j) CHECK(out[j] == 0 || out[j] == 1234);
         if (i % 37u == 0) {
             uint64_t next = 0;
             ha_result r = ha_stream_flush_playback(s, 0, &next);
@@ -96,6 +96,9 @@ int main()
         CHECK(ha_context_poll(c, nullptr, 0, &count) == HA_OK);
         std::this_thread::yield();
     }
+    /* Close supersedes a pending flush while all PCM roles are still live. */
+    { uint64_t next; ha_result r=ha_stream_flush_playback(s,0,&next);
+      CHECK(r==HA_PENDING || r==HA_BUSY); } /* A writer can own admission. */
     /* Begin close while data roles are live; join before final destruction. */
     CHECK(ha_stream_close_begin(s) == HA_PENDING);
     CHECK(ha_context_poll(c, nullptr, 0, &count) == HA_OK);

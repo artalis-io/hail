@@ -17,10 +17,22 @@ typedef struct alsa_stream {
     pthread_t thread;
     atomic_uint run, exit;
     uint32_t created, pending, offset;
-    unsigned char capture[HA_MAX_QUANTUM * 8u], playback[HA_MAX_QUANTUM * 8u];
+    unsigned char *capture, *playback; /* Planned per-leg quantum scratch. */
     struct pollfd descriptors[64];
     nfds_t descriptor_count;
 } alsa_stream;
+
+static ha_result alsa_extra_bytes(const ha_stream_info *info, size_t *bytes)
+{
+    uint32_t leg; *bytes = 0;
+    for (leg = 0; leg < 2; ++leg) if (leg ? info->playback_slots : info->capture_slots) {
+        uint32_t bpf; size_t n;
+        ha_result r = hail_format(leg ? &info->playback_format : &info->capture_format, &bpf);
+        if (r != HA_OK) return r;
+        if (!hail_mul(info->quantum_frames, bpf, &n) || !hail_add(bytes, n)) return HA_OVERFLOW;
+    }
+    return HA_OK;
+}
 
 static ha_result alsa_result(int e)
 {
@@ -277,6 +289,8 @@ static ha_result alsa_retire(ha_stream *s)
 static ha_result alsa_open(ha_stream *s)
 {
     alsa_stream *a = s->backend_state; uint32_t i; int e = 0;
+    a->capture = (unsigned char *)(a + 1);
+    a->playback = a->capture + (size_t)s->info.quantum_frames * s->capture.bytes_per_frame;
     atomic_init(&a->run, 0); atomic_init(&a->exit, 0);
     for (i = 0; i < 2; ++i) {
         uint64_t id = i ? s->info.playback_device_id : s->info.capture_device_id;
@@ -328,7 +342,7 @@ const hail_backend_ops hail_alsa_backend = {
     .id = HA_BACKEND_ALSA, .features = HA_FEATURE_ALSA | HA_FEATURE_RENDER_REFERENCE | HA_FEATURE_NATIVE_FLUSH,
     .context_init = alsa_context_init, .probe = alsa_probe, .open = alsa_open,
     .start = alsa_start, .stop = alsa_stop, .flush = alsa_flush, .retire = alsa_retire,
-    .context_bytes = sizeof(alsa_context), .stream_bytes = sizeof(alsa_stream),
+    .context_bytes = sizeof(alsa_context), .stream_bytes = sizeof(alsa_stream), .stream_extra_bytes = alsa_extra_bytes,
     .refresh = alsa_refresh, .context_free = alsa_context_free,
     .context_poll = alsa_context_poll
 };

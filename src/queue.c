@@ -40,9 +40,11 @@ ha_result hail_format(const ha_format *f, uint32_t *bpf)
 {
     if (!HAIL_HEADER(f) || f->reserved) return HA_INVALID_ARGUMENT;
     if (f->sample_rate < 8000 || f->sample_rate > 192000 ||
-        (f->channels != 1 && f->channels != 2) ||
+        !f->channels || f->channels > HA_MAX_CHANNELS ||
         f->storage != HA_INTERLEAVED ||
-        f->channel_layout != (f->channels == 1 ? HA_LAYOUT_MONO : HA_LAYOUT_STEREO))
+        (f->channel_layout != HA_LAYOUT_DISCRETE &&
+         f->channel_layout != (f->channels == 1 ? HA_LAYOUT_MONO :
+                              f->channels == 2 ? HA_LAYOUT_STEREO : HA_LAYOUT_DISCRETE)))
         return HA_FORMAT_UNSUPPORTED;
     if (f->sample_format != HA_PCM_S16 && f->sample_format != HA_PCM_F32)
         return HA_FORMAT_UNSUPPORTED;

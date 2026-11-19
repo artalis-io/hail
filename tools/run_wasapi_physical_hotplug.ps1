@@ -25,6 +25,7 @@ try {
     $arguments=@('--physical','--capture',$CaptureKey,'--playback',$PlaybackKey,'--unprimed','--loss-events',$prefix)
     $process=Start-Process -FilePath $exe -ArgumentList $arguments -PassThru -WindowStyle Hidden `
         -RedirectStandardOutput (Join-Path $output 'hotplug.stdout.log') -RedirectStandardError (Join-Path $output 'hotplug.stderr.log')
+    $null=$process.Handle # Retain ExitCode with Windows PowerShell redirection.
     if (!$events.ready.WaitOne(15000)) { throw 'Physical stream did not become ready' }
     Write-Output 'READY: unplug the Shure USB cable now; reconnect after five seconds.'
     if (!$events.closed.WaitOne(30000)) { throw 'Physical removal/retirement was not observed within 30 seconds' }

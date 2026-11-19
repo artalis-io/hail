@@ -1,0 +1,198 @@
+{
+  "observed_utc": "2026-11-19T13:23:00.668397+00:00",
+  "node": "spark-7468",
+  "runtime_id": "vllm-0.1.dev21830+g8244d1c44.d20261108+cp312+linux_aarch64+cu13+wheelset-b64f75177620",
+  "scope": "source and metadata investigation only; no ASR load, speech inference, microphone capture or service changes",
+  "runtime_files": {
+    "model_executor/models/parakeet.py": {
+      "sha256": "cb45baf865a52b5212d73e1b3d9d17bd6a4e51652d10bb2164f8b58687c3fb18"
+    },
+    "model_executor/models/qwen3_asr_forced_aligner.py": {
+      "sha256": "3b700b72576a4e9b48ae319d3f0c0deb083f3df7a1484ae282882b366f9d2c91"
+    },
+    "model_executor/models/whisper_utils.py": {
+      "sha256": "876cd51978cfb447313d4587e8a86b5395d5e2198491a19e442c71cd41897df1"
+    },
+    "model_executor/models/registry.py": {
+      "sha256": "3f76aeed12ccee18c66706faa097d3963f0540757149cf76faa20ef64821d68a"
+    },
+    "model_executor/models/whisper.py": {
+      "sha256": "89e10a120535100dab47e1c186ef39c1c3c18f3599fed0ec5952782707a2c4d3"
+    },
+    "model_executor/models/whisper_causal.py": {
+      "sha256": "c196dbecd25245607b442e5c781c2e2e33de68d59580fcbac9e3887557ad34be"
+    },
+    "model_executor/models/voxtral_realtime.py": {
+      "sha256": "29f63881761397790dd5a48b5ca8f279708bb15f9c9f5bcb210cbf2be58cec7b"
+    },
+    "model_executor/models/qwen3_asr.py": {
+      "sha256": "4d488c86d45f766818e3f46bd662b5226a5083b5dfb19c83fce0ecd06f964820"
+    },
+    "model_executor/models/qwen3_asr_realtime.py": {
+      "sha256": "fc1da8db3b418384be5e8298a5eb618577d65a48989610457d4952149c24916c"
+    },
+    "entrypoints/speech_to_text/realtime/metrics.py": {
+      "sha256": "d5b810e385ce5fe2f76650ba9cc7ddb3f868d82b06f4d74330f47f7f98b9ef03"
+    },
+    "entrypoints/speech_to_text/realtime/api_router.py": {
+      "sha256": "d9317fe25e86b1930039a8bd3452c079cb400e115b54fbd989e7a8166897ce42"
+    },
+    "entrypoints/speech_to_text/realtime/serving.py": {
+      "sha256": "afe3bd70506a0fad31305683fa7b227e42c3e731eb46e87d070f6d756556c6c9"
+    },
+    "entrypoints/speech_to_text/realtime/connection.py": {
+      "sha256": "4af35919ab980a40ed47febc54e8d7feac9cae320a6a339b6f178d5f0bc27f59"
+    },
+    "entrypoints/speech_to_text/realtime/protocol.py": {
+      "sha256": "2f1078877ab476e990d4304f7ce0f0817ddef3bbed25bb7d943e03c348d75778"
+    },
+    "entrypoints/speech_to_text/realtime/__init__.py": {
+      "sha256": "e3c55cbb0d7a8bd47df6f3378835644645f5d3bc89b45793b5d5a02d013e5c58"
+    },
+    "transformers_utils/processors/qwen3_asr.py": {
+      "sha256": "f676fc249482fac2918cc1893b39a80f6ec6d497f2aa58a46ab92854b112f4ee"
+    },
+    "transformers_utils/configs/parakeet.py": {
+      "sha256": "1531e7f9c72e20ed33dfc3c7b33d70c3dc2e0a66ef48b4a31441563cd7465159"
+    },
+    "transformers_utils/configs/qwen3_asr.py": {
+      "sha256": "9fd83da198c3c754e159c146508f78af5daa3d4a6c58e27c020584edbc834546"
+    }
+  },
+  "installed_qwen_realtime": {
+    "segment_duration_seconds": 5.0,
+    "function": "Qwen3ASRRealtimeGeneration.buffer_realtime_audio",
+    "assignment_line": 198,
+    "incoming_queue_maxsize": 0,
+    "queue_put_waits_for_capacity": false,
+    "model_state_exercised": false,
+    "limits": "source-derived; no latency or memory benchmark performed"
+  },
+  "installed_service_health": {
+    "service": "qwen38-fp4",
+    "configured": true,
+    "active": true,
+    "listening": true,
+    "api_healthy": true,
+    "model_matches": true,
+    "detail": "/health -> 200; /v1/models -> qwen38-fp4",
+    "healthy": true
+  },
+  "parakeet_plugin": {
+    "revision": "d673a14ef8216114fc7c4f9069192b02202a6220",
+    "implements_transcription": true,
+    "implements_realtime": false,
+    "declared_vllm_minimum": "0.32.0",
+    "installed_or_exercised": false
+  },
+  "model_metadata": {
+    "qwen": {
+      "id": "Qwen/Qwen3-ASR-0.6B",
+      "revision": "5eb144179a02acc5e5ba31e748d22b0cf3e303b0",
+      "normalized_card_sha256": "ad3a9de8957262a328660d700a180391edb7ec77811055b5f8da8e52be416423",
+      "acquisition": "hf models info / hf models card; metadata only; no weights downloaded"
+    },
+    "parakeet": {
+      "id": "nvidia/parakeet-tdt-0.6b-v3",
+      "revision": "541d1f99c6b0c3cd0b11a95167540bb8edefd82b",
+      "normalized_card_sha256": "45b0e4b3085b468e1d914c93362bcf22172017e0227b35217c9365474d5a9185",
+      "acquisition": "hf models info / hf models card; metadata only; no weights downloaded"
+    }
+  },
+  "upstream_source_index": {
+    "observed_utc": "2026-11-19T13:23:54.429755+00:00",
+    "sources": [
+      {
+        "repo": "Alex-Wengg/vllm-parakeet-plugin",
+        "revision": "d673a14ef8216114fc7c4f9069192b02202a6220",
+        "path": "README.md",
+        "url": "https://raw.githubusercontent.com/Alex-Wengg/vllm-parakeet-plugin/d673a14ef8216114fc7c4f9069192b02202a6220/README.md",
+        "sha256": "4afcc9da8d9f03223c13355407e4c533eb6a22a10a1e38d09dd324da2e8ecc90"
+      },
+      {
+        "repo": "Alex-Wengg/vllm-parakeet-plugin",
+        "revision": "d673a14ef8216114fc7c4f9069192b02202a6220",
+        "path": "pyproject.toml",
+        "url": "https://raw.githubusercontent.com/Alex-Wengg/vllm-parakeet-plugin/d673a14ef8216114fc7c4f9069192b02202a6220/pyproject.toml",
+        "sha256": "a8ed0d7cbef74929282b455fc473a65e271586a4ddc309789e16854b81130532"
+      },
+      {
+        "repo": "Alex-Wengg/vllm-parakeet-plugin",
+        "revision": "d673a14ef8216114fc7c4f9069192b02202a6220",
+        "path": "scripts/eval_wer.py",
+        "url": "https://raw.githubusercontent.com/Alex-Wengg/vllm-parakeet-plugin/d673a14ef8216114fc7c4f9069192b02202a6220/scripts/eval_wer.py",
+        "sha256": "5c6b6e828fcd70d28c72913ea9824a6a32c4b142d1b2ee1f096373e4980f7d89"
+      },
+      {
+        "repo": "Alex-Wengg/vllm-parakeet-plugin",
+        "revision": "d673a14ef8216114fc7c4f9069192b02202a6220",
+        "path": "scripts/parity.py",
+        "url": "https://raw.githubusercontent.com/Alex-Wengg/vllm-parakeet-plugin/d673a14ef8216114fc7c4f9069192b02202a6220/scripts/parity.py",
+        "sha256": "ac0fc38af6206a8ea3a93da3fc89e94b745f06f277d98345dd5a8548698d3dca"
+      },
+      {
+        "repo": "Alex-Wengg/vllm-parakeet-plugin",
+        "revision": "d673a14ef8216114fc7c4f9069192b02202a6220",
+        "path": "tests/test_tdt.py",
+        "url": "https://raw.githubusercontent.com/Alex-Wengg/vllm-parakeet-plugin/d673a14ef8216114fc7c4f9069192b02202a6220/tests/test_tdt.py",
+        "sha256": "420b409f99f08c0fb6bc2548000227506fec1f0cfac4e12ee034f51e2472859a"
+      },
+      {
+        "repo": "Alex-Wengg/vllm-parakeet-plugin",
+        "revision": "d673a14ef8216114fc7c4f9069192b02202a6220",
+        "path": "vllm_parakeet_plugin/__init__.py",
+        "url": "https://raw.githubusercontent.com/Alex-Wengg/vllm-parakeet-plugin/d673a14ef8216114fc7c4f9069192b02202a6220/vllm_parakeet_plugin/__init__.py",
+        "sha256": "aaac3252b2c998e24418704bfc6f3f7b8749920036e5479e3fce2b05c188f515"
+      },
+      {
+        "repo": "Alex-Wengg/vllm-parakeet-plugin",
+        "revision": "d673a14ef8216114fc7c4f9069192b02202a6220",
+        "path": "vllm_parakeet_plugin/config.py",
+        "url": "https://raw.githubusercontent.com/Alex-Wengg/vllm-parakeet-plugin/d673a14ef8216114fc7c4f9069192b02202a6220/vllm_parakeet_plugin/config.py",
+        "sha256": "4a870c657f59dfc82cead0f7f07ffac1b9a1e8e0f4bfe5785473d7e9971ada03"
+      },
+      {
+        "repo": "Alex-Wengg/vllm-parakeet-plugin",
+        "revision": "d673a14ef8216114fc7c4f9069192b02202a6220",
+        "path": "vllm_parakeet_plugin/encoder_graphs.py",
+        "url": "https://raw.githubusercontent.com/Alex-Wengg/vllm-parakeet-plugin/d673a14ef8216114fc7c4f9069192b02202a6220/vllm_parakeet_plugin/encoder_graphs.py",
+        "sha256": "b33929c856eda19a9e51bfe0259a6f9d663281b07d8c6c2ea21aaf461200f6e6"
+      },
+      {
+        "repo": "Alex-Wengg/vllm-parakeet-plugin",
+        "revision": "d673a14ef8216114fc7c4f9069192b02202a6220",
+        "path": "vllm_parakeet_plugin/model.py",
+        "url": "https://raw.githubusercontent.com/Alex-Wengg/vllm-parakeet-plugin/d673a14ef8216114fc7c4f9069192b02202a6220/vllm_parakeet_plugin/model.py",
+        "sha256": "90b90d2d1d8318fe4d8593413bb3e6ff5a7a8706b3c49b9c482227ce5ea76e16"
+      },
+      {
+        "repo": "Alex-Wengg/vllm-parakeet-plugin",
+        "revision": "d673a14ef8216114fc7c4f9069192b02202a6220",
+        "path": "vllm_parakeet_plugin/model_state.py",
+        "url": "https://raw.githubusercontent.com/Alex-Wengg/vllm-parakeet-plugin/d673a14ef8216114fc7c4f9069192b02202a6220/vllm_parakeet_plugin/model_state.py",
+        "sha256": "ff52cef91583afe6ba40ec372e986e3aabcaf61041d312e0a71ad3b1bad0d4ca"
+      },
+      {
+        "repo": "Alex-Wengg/vllm-parakeet-plugin",
+        "revision": "d673a14ef8216114fc7c4f9069192b02202a6220",
+        "path": "vllm_parakeet_plugin/processing.py",
+        "url": "https://raw.githubusercontent.com/Alex-Wengg/vllm-parakeet-plugin/d673a14ef8216114fc7c4f9069192b02202a6220/vllm_parakeet_plugin/processing.py",
+        "sha256": "a3938d3da16c382b5a09bfecf9ca2685c7148e0408bf3feac0061951dec13116"
+      },
+      {
+        "repo": "Alex-Wengg/vllm-parakeet-plugin",
+        "revision": "d673a14ef8216114fc7c4f9069192b02202a6220",
+        "path": "vllm_parakeet_plugin/tdt.py",
+        "url": "https://raw.githubusercontent.com/Alex-Wengg/vllm-parakeet-plugin/d673a14ef8216114fc7c4f9069192b02202a6220/vllm_parakeet_plugin/tdt.py",
+        "sha256": "aa1293c29ff3e9d80cefaf412fe53fa7754c3dacc3b31f4c7db4cb987cdbb328"
+      },
+      {
+        "repo": "ufal/SimulStreaming",
+        "revision": "077ea37d5ab4ff98bc567e4507f140dc4e5d5ad6",
+        "path": "README.md",
+        "url": "https://raw.githubusercontent.com/ufal/SimulStreaming/077ea37d5ab4ff98bc567e4507f140dc4e5d5ad6/README.md",
+        "sha256": "ed0ce81b97d5c2f24232fb318076d3707d6ad965a97df2a9463a163bbeb32cc2"
+      }
+    ]
+  }
+}

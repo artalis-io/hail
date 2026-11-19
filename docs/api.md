@@ -20,7 +20,11 @@ must have a valid header and both callbacks. No callback may reenter Hail.
 in C++. Hail itself requires C11. All output records preserve their supplied
 size/version prefix. Short records and unknown versions fail. A larger version-1
 record retains its unknown tail unchanged. All currently published fields are
-required; future optional appended fields must define an older accepted prefix.
+required except `ha_stream_info.stream_id`, an optional version-1 tail. Its
+original prefix through `playback_negotiated` remains accepted. The tail is
+written only when the whole field fits; initialize it to zero when an older
+library may leave it untouched. Future optional tails must likewise define an
+older accepted prefix.
 
 Pointers to configs, selectors, PCM and output records are borrowed only during
 the call. None are retained. The allocator callback table is copied; its user
@@ -83,8 +87,14 @@ notification requests explicit refresh; active lost streams require close/reopen
 
 ## Formats and memory
 
-Supported application formats are native-endian S16 and IEEE F32, interleaved
-mono or front-left/front-right stereo, with integer rates 8000..192000 Hz.
+Supported application formats are native-endian S16 and IEEE F32, interleaved,
+with 1..32 channels and integer rates 8000..192000 Hz. Mono and front-left/right
+stereo retain their named application layouts. `HA_LAYOUT_DISCRETE` describes
+indexed channels with unknown physical positions and is valid at any supported
+count. `HA_FORMAT_INIT` selects discrete layout above two channels. An array's
+geometry and meaning of each index must come from the application/device profile;
+discrete never means a guessed surround or beamforming map. Native endpoints may
+reject a particular count. See the [Gate E assessment](gate-e.md) for qualification.
 Virtual endpoints support every such request exactly. The portable core performs
 no resampling, numerical conversion, mixing, clipping or dither. Native/backend
 conversion requires explicit exact-application policy and is reported; strict
@@ -127,6 +137,14 @@ under rational drift. Epoch changes flag discontinuity; positions and valid
 timestamps are ordered only within a continuous epoch/domain. Independent
 virtual capture and playback clocks never imply synchronization.
 
+Clock domains are opaque context-lifetime identities, not OS device IDs.
+`HA_CLOCK_SHARED` reports a positively identified common clock source, not equal
+frame origins, identical leg epochs, zero latency or acoustic alignment. Separate
+units/starts can have different raw origins even on that source. `UNKNOWN` is
+not evidence of synchronization. Different streams need not receive the same
+domain ID even when an OS device is shared; correlate valid host anchors and
+retain each stream/leg identity instead of inferring relationships from names.
+
 Software flush discards queued Hail playback before completion, leaves capture
 running, and blocks writers until acknowledgement is observed by poll. Stale
 writers must retain their original generation and fail; relabeling old work
@@ -141,6 +159,47 @@ presentation. Software flush cannot retract samples already submitted to real
 native/hardware queues, and audible samples cannot be retracted at all. Native reset discards what the backend can retract, advances the render epoch,
 and completes only after old native submission has unwound. See the
 [native contracts](native-backends.md) for platform differences and test limits.
+
+### External DSP ownership, identity and flow
+
+Use copied `ha_stream_info` for both leg formats and the optional `stream_id`
+matching context events. Stream IDs, device IDs and clock-domain IDs are scoped
+to the owning context lifetime; a numeric ID from another context is unrelated.
+Attach the application/context identity when moving records to another worker.
+Each PCM call names its stream explicitly; `ha_block_info` supplies the leg's
+domain/epoch and playback selection generation, not a globally unique stream ID.
+
+PCM pointers are borrowed only for a call. Read destinations need only normal
+byte-addressable storage of the declared size; copies do not require SIMD
+alignment. Allocate stronger alignment in the DSP if its kernels need it.
+Queue storage is never exposed. A public capture reader, reference reader and
+playback writer can operate concurrently; lifecycle/status/info and virtual
+stepping remain serialized control operations. Transfer copied records between
+those owners using the DSP's own bounded synchronization.
+
+Capture/DSP/ASR backlog cannot backpressure a device: a full Hail capture ring
+drops newest and advances logical capture position. The next successful block
+reports cumulative loss and a gap. A known software drop does not invent a clock
+reset. Empty playback inserts real zero PCM into the selection reference and
+increments underrun counters; `SILENCE` means some silence in that block, not
+necessarily all samples. Reference overflow is independent and reports loss.
+TTS faster than playback receives partial acceptance or WOULD_BLOCK; slower TTS
+causes silence. The application chooses whether to wait, reject, or cancel work.
+
+Flush immediately invalidates future writes of the old generation once accepted;
+BUSY means no request was accepted. A writer already admitted can delay admission.
+Pending flush blocks new writes. Poll observes native completion and cutoff before
+reopening write admission. Old reference records may still be queued: retain their
+original generation/epoch. They describe historical selection, which may already
+have played or may have been discarded downstream. An AEC may need that history
+for the acoustic tail even after TTS cancellation. A reference is never a native
+submission receipt. Stop/close cancels pending flush, with a sticky CANCELLED
+result; final reclamation still requires both SDK retirement and joined app roles.
+No hard acknowledgement deadline is promised across OS calls or delayed polling.
+
+The [independent installed consumer](../examples/dsp-consumer/README.md) exercises
+this boundary with deterministic mock processing. Its mono output keeps capture
+rate/time; production resampling, AEC, NS, AGC and VAD remain external.
 
 ## Threads and execution contexts
 

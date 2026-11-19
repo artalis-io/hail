@@ -119,10 +119,14 @@ Applications must quiesce their data roles before final destruction.
 - **Honest time.** Clock domains, epochs, validity and uncertainty accompany PCM. Unknown timing stays unknown.
 - **Render reference.** Optional selected playback PCM supports external processing; it is not proof of audible DAC output.
 - **Safe retirement.** Cancellation does not free storage. Native workers/callbacks must retire before reclamation, including failed opens.
-- **Exact application PCM.** Native-endian S16/F32, interleaved mono/stereo, 8–192 kHz; device support and conversion facts are reported separately.
+- **Exact application PCM.** Native-endian S16/F32, interleaved 1–32 channels, 8–192 kHz; named mono/stereo or indexed discrete channels. Native support and conversion facts are reported separately.
 - **Allocator control.** Exact Hail memory plans and custom allocators support fixed arenas; the core has no mandatory OS, DSP or runtime dependency.
 
 ## Platforms and evidence
+
+The [Gate E assessment](docs/gate-e.md) and independent
+[public DSP consumer](examples/dsp-consumer/README.md) cover DSP interoperability.
+Gate E remains partial pending physical timing, alignment and interruption evidence.
 
 Implementation, execution and hardware qualification are distinct support levels.
 

@@ -77,8 +77,18 @@ typedef struct wa_stream {
     IAudioCaptureClient *capture;
     IAudioRenderClient *render;
     IAudioClock *clock;
-    unsigned char silence[HA_MAX_QUANTUM * 8u];
+    unsigned char *silence; /* Planned capture-quantum scratch after prefix. */
 } wa_stream;
+
+static ha_result wa_extra_bytes(const ha_stream_info *info, size_t *bytes)
+{
+    uint32_t bpf; ha_result r;
+    *bytes = 0;
+    if (!info->capture_slots) return HA_OK;
+    r = hail_format(&info->capture_format, &bpf);
+    if (r != HA_OK) return r;
+    return hail_mul(info->quantum_frames, bpf, bytes) ? HA_OK : HA_OVERFLOW;
+}
 
 #if HA_WASAPI_DIAGNOSTICS
 static void wa_trace_samples(wa_stream *a,uint32_t leg,const void *data,uint32_t frames,
@@ -133,7 +143,8 @@ static void wave_format(const ha_format *f, WAVEFORMATEXTENSIBLE *w)
     w->Format.nBlockAlign = (WORD)(f->channels * w->Format.wBitsPerSample / 8u);
     w->Format.nAvgBytesPerSec = w->Format.nSamplesPerSec * w->Format.nBlockAlign;
     w->Format.cbSize = 22; w->Samples.wValidBitsPerSample = w->Format.wBitsPerSample;
-    w->dwChannelMask = f->channels == 1 ? SPEAKER_FRONT_CENTER : SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
+    w->dwChannelMask = f->channel_layout == HA_LAYOUT_DISCRETE ? 0u :
+        f->channels == 1 ? SPEAKER_FRONT_CENTER : SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
     w->SubFormat = f->sample_format == HA_PCM_S16 ? pcm : floating;
 }
 static void engine_format(const WAVEFORMATEX *w, ha_probe_info *out)
@@ -149,7 +160,12 @@ static void engine_format(const WAVEFORMATEX *w, ha_probe_info *out)
     }
     if (!format) return;
     f.sample_rate = w->nSamplesPerSec; f.channels = w->nChannels; f.sample_format = format;
-    f.storage = HA_INTERLEAVED; f.channel_layout = f.channels == 1 ? HA_LAYOUT_MONO : f.channels == 2 ? HA_LAYOUT_STEREO : 0;
+    f.storage = HA_INTERLEAVED; f.channel_layout = HA_LAYOUT_DISCRETE;
+    if (w->wFormatTag == WAVE_FORMAT_EXTENSIBLE && w->cbSize >= 22) {
+        DWORD mask = ((const WAVEFORMATEXTENSIBLE *)(const void *)w)->dwChannelMask;
+        if (f.channels == 1 && mask == SPEAKER_FRONT_CENTER) f.channel_layout = HA_LAYOUT_MONO;
+        if (f.channels == 2 && mask == (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT)) f.channel_layout = HA_LAYOUT_STEREO;
+    }
     out->backend_format = f; out->backend_format_valid = 1;
 }
 
@@ -590,6 +606,7 @@ static ha_result wa_open(ha_stream *s)
 {
     wa_stream *a = s->backend_state; uint32_t i; ha_result r;
     a->owner = s; atomic_init(&a->command, 0); atomic_init(&a->done, 0);
+    a->silence = (unsigned char *)(a + 1);
     a->request = CreateEventW(NULL, FALSE, FALSE, NULL); a->reply = CreateEventW(NULL, FALSE, FALSE, NULL);
     for (i = 0; i < 2; ++i) {
         uint64_t id = i ? s->info.playback_device_id : s->info.capture_device_id;
@@ -659,6 +676,6 @@ const hail_backend_ops hail_wasapi_backend = {
     .id = HA_BACKEND_WASAPI, .features = HA_FEATURE_WASAPI | HA_FEATURE_RENDER_REFERENCE | HA_FEATURE_NATIVE_FLUSH,
     .context_init = wa_context_init, .probe = wa_probe, .open = wa_open,
     .start = wa_start, .stop = wa_stop, .flush = wa_flush, .retire = wa_retire,
-    .context_bytes = sizeof(wa_context), .stream_bytes = sizeof(wa_stream),
+    .context_bytes = sizeof(wa_context), .stream_bytes = sizeof(wa_stream), .stream_extra_bytes = wa_extra_bytes,
     .refresh = wa_refresh, .context_poll = wa_context_poll, .context_free = wa_context_free, .stream_free = wa_stream_free
 };

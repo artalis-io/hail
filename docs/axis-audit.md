@@ -1,5 +1,77 @@
 # Audio architecture axis audit
 
+## 2026-11-19 final Gate E convergence
+
+Base a5b247b; follow-up to the earlier public DSP boundary pass below. The
+dependency map and public `ha_`/`HA_` API are unchanged. No new architectural
+axis coupling was found that warrants a new abstraction.
+
+Capture trace: PipeWire `stream_process` leases native data, validates native
+geometry, interprets modulo offset/neutral/corrupt flags, enters the leg gate,
+copies at most a quantum through adapter scratch when needed, publishes through
+`hail_native_capture`/`hail_capture`, and returns the lease. Application partial
+reads own copies. Scratch belongs to the existing backend byte plan; it is not
+a second buffering/state-machine layer. WASAPI worker and ALSA nonblocking
+worker still use the same portable publication boundary. Virtual processing
+remains externally driven.
+
+Playback trace: generation admission and bounded `ha_stream_write`, consumer
+cutoff/reset, native selected PCM/reference and SDK submission remain distinct.
+PipeWire now clears recycled native EMPTY flags before submission; selected
+reference does not become a post-mixer tap. Cancellation preserves capture
+epochs; external-consumer regressions check stale PCM rejection, repeated
+generation changes and close superseding flush. The original threaded roles
+still join before final reclamation. Endpoint pinning/reopen semantics remain
+explicit, with new incarnation/stream/domain identity after loss.
+
+E1–E3 are adapter representation errors, corrected below the portable seam;
+E4 is a qualification observer error, corrected outside Hail. No DSP, model,
+OS type or orchestration dependency enters public/portable source. Offline
+trace reduction does not invent unavailable timestamps or implement clock
+compensation. Clock epochs and playback generations remain separate concepts.
+
+Verified: installed C/C++/DSP static/shared consumers; exact ordinary exports;
+native private PipeWire/ALSA null; ASan/UBSan and independent Clang TSan; fuzzing
+and static analysis. Not qualified: physical timing/alignment/tails/deadlines;
+macOS follow-up seam is added but CI queued. GCC ARM64 TSan initialization
+failure remains separately recorded. [Gate E](gate-e.md) and its linked raw
+evidence distinguish compiled, exercised, simulated and physical scope.
+ABI remains provisional. Earlier passes below are retained.
+
+## 2026-11-19 Gate E external DSP boundary
+
+The [Gate E audit and implementation](gate-e.md) use base `42537e2` and preserve
+the existing map and cross-platform ownership traces below. The independent
+installed `examples/dsp-consumer` project forces the public boundary: its DSP
+module uses only `hail.h`; the scenario driver uses public `hail/virtual.h`.
+No private seam or production source is compiled into the fixture. CI builds it
+against installed static/shared packages. Hail depends on none of the consumer,
+DSP, speech, networking, Keel or Hull components.
+
+Two contract gaps were exposed without another state machine or clock system:
+event identity was unavailable through get_info (now an optional compatible
+tail), and the format validator rejected arrays (now bounded discrete indexed
+channels). Native scratch stays adapter-owned and is sized through the existing
+pure plan hook. Unknown physical positions stay unknown. PipeWire invalid
+queue-depth correlation and CoreAudio nonfinite-rate conversion receive focused
+adapter fixes. No core resampler, numerical conversion or AEC was added.
+
+Capture and render clocks/gates remain independent; reference remains selected
+application PCM before SDK transformations. Cancellation generation, render
+clock epoch, native reset acknowledgement and acoustic tail remain separate.
+The fixture checks old reference tags rather than pretending reset proves
+presentation. It verifies modeled drift and mismatched-rate transport, not
+production resampling or physical alignment. The same-cadence zero-drift virtual
+case conservatively reports independent domains; shared hardware still requires
+native evidence. Device loss continues to fail the affected duplex stream and
+requires explicit reopen, with fresh domains/identity.
+
+Gate E remains PARTIAL: arbitrary physical maps, calibrated timing/reference
+alignment, physical drift, audible tail and deadline evidence remain incomplete.
+There is no justification for turning Hail into a DSP/inference framework or
+freezing the ABI. The [C audit](c-audit-2026-11-19.md) separates actual adapter
+defects from these evidence/contract limitations.
+
 ## 2026-11-19 standalone follow-up and full source pass
 
 Applied [axis-audit](../.claude/skills/axis-audit/SKILL.md) after the

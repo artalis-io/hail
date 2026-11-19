@@ -1,0 +1,55 @@
+{
+  "date": "2026-11-19",
+  "gate_e": "PARTIAL",
+  "source_commit": "87e29d4ebcc975a5cf993c93eb65927969339890",
+  "independent_consumer": {
+    "installed_public_headers_only": true,
+    "production_sources_or_private_headers": false,
+    "nominal_modeled_capture_seconds_longest": 700,
+    "physical_audio": false
+  },
+  "checks": {
+    "windows_static_debug_release": "13/13 each",
+    "windows_shared_debug_release": "9/9 each",
+    "windows_installed_consumers": "3/3 each of four configurations",
+    "windows_matching_llvm23_asan": "13/13 + independent consumer 1/1",
+    "linux_arm64_gcc_asan_ubsan": "7/7 portable + independent consumer 1/1; 12/12 native/portable including ALSA null 2/4/32 channels",
+    "clang_analyzer": "10 successful invocations; no diagnostics",
+    "legacy_header_client": "400-byte original stream_info prefix; tail canaries intact",
+    "ci_implementation": {
+      "revision": "c76b4979af3a4b0aead584d6e01295e4cc92e73b",
+      "jobs": 11,
+      "result": "success",
+      "url": "https://github.com/artalis-io/hail/actions/runs/44537959114"
+    },
+    "fuzz_implementation": {
+      "revision": "c76b4979af3a4b0aead584d6e01295e4cc92e73b",
+      "result": "success",
+      "url": "https://github.com/artalis-io/hail/actions/runs/44537958975"
+    },
+    "ci_final_regressions": {
+      "revision": "87e29d4ebcc975a5cf993c93eb65927969339890",
+      "jobs": 11,
+      "result": "success",
+      "url": "https://github.com/artalis-io/hail/actions/runs/44539247458"
+    },
+    "fuzz_final_regressions": {
+      "revision": "87e29d4ebcc975a5cf993c93eb65927969339890",
+      "result": "success",
+      "url": "https://github.com/artalis-io/hail/actions/runs/44539247463"
+    }
+  },
+  "retained_failures": {
+    "windows_initial_asan": "concurrency process stalled with Visual Studio-path ASan DLL; terminated; matching LLVM23 runtime profile passes",
+    "linux_arm64_tsan": "7/7 runtime initialization failures: unexpected memory mapping; no executed race coverage",
+    "remote_shell_initial": "CRLF shell-input setup failure before build; corrected byte transport"
+  },
+  "physical_status": "No fresh microphone/cable/acoustic measurement; prior WASAPI paired failures retained; no latency, alignment, audible-tail or deadline qualification claimed",
+  "abi": "Provisional; optional tail compatible in tested old-header case; no freeze",
+  "artifacts": {
+    "raw.zip": {
+      "sha256": "bdc45fac9f060092b61dffb54648cab32c16c8fb9a2b2ed8f0b5218613e9dc2f",
+      "bytes": 294687
+    }
+  }
+}
