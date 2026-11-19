@@ -6,12 +6,24 @@
 #include <string.h>
 #include <math.h>
 static AudioStreamBasicDescription native_format;
-static OSStatus property_result;
+static OSStatus property_result, streams_result;
+static UInt32 stream_count = 1;
+static unsigned streams_calls, format_calls;
 static OSStatus test_property(AudioObjectID object, const AudioObjectPropertyAddress *address,
                               UInt32 qualifier_size, const void *qualifier, UInt32 *size, void *data)
 {
-    (void)object; (void)qualifier_size; (void)qualifier;
-    if (address->mSelector != kAudioDevicePropertyStreamFormat || *size != sizeof(native_format)) abort();
+    if (qualifier_size || qualifier) abort();
+    if (address->mSelector == kAudioDevicePropertyStreams) {
+        const AudioStreamID streams[] = {42, 43};
+        if (object != 1 || address->mScope != kAudioDevicePropertyScopeInput || stream_count > 2 ||
+            *size < stream_count * sizeof(AudioStreamID)) abort();
+        ++streams_calls;
+        *size = stream_count * (UInt32)sizeof(AudioStreamID); memcpy(data, streams, *size);
+        return streams_result;
+    }
+    if (address->mSelector != kAudioStreamPropertyPhysicalFormat || object != 42 ||
+        address->mScope != kAudioObjectPropertyScopeGlobal || *size != sizeof(native_format)) abort();
+    ++format_calls;
     memcpy(data, &native_format, sizeof(native_format));
     return property_result;
 }
@@ -42,6 +54,12 @@ int main(void)
         CHECK(ca_extra_bytes(&plan,&bytes)==HA_OK && bytes==(size_t)HA_MAX_QUANTUM*channels[i]*sizeof(float));
     }
     property_result=kAudioHardwareIllegalOperationError; CHECK(!ca_native_format(1,0,&f));
+    CHECK(streams_calls == 12 && format_calls == 12);
+    property_result=0; streams_result=kAudioHardwareBadDeviceError;
+    CHECK(!ca_native_format(1,0,&f) && format_calls==12);
+    streams_result=0; stream_count=0;
+    CHECK(!ca_native_format(1,0,&f) && format_calls==12);
+    stream_count=2; CHECK(!ca_native_format(1,0,&f) && format_calls==12);
     puts("CoreAudio rejects nonfinite/fractional rates and preserves discrete channel counts");
     return 0;
 }

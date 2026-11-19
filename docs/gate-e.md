@@ -2,6 +2,16 @@
 
 ## Convergence follow-up — 2026-11-19 (base a5b247b)
 
+CI follow-up for `3117b11`: 22/24 checks passed; both macOS static jobs compiled
+but aborted in the newly added `coreaudio_format` fixture. Its SDK mock expected
+the device stream-format property, whereas the actual adapter first enumerates
+device streams and then queries the single stream's physical format. The mock
+now implements that exact two-query path, checks object/scope, and additionally
+verifies that enumeration failure and zero/multiple streams do not reach the
+format query. No production code or existing format assertion is changed.
+The correction requires a new macOS CI result; the original failing run remains
+[available here](https://github.com/artalis-io/hail/actions/runs/44550304218).
+
 **Verdict remains PARTIAL.** The sections below preserve the original audit and
 evidence. This follow-up corrects additional PipeWire descriptor defects and
 extends verification without changing public types, exports or transport policy.
