@@ -40,6 +40,7 @@ are not treated as implemented facts. Existing reports remain historical.
 | Endpoint pinning / explicit recovery | Already implemented, native coverage incomplete | Core selectors/registry, `hail_fail`, begin/finish retirement; public fixture now exercises loss, denial and reopen with new identities. |
 | Hotplug, sleep, service restart, actual rate change | Implemented error/reopen policy; insufficiently verified | Native adapters reject changed formats/fail streams; full hardware matrix and sleep/resume evidence remain open. |
 | Measured input/output/physical round trip and callback deadlines | Implemented telemetry in selected harnesses; insufficiently verified | Existing qualification tools/reports distinguish estimates/software loopback. No fabricated portable latency query added. |
+| Native period, calibrated device latency and instantaneous frame occupancy queries | Partially implemented / unavailable publicly | get_info exposes application quantum/capacities; blocks expose timing estimates; status exposes loss/underrun counters. Native periods are harness SDK observations, not public device-latency guarantees. |
 | AEC/NS/AGC/VAD/resampling/inference/service policy | Intentionally out of scope | No such dependency or processing enters core; fixture gain/channel selection is external mock processing. |
 
 G1 is fixed by extending the existing get_info record, not by another identity
@@ -107,6 +108,39 @@ default pinning, permission denial, device replacement, rate change through
 reopen and pending native retirement. Four profiles include 700 modeled seconds;
 this is not 700 seconds of hardware execution. Existing public concurrent
 reader/writer/reference/flush/close and native handoff stress remain separate.
+
+[Structured results](evidence/gate-e-2026-11-19/summary.json) and
+[raw logs, source hashes and source snapshot](evidence/gate-e-2026-11-19/raw.zip)
+retain failures alongside passing runs. Cross-platform implementation CI at
+[`c76b497`](https://github.com/artalis-io/hail/actions/runs/44537959114) passes all
+11 jobs, including native Linux static/shared loopback and x86 TSan; its
+[device-free fuzz campaign](https://github.com/artalis-io/hail/actions/runs/44537958975)
+also passes. The final regression additions are at `87e29d4`, independently
+checked locally as below. Their
+[full 11-job CI run](https://github.com/artalis-io/hail/actions/runs/44539247458)
+and [fuzz run](https://github.com/artalis-io/hail/actions/runs/44539247463) also
+pass; both revisions' evidence is retained separately.
+
+| Local executed check | Result |
+| --- | --- |
+| Windows static Debug/Release | 13/13 device-free cases each |
+| Windows shared Debug/Release | 9/9 device-free cases each |
+| Installed C/C++/external DSP consumers | 3/3 in each of four Windows configurations |
+| Matching LLVM 23 Windows ASan | 13/13 plus external installed consumer 1/1 |
+| Linux ARM64 portable Debug | 7/7 plus external installed consumer 1/1 |
+| Linux ARM64 GCC ASan/UBSan | 7/7 plus external installed consumer 1/1 |
+| Linux ARM64 native compile/device-free seams | 9/9; ALSA/PipeWire enabled |
+| Linux ARM64 native ASan/UBSan | 12/12, including actual libasound null 2/4/32-channel duplex |
+| Clang static analysis | Ten invocations, no diagnostics |
+| Old-header client | Original 400-byte info prefix preserved; tail canaries intact |
+
+Windows commands use `tools/check_windows_builds.ps1`; the ASan installed
+consumer uses the matching LLVM 23 compiler and runtime PATH. Linux uses an
+isolated `/tmp/hail-gate-e.*` source/build tree, with Ubuntu dev packages extracted
+there rather than installed system-wide. Exact shell/compiler commands and
+artifact hashes are retained. Native ASan CTest explicitly excludes the private
+PipeWire server test on that node; this is distinct from CI's executed server
+loopback. ARM64 TSan's failed initialization is not counted as a pass.
 
 | Platform | This pass / remaining limit |
 | --- | --- |

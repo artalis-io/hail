@@ -257,19 +257,22 @@ does. Endpoint replacement is a new incarnation; reopen creates a new stream,
 new timelines and empty queues. No automatic retry/backoff or recovery loop.
 
 Version 1 application PCM: native-endian signed two's-complement S16 and IEEE
-F32, interleaved, one or two channels. Mono layout means one mono channel;
-stereo means ordered front-left/front-right. A frame contains one sample per
+F32, interleaved, one through 32 channels after the Gate E extension. Mono layout
+means one mono channel; stereo means ordered front-left/front-right. Discrete
+layout preserves indexed channels without claiming physical positions. A frame contains one sample per
 channel; bytes per frame are channels times bytes per sample. Explicit layout
-and storage tags reserve room for future channel maps and planar formats;
-version 1 rejects them. F32 nominal range is [-1,1]; the application supplies
+and storage tags reserve room for arbitrary physical channel maps and planar
+formats; these remain unavailable. F32 nominal range is [-1,1]; the application supplies
 finite samples in range, with no core clipping, dither or normalization.
 
 Requested rates include 16000, 24000, 44100 and 48000 Hz; integer rates in
 8000..192000 are representable under proposed hard limits. A native endpoint
 need not support all of them. Capture and playback requests may differ. Open
-returns per leg: requested format, actual application format, native endpoint
-format if known, native engine format if known, period bounds, capacity, clock
-facts, and conversion location/flags (`NONE`, `NATIVE`, `SERVER`, `UNKNOWN`).
+currently returns per leg: actual application format, native endpoint format
+if known, native engine format if known, clock facts and conversion location/flags
+(`NONE`, `NATIVE`, `SERVER`, `UNKNOWN`), plus application quantum/queue capacities.
+Native period bounds and calibrated device latency are not public get_info
+fields; native qualification harnesses query SDK facts separately.
 Unknown physical format is explicitly invalid, not filled with the app format.
 
 Two negotiation modes suffice:

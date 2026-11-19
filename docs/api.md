@@ -137,6 +137,14 @@ under rational drift. Epoch changes flag discontinuity; positions and valid
 timestamps are ordered only within a continuous epoch/domain. Independent
 virtual capture and playback clocks never imply synchronization.
 
+Clock domains are opaque context-lifetime identities, not OS device IDs.
+`HA_CLOCK_SHARED` reports a positively identified common clock source, not equal
+frame origins, identical leg epochs, zero latency or acoustic alignment. Separate
+units/starts can have different raw origins even on that source. `UNKNOWN` is
+not evidence of synchronization. Different streams need not receive the same
+domain ID even when an OS device is shared; correlate valid host anchors and
+retain each stream/leg identity instead of inferring relationships from names.
+
 Software flush discards queued Hail playback before completion, leaves capture
 running, and blocks writers until acknowledgement is observed by poll. Stale
 writers must retain their original generation and fail; relabeling old work
