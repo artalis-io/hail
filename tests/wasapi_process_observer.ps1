@@ -1,6 +1,8 @@
 # Device-free regression of the actual matrix process observer. Extract its
 # function without evaluating the script's fixture validation or audio trials.
 $ErrorActionPreference='Stop'
+# CTest can inherit PowerShell 7's module path while invoking Windows PowerShell.
+Import-Module (Join-Path $PSHOME 'Modules/Microsoft.PowerShell.Utility') -Force
 $tokens=$null; $errors=$null
 $path=Join-Path $PSScriptRoot '../tools/run_wasapi_marker_matrix.ps1'
 $ast=[Management.Automation.Language.Parser]::ParseFile($path,[ref]$tokens,[ref]$errors)
