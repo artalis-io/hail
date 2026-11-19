@@ -2,6 +2,10 @@
 import importlib.util
 from pathlib import Path
 import unittest
+import json
+import subprocess
+import sys
+import tempfile
 
 spec = importlib.util.spec_from_file_location('timing', Path(__file__).resolve().parents[1]/'tools/analyze_audio_timing.py')
 timing = importlib.util.module_from_spec(spec); spec.loader.exec_module(timing)
@@ -72,6 +76,25 @@ class Timing(unittest.TestCase):
                      [event('submission',10),event('electrical_output',1)],
                      [event('capture_delivery','nan')]]:
             with self.assertRaises(ValueError): timing.analyze(campaign(),rows)
+
+    def test_cli_retains_hashes_missing_metrics_and_prior_output(self):
+        with tempfile.TemporaryDirectory(prefix='hail-timing-test-') as directory:
+            root=Path(directory); m=campaign('physical_electrical'); m['calibration']='calibration.json'
+            (root/'calibration.json').write_text('{"synthetic_test_only":true}')
+            (root/'manifest.json').write_text(json.dumps(m))
+            (root/'trace.csv').write_text('trial,event,time_ns,uncertainty_ns,clock,frame,rate,domain,epoch\n'
+                '1,submission,100,1,test,,,,\n1,electrical_capture,150,2,test,,,,\n')
+            command=[sys.executable,str(Path(timing.__file__)),str(root/'manifest.json'),str(root/'trace.csv'),
+                     '--output',str(root/'result.json')]
+            r=subprocess.run(command,capture_output=True,text=True)
+            self.assertEqual(r.returncode,0,r.stderr)
+            raw=(root/'result.json').read_bytes(); report=json.loads(raw)
+            self.assertEqual(report['metrics']['physical_round_trip_ns']['distribution']['median'],50)
+            self.assertEqual(report['metrics']['physical_round_trip_ns']['uncertainty_bound_ns']['maximum'],3)
+            self.assertIsNone(report['metrics']['audible_tail_ns']['distribution'])
+            self.assertEqual(len(report['manifest']['calibration_sha256']),64)
+            self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0)
+            self.assertEqual((root/'result.json').read_bytes(),raw)
 
 
 if __name__=='__main__': unittest.main()

@@ -99,6 +99,26 @@ int main(int argc, char **argv)
     }
     buffer.n_metas = 0; buffer.metas = NULL; chunk.flags = 0;
     {
+        /* One callback spans two application quanta and wraps inside a sample.
+         * Each copied block must retain its own first-frame time anchor. */
+        uint32_t frames; uint64_t first=s->capture_position;
+        ha_block_info info=HA_INIT(ha_block_info);
+        s->info.quantum_frames=2; chunk.offset=UINT32_MAX;
+        time_valid=1; time_record.now=INT64_C(10000000000);
+        time_record.rate.num=1; time_record.rate.denom=48000;
+        stream_process(&leg);
+        for(unsigned k=0;k<2;++k) {
+            CHECK(ha_stream_read(s,output,4,&frames,&info)==HA_OK && frames==2);
+            CHECK(info.first_frame==first+2u*k);
+            CHECK(info.host_time_ns==UINT64_C(9999916667)+(uint64_t)k*41666u);
+            CHECK((info.flags & (HA_TIME_HOST_VALID|HA_TIME_ESTIMATED))==(HA_TIME_HOST_VALID|HA_TIME_ESTIMATED));
+            CHECK(info.uncertainty_ns==UINT64_MAX && !(info.flags&HA_TIME_DEVICE_VALID));
+            for(unsigned i=0;i<4;++i)
+                CHECK(((unsigned char *)output)[i]==((unsigned char *)samples)[(7u+4u*k+i)%sizeof(samples)]);
+        }
+        s->info.quantum_frames=4; chunk.offset=0; time_valid=0;
+    }
+    {
         size_t bytes; uint32_t frames; ha_block_info info=HA_INIT(ha_block_info);
         ha_stream_info plan=HA_INIT(ha_stream_info);
         plan.capture_slots=2; plan.capture_format=format; plan.quantum_frames=4;
