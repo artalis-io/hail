@@ -41,7 +41,7 @@ static void step(ha_stream *s, dsp_consumer *d, uint64_t *position, uint32_t cap
     ha_virtual_step_info v = HA_INIT(ha_virtual_step_info);
     ha_block_info b = HA_INIT(ha_block_info); uint32_t i, ch, n;
     const uint32_t cc = d->format.capture_format.channels, pc = d->format.playback_format.channels;
-    float value = d->generation == 1 ? 0.25f : 0.5f;
+    float value = 0.25f + (float)(d->generation % 16u) / 32.0f;
     for (i = 0; i < capture; ++i) for (ch = 0; ch < cc; ++ch)
         input[(size_t)i * cc + ch] = (float)((*position + i) % 256u) / 512.0f + (float)ch / 128.0f;
     if (write_audio && render) {
@@ -145,6 +145,22 @@ static void scenario(uint32_t rate, uint32_t capture_channels, uint32_t render_c
     CHECK(d.capture.epoch == epoch && d.render.epoch > 1);
     step(s, &d, &position, 16, 48, HA_VIRTUAL_UNKNOWN_CAPTURE_GAP, 1, 1, 1);
     CHECK(d.capture.epoch > epoch && d.capture.gaps);
+    /* Repeated cancellations while the external reference consumer runs.
+     * Only render timing resets; capture remains in its own epoch. */
+    for (unsigned i = 0; i < 8; ++i) {
+        epoch = d.capture.epoch; old = d.generation;
+        stale[0]=-0.75f;
+        OK(ha_stream_write(s,stale,1,old,&n)); CHECK(n==1);
+        CHECK(ha_stream_flush_playback(s, HA_FLUSH_NATIVE_REQUIRED, &next) == HA_PENDING);
+        step(s, &d, &position, 16, 0, 0, 0, 1, 1);
+        poll_context(c); poll_context(c); poll_context(c);
+        CHECK(status(s).flush_result == HA_OK && status(s).flush_completed_generation == next);
+        CHECK(ha_stream_write(s, stale, 1, old, &n) == HA_STALE_GENERATION && !n);
+        dsp_cancelled(&d, next);
+        step(s, &d, &position, 16, 48, 0, 1, 1, 1);
+        CHECK(d.capture.epoch == epoch);
+        CHECK(d.reference_info.generation == next && (d.reference_info.flags & HA_BLOCK_DISCONTINUITY));
+    }
     /* Repeated stop/start revokes queues and creates fresh per-leg epochs. */
     for (unsigned i = 0; i < 4; ++i) {
         CHECK(ha_stream_stop(s) == HA_PENDING); poll_context(c); CHECK(status(s).state == HA_STOPPED);
@@ -177,9 +193,16 @@ static void scenario(uint32_t rate, uint32_t capture_channels, uint32_t render_c
         OK(ha_virtual_device_set(c,HA_CAPTURE,1,1,&replacement));
     }
     OK(ha_stream_open(c,&cfg,&s));
+    OK(ha_stream_get_info(s,&info)); OK(dsp_init(&d,&info)); position=0;
     clocks.faults=HA_VIRTUAL_HOLD_RETIREMENT;
     OK(ha_virtual_configure(s,&clocks));
+    CHECK(ha_stream_start(s)==HA_PENDING); poll_context(c);
+    step(s,&d,&position,16,48,0,1,1,1);
+    CHECK(ha_stream_flush_playback(s,0,&next)==HA_PENDING);
+    clocks.host_time_ns += UINT64_C(1000000); /* step advanced the driver's host clock. */
     CHECK(ha_stream_close_begin(s)==HA_PENDING); poll_context(c);
+    CHECK(status(s).flush_result==HA_CANCELLED && status(s).flush_completed_generation==next);
+    CHECK(ha_stream_write(s,stale,1,d.generation,&n)==HA_BUSY && !n); /* Closed PCM gate. */
     CHECK(ha_stream_close_finish(&s)==HA_PENDING && s);
     clocks.faults=0; OK(ha_virtual_configure(s,&clocks));
     poll_context(c); OK(ha_stream_close_finish(&s));
@@ -193,5 +216,7 @@ int main(void)
     scenario(16000, 4, 2, 1000, 4000);
     scenario(44100, HA_MAX_CHANNELS, 8, -1000, 4000);
     scenario(16000, 4, 2, 100, 400000); /* 700 seconds modeled; no wall-time audio. */
+    for (uint32_t channels=1; channels<=HA_MAX_CHANNELS; ++channels)
+        scenario(44100, channels, HA_MAX_CHANNELS+1u-channels, 0, 32);
     return 0;
 }

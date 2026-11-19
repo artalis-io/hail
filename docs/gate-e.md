@@ -1,5 +1,149 @@
 # Gate E: full-duplex speech and DSP readiness
 
+## Convergence follow-up — 2026-11-19 (base a5b247b)
+
+**Verdict remains PARTIAL.** The sections below preserve the original audit and
+evidence. This follow-up corrects additional PipeWire descriptor defects and
+extends verification without changing public types, exports or transport policy.
+Physical alignment, calibrated device latency, audible tails and deadlines remain
+qualification requirements, not conclusions from virtual tests.
+
+| Finding | Before follow-up | Correction / source |
+| --- | --- | --- |
+| E1: valid SPA ring data rejected | Confirmed defect; new actual-callback regression fails on a5b247b | `backend_pipewire.c:stream_process` now takes offsets modulo maxsize, clamps size as SPA specifies, validates complete interleaved frames, and copies a wrapped quantum through planned scratch. Includes byte-unaligned splits. |
+| E2: neutral-media capture metadata ignored | Confirmed defect; new actual-callback regression returns nonzero PCM | EMPTY chunks and GAP headers produce zero PCM and HA_BLOCK_SILENCE. Corrupt packets still report loss/epoch transitions; silence is not fabricated loss. SDK storage is never modified. |
+| E3: recycled render flags retained | Source-confirmed defect: EMPTY can mislabel newly rendered nonzero PCM | Reset output chunk flags when filling it; actual callback regression submits a nonzero signal with a recycled EMPTY descriptor and checks the reference and SDK payload. |
+| WASAPI fractional PCM | Implemented copy path, insufficient platform transparency qualification | `tests/wasapi_buffers.c:fractional_capture_test` verifies exact F32 bytes, including signed zero and fractional S16-unit values seen at the SDK boundary. No rounding, clipping or tolerance adjustment is introduced. |
+| Repeated/closing cancellation and all discrete counts | Implemented but incomplete verification | Independent installed `examples/dsp-consumer/main.c` now tests each count 1..32, repeated native-required cancellation with distinct generation PCM and queued obsolete samples, capture continuity, render discontinuities, and close canceling pending flush while retirement is held. |
+| Variable blocks with concurrent roles | Implemented but incomplete verification | `tests/concurrency.cpp` varies each leg independently through 1..32 frames while reader/writer/reference/control overlap, including flush and shutdown. BUSY remains valid admission contention, not an acknowledged cancellation. |
+
+PipeWire scratch is one capture quantum, included in `stream_extra_bytes` and
+the existing allocator/budget plan. A callback accepts at most HA_MAX_QUANTUM
+frames and runs at most ceil(frames/application quantum) iterations. Each wrap
+uses at most two bounded copies; neutral data uses one bounded zero fill. No
+callback allocation, lock or worker wait is added. Output references remain
+selected application PCM before PipeWire/server transformations. This is not a
+post-mixer reference. Existing invalid-depth timing estimates remain invalid.
+
+The native descriptor rules follow the primary [SPA chunk contract](https://docs.pipewire.org/structspa__chunk.html)
+and [buffer flags](https://docs.pipewire.org/group__spa__buffer.html). They are
+also present in the PipeWire 1.0.5 SDK used for the ARM64 regression. Hail still
+rejects unsupported planes, strides, incomplete frames and oversized frame counts.
+
+### WASAPI reproduction boundary
+
+The original failures were real shared-mode streaming through signed VB-CABLE
+3.5.2.0, not merely SDK mocks. The broad 48 kHz stereo S16/F32 primed/unprimed
+trials failed the original strict oracle. Near-full-scale F32 alteration and S16
+alteration are retained in [path results](wasapi-path-results.md). The reduced
+low-grid profile was independently declared; it did not relax sample tolerance.
+
+The SDK-boundary failure `none-primed-8-3` had 478 fractional captured frames;
+submitted SDK-render PCM had none. The identical altered values/positions/QPC
+anchors already existed in the SDK capture lease before `hail_native_capture`.
+The earlier `none-primed-32-7` failure and negative native-only results remain
+valid independent observations. See [marker evidence](wasapi-marker-results.md)
+and [native-only evidence](wasapi-native-only-results.md). The locus is between
+SDK submission and SDK capture, including the engine, conversion and virtual
+driver; the responsible component is **not established**. These results do not
+justify modifying Hail's copy arithmetic or promising exact transparent shared
+mode on this fixture. Hardware occurrence outside this fixture remains unknown.
+
+`run_wasapi_marker_matrix.ps1 -RegressionCases` predeclares exactly those two
+historically failing configurations (primed, no extra clients, 8 slots/3 ms and
+32 slots/7 ms), conditions the same approved fixture, records hashes and runs
+each once with the unchanged zero-tolerance oracle. A fresh pass cannot erase a
+historical intermittent failure or establish a long-run probability bound.
+
+### Calibrated timing trace reduction
+
+The existing platform acquisition runners remain authoritative:
+`run_wasapi_physical.ps1`, `run_wasapi_marker_matrix.ps1`,
+`run_coreaudio_physical.py`, `run_pipewire_loopback.py`, and `hail_alsa_null` /
+the native example for explicit endpoint exercises. Their software observations
+are not calibrated physical measurements. The new offline adjunct
+`tools/analyze_audio_timing.py` reduces externally collected, matched event
+traces from any of those campaigns. It does not acquire microphone data, invent
+missing events, provide a DSP algorithm or qualify hardware by itself.
+
+Use a fresh campaign directory. Retain original instrument/SDK logs, conversion
+commands, executable/source hashes, OS/device/driver details and an independently
+reviewable calibration report. Write `manifest.json` with fields:
+
+```json
+{
+  "kind": "physical_electrical", "backend": "wasapi",
+  "os": "record actual OS/build", "hardware": "record endpoints and interface",
+  "driver": "record versions", "sample_rate": 48000, "channels": 2,
+  "buffer_frames": 256, "duration_seconds": 600,
+  "methodology": "record routing, marker identification and clock mapping",
+  "limitations": "record error sources and excluded measurements",
+  "calibration": "calibration-report.json"
+}
+```
+
+This is a template, **not measurement evidence**. Other kinds are `simulated`,
+`software_loopback` and `physical_acoustic`. Calibration must be a retained file;
+the reducer hashes it. Review its instrument resolution, trigger/marker error,
+clock mapping, cable/interface delay and uncertainty budget. Merely supplying a
+file does not establish a valid calibration. Predeclare profile-specific
+acceptance thresholds and duration before collecting data.
+
+Export CSV with header
+`trial,event,time_ns,uncertainty_ns,clock,frame,rate,domain,epoch`.
+Use integer ns, a common calibrated monotonic clock for paired events, blank
+uncertainty when unavailable, and unique trial/event pairs. Never relabel clocks
+to make them match; apply and retain an independently calibrated mapping first.
+Frame/rate/domain/epoch are required only for drift anchors. Export each leg's
+callbacks in a separate trace; do not merge independent callback schedules.
+
+| Events paired within a matched trial | Interpretation |
+| --- | --- |
+| capture_anchor → capture_delivery | Public first-frame estimate to application delivery: delivery age, not isolated ADC latency. Unknown estimate uncertainty stays unknown. |
+| electrical_input → capture_delivery | Calibrated input-marker-to-delivery latency, including buffering/application scheduling; not isolated ADC latency. |
+| submission → electrical_output | Submission of the identified PCM marker to independently observed analog output. |
+| submission → electrical_capture | Identified marker returned through the physical loopback and observed at the explicitly documented capture point. Report whether the point is ADC or application delivery; include that path's calibration. |
+| reference_anchor → electrical_capture | Signed alignment of the corresponding selected-reference marker and physical return. No sample-perfect cross-device claim. |
+| cancel_request → queue_invalidated / flush_ack | Logical invalidation and observed backend acknowledgement are separate distributions. Polling contributes to acknowledgement observation latency. |
+| cancel_request → last_presented / last_electrical / last_acoustic | Separate tails. Use only actual presentation receipts or calibrated instruments. A final frame preceding cancellation yields a signed negative tail. Missing receipts remain unavailable. |
+| callback_begin → callback_end | Actual instrumented callback execution, never application-pump duration. Optional positive integer callback_deadline_ns and callback_period_ns report observed misses and absolute interval jitter. |
+
+Capture/reference anchor slopes are segmented by leg, domain, epoch, rate and
+measurement clock; resets are never fitted across. Endpoint slope includes
+timestamp estimation error and is not drift compensation. Store occupancy and
+xrun counters in the original platform logs; this tool does not reconstruct
+unavailable instantaneous occupancy from submitted-minus-selected frames.
+
+```sh
+python tools/analyze_audio_timing.py campaign/manifest.json campaign/trace.csv --output campaign/timing.json
+python tests/audio_timing_tool.py
+```
+
+The output gives count/median/P95/P99/min/max and summed endpoint uncertainty
+bounds, preserving unknowns. Missing metrics are null; cross-clock subtraction,
+duplicate events, nonmonotonic same-epoch anchors and uncalibrated physical claims
+are errors. Existing output is never overwritten. Tool tests use synthetic data
+only. No reported distribution is a physical measurement until its retained
+acquisition and calibration evidence have been reviewed.
+
+### Follow-up verification record
+
+Linux ARM64 GCC ASan/UBSan: actual PipeWire descriptor regressions and 13/13
+available native tests passed (PipeWire server loopback excluded locally; ALSA
+null 2/4/32-channel tests included). Both new capture regressions were first
+executed against unchanged a5b247b production source and failed as expected.
+Windows Debug targeted WASAPI packet and concurrent-role tests passed. Full
+matrix, installed-consumer, sanitizer, analysis and bounded native rerun results
+are recorded in the convergence evidence update below once completed. No local
+macOS execution or physical timing result is implied.
+
+No public header or exported function changed in this follow-up. The optional
+400-byte legacy info prefix and 408-byte current record remain as previously
+implemented. Installed static/shared consumers and exact-symbol checks verify
+the exercised configurations; 32-bit, alternate ABI/toolchains, arbitrary
+physical channel maps and full historical binary compatibility remain ABI
+readiness limitations. ABI remains provisional.
+
 Audit base: `42537e2`, 2026-11-19. **Gate E verdict: PARTIAL.** Executable public
 DSP interoperability and focused implementation fixes are delivered. Calibrated
 physical latency, reference alignment, audible tails, target-device drift and

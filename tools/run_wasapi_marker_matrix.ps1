@@ -4,9 +4,11 @@ param(
     [string]$Executable='build-windows-validation/OFF-Release/hail_wasapi_loopback.exe',
     [string]$ConditioningExecutable='build-windows-validation/OFF-Release/hail_wasapi_path.exe',
     [Parameter(Mandatory)][string]$OutputDirectory,
-    [switch]$SdkBoundaryMatrix
+    [switch]$SdkBoundaryMatrix,
+    [switch]$RegressionCases
 )
 $ErrorActionPreference='Stop'
+if($RegressionCases -and $SdkBoundaryMatrix){throw 'Choose one predeclared matrix'}
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $output=(Resolve-Path $OutputDirectory).Path
 if(Test-Path "$output/plan.json"){throw 'Use a new evidence directory; prior trial results must not be overwritten'}
@@ -19,7 +21,13 @@ $delays=if($SdkBoundaryMatrix){@(0,3,7,11)}else{@(0,7)}
 $plan=@(foreach($tap in $tapModes){foreach($startup in 'primed','unprimed'){foreach($slots in 8,32){foreach($delay in $delays){
     [ordered]@{name="$tap-$startup-$slots-$delay";tap=$tap;startup=$startup;slots=$slots;delay_ms=$delay;seconds=5}
 }}}})
-[ordered]@{declared_utc=[DateTimeOffset]::UtcNow.ToString('o');source=(git rev-parse HEAD);working_tree=@(git status --short);sdk_boundary_matrix=[bool]$SdkBoundaryMatrix;executable_sha256=(Get-FileHash $executablePath).Hash;conditioning_sha256=(Get-FileHash $conditioningPath).Hash;fixture=$fixture;cases=$plan;retry='none';sample_tolerance=0;clock_pair_alignment_ns=100} |
+if($RegressionCases) {
+    $plan=@(
+        [ordered]@{name='none-primed-8-3';tap='none';startup='primed';slots=8;delay_ms=3;seconds=5},
+        [ordered]@{name='none-primed-32-7';tap='none';startup='primed';slots=32;delay_ms=7;seconds=5}
+    )
+}
+[ordered]@{declared_utc=[DateTimeOffset]::UtcNow.ToString('o');source=(git rev-parse HEAD);working_tree=@(git status --short);sdk_boundary_matrix=[bool]$SdkBoundaryMatrix;regression_cases=[bool]$RegressionCases;executable_sha256=(Get-FileHash $executablePath).Hash;conditioning_sha256=(Get-FileHash $conditioningPath).Hash;fixture=$fixture;cases=$plan;retry='none';sample_tolerance=0;clock_pair_alignment_ns=100} |
     ConvertTo-Json -Depth 10 | Set-Content "$output/plan.json" -Encoding utf8
 function Invoke-Observed([string]$Program,[string[]]$Arguments,[string]$Name,[int]$TimeoutSeconds) {
     $start=[DateTimeOffset]::UtcNow

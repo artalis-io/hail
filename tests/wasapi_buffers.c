@@ -118,6 +118,25 @@ static void multichannel_test(void)
         for(unsigned i=0;i<2u*channels;++i) CHECK(output[i]==0);
     }
 }
+static void fractional_capture_test(void)
+{
+    /* Values observed in the failing SDK capture lease, in S16 units.
+     * Fractional samples are valid F32 and must reach the caller bit-exact.
+     * This checks provenance, not transparency of the Windows mixer/driver. */
+    const float input[] = {3062.0f/32768.0f, -3062.125f/32768.0f,
+        4095.75f/32768.0f, -4096.0f/32768.0f,
+        8191.0f/32768.0f, -8190.875f/32768.0f, 0.0f, -0.0f};
+    float output[8]; ha_block_info b = HA_INIT(ha_block_info);
+    setup(); stream.info.capture_format.sample_format = HA_PCM_F32;
+    stream.capture.bytes_per_frame = 8;
+    stream.capture.stride = (uint32_t)hail_align(sizeof(hail_slot) + 16u);
+    packet_data = (BYTE *)(const void *)input;
+    wa_capture(&adapter);
+    CHECK(released == 1 && !atomic_load(&stream.rt[0].error));
+    CHECK(hail_ring_read(&stream.capture, output, 2, &b) == 2);
+    CHECK(hail_ring_read(&stream.capture, output + 4, 2, &b) == 2);
+    CHECK(!memcmp(input, output, sizeof(input)));
+}
 int main(void)
 {
     ha_block_info b=HA_INIT(ha_block_info); int16_t pcm[4];
@@ -175,7 +194,7 @@ int main(void)
     { wa_context p={0}; CHECK(wa_context_request(&p,WA_REFRESH)==HA_STREAM_FAILED);
       p.reply=CreateEventW(NULL,FALSE,FALSE,NULL); CHECK(p.reply); signal_ok=FALSE;
       CHECK(wa_context_request(&p,WA_REFRESH)==HA_STREAM_FAILED); CHECK(CloseHandle(p.reply)); }
-    notification_test(); multichannel_test();
+    notification_test(); multichannel_test(); fractional_capture_test();
     puts("WASAPI packet leases, flags, bounds, rollback and command supersession passed");
     return 0;
 }

@@ -29,8 +29,19 @@ typedef struct pw_hail_leg {
     enum pw_stream_state state;
     struct spa_hook hook;
     atomic_uint prepared, callbacks;
+    unsigned char *capture_scratch;
 } pw_hail_leg;
 typedef struct pw_hail_stream { pw_hail_leg legs[2]; } pw_hail_stream;
+
+static ha_result pipewire_extra_bytes(const ha_stream_info *info, size_t *bytes)
+{
+    uint32_t bpf; ha_result r;
+    *bytes = 0;
+    if (!info->capture_slots) return HA_OK;
+    r = hail_format(&info->capture_format, &bpf);
+    if (r != HA_OK) return r;
+    return hail_mul(info->quantum_frames, bpf, bytes) ? HA_OK : HA_OVERFLOW;
+}
 
 static pthread_once_t pw_once = PTHREAD_ONCE_INIT;
 static void pipewire_global_init(void) { pw_init(NULL, NULL); }
@@ -245,8 +256,8 @@ static void stream_process(void *data)
     struct pw_buffer *buffer;
     struct spa_data *d;
     uint32_t frames, offset = 0, bpf;
-    int entered = 0;
-    uint64_t first_host = 0; uint32_t time_flags = 0, byte_start = 0;
+    int entered = 0, silence = 0;
+    uint64_t first_host = 0; uint32_t time_flags = 0, consumed = 0;
     atomic_fetch_add_explicit(&l->callbacks, 1, memory_order_acquire);
     if (!atomic_load_explicit(&l->prepared, memory_order_acquire)) goto finished;
     s = l->owner; bpf = l->leg ? s->playback.bytes_per_frame : s->capture.bytes_per_frame;
@@ -254,19 +265,22 @@ static void stream_process(void *data)
     if (!buffer) goto finished;
     if (buffer->buffer->n_datas != 1) { hail_rt_error(s, l->leg, HA_STREAM_FAILED, 0); goto done; }
     d = &buffer->buffer->datas[0];
-    if (!d->data || !d->chunk || !bpf) { hail_rt_error(s, l->leg, HA_STREAM_FAILED, 0); goto done; }
+    if (!d->data || !d->chunk || !bpf || !d->maxsize) { hail_rt_error(s, l->leg, HA_STREAM_FAILED, 0); goto done; }
     if (l->leg) {
         frames = d->maxsize / bpf;
         if (buffer->requested && buffer->requested < frames) frames = (uint32_t)buffer->requested;
         if (frames > HA_MAX_QUANTUM) { hail_rt_error(s, l->leg, HA_STREAM_FAILED, 0); d->chunk->size = 0; goto done; }
         d->chunk->offset = 0; d->chunk->stride = (int32_t)bpf; d->chunk->size = frames * bpf;
+        d->chunk->flags = 0; /* A recycled EMPTY flag must not silence new PCM. */
     } else {
-        if (d->chunk->offset > d->maxsize || d->chunk->size > d->maxsize - d->chunk->offset ||
-            d->chunk->size % bpf || d->chunk->stride < 0 ||
+        uint32_t size = d->chunk->size < d->maxsize ? d->chunk->size : d->maxsize;
+        if (size % bpf || d->chunk->stride < 0 ||
             (d->chunk->stride && d->chunk->stride != (int32_t)bpf)) {
             hail_rt_error(s, l->leg, HA_STREAM_FAILED, 0); goto done;
         }
-        offset = d->chunk->offset; frames = d->chunk->size / bpf;
+        /* SPA specifies modulo offsets and size clamping. Ring data can wrap
+         * inside a sample; copy each quantum into owned contiguous storage. */
+        offset = d->chunk->offset % d->maxsize; frames = size / bpf;
         if (frames > HA_MAX_QUANTUM) { hail_rt_error(s, l->leg, HA_STREAM_FAILED, 0); goto done; }
     }
     entered = hail_rt_enter(s, l->leg);
@@ -282,8 +296,9 @@ static void stream_process(void *data)
             ha_result r = hail_native_capture_loss(s, 0, 1);
             if (r != HA_OK) { hail_rt_error(s, 0, r, 0); goto done; }
         }
+        silence = (d->chunk->flags & SPA_CHUNK_FLAG_EMPTY) ||
+            (header && (header->flags & SPA_META_HEADER_FLAG_GAP));
     }
-    byte_start = offset;
     {
         struct pw_time time = {0};
         uint32_t rate = l->leg ? s->info.playback_format.sample_rate : s->info.capture_format.sample_rate;
@@ -305,14 +320,29 @@ static void stream_process(void *data)
     while (frames) {
         uint32_t n = frames > s->info.quantum_frames ? s->info.quantum_frames : frames;
         ha_result r;
-        uint64_t delta = (uint64_t)((offset - byte_start) / bpf) * UINT64_C(1000000000) /
+        uint64_t delta = (uint64_t)consumed * UINT64_C(1000000000) /
             (l->leg ? s->info.playback_format.sample_rate : s->info.capture_format.sample_rate);
         uint64_t host = delta <= UINT64_MAX - first_host ? first_host + delta : 0;
         uint32_t flags = host || !delta ? time_flags : 0;
         if (l->leg) r = hail_native_render(s, (unsigned char *)d->data + offset, n, host, 0, UINT64_MAX, flags);
-        else r = hail_native_capture(s, (unsigned char *)d->data + offset, n, host, 0, UINT64_MAX, flags);
+        else {
+            const void *pcm = (const unsigned char *)d->data + offset;
+            uint32_t bytes = n * bpf;
+            if (silence) {
+                memset(l->capture_scratch, 0, bytes); pcm = l->capture_scratch;
+                flags |= HA_BLOCK_SILENCE;
+            } else if (bytes > d->maxsize - offset) {
+                uint32_t first = d->maxsize - offset;
+                memcpy(l->capture_scratch, pcm, first);
+                memcpy(l->capture_scratch + first, d->data, bytes - first);
+                pcm = l->capture_scratch;
+            }
+            r = hail_native_capture(s, pcm, n, host, 0, UINT64_MAX, flags);
+        }
         if (r != HA_OK) { hail_rt_error(s, l->leg, r, 0); break; }
-        offset += n * bpf; frames -= n;
+        if (l->leg) offset += n * bpf;
+        else offset = (uint32_t)(((uint64_t)offset + n * bpf) % d->maxsize);
+        consumed += n; frames -= n;
     }
 done:
     (void)pw_stream_queue_buffer(l->stream, buffer);
@@ -342,6 +372,7 @@ static ha_result pipewire_open(ha_stream *s)
 {
     pw_hail_context *p = s->context->backend_state; pw_hail_stream *a = s->backend_state;
     uint32_t i; ha_result result = HA_OK;
+    a->legs[0].capture_scratch = (unsigned char *)a + sizeof(*a);
     pw_thread_loop_lock(p->loop);
     for (i = 0; i < 2; ++i) {
         uint64_t id = i ? s->info.playback_device_id : s->info.capture_device_id;
@@ -425,6 +456,6 @@ const hail_backend_ops hail_pipewire_backend = {
     .id = HA_BACKEND_PIPEWIRE, .features = HA_FEATURE_PIPEWIRE | HA_FEATURE_RENDER_REFERENCE | HA_FEATURE_NATIVE_FLUSH,
     .context_init = pipewire_context_init, .probe = pipewire_probe, .open = pipewire_open,
     .start = pipewire_start, .stop = pipewire_stop, .flush = pipewire_flush, .retire = pipewire_retire,
-    .context_bytes = sizeof(pw_hail_context), .stream_bytes = sizeof(pw_hail_stream),
+    .context_bytes = sizeof(pw_hail_context), .stream_bytes = sizeof(pw_hail_stream), .stream_extra_bytes = pipewire_extra_bytes,
     .refresh = pipewire_refresh, .context_free = pipewire_context_free, .stream_free = pipewire_stream_free
 };
