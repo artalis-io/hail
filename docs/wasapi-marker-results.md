@@ -1,5 +1,9 @@
 # Marker-stream flush isolation, 2026-11-18
 
+The subsequent [standalone native-only follow-up](wasapi-native-only-results.md)
+passed 16/16 cases without reproducing the ramp. Its reduced scheduling and
+priming model leaves the SDK-boundary observation below unresolved.
+
 **The fractional ramp is already present in the SDK capture buffer before Hail
 copies it.** The actual SDK render buffer remains on the exact S16 sample grid
 before submission. Eight fractional SDK samples match Hail capture by position,

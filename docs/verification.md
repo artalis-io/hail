@@ -13,6 +13,13 @@ Source hashes, tool versions and per-target results are recorded in
 
 ## Current executed evidence
 
+The [standalone native WASAPI follow-up](wasapi-native-only-results.md) passes
+all 16 predeclared exact low-grid cases and a separate native ASan profile.
+The ramp did not reproduce in that reduced scheduling/priming model; earlier
+Hail SDK-boundary failures remain unresolved. The subsequent
+[C audit](c-audit-2026-11-19.md) and [axis audit](axis-audit.md) record current
+Windows checks and source-only coverage of other platforms.
+
 Owner-authorized [Shure Windows execution](native-windows-physical-results.md)
 now passes 32 strict duplex format/startup cases, standalone capture/playback,
 all static/shared Debug/Release samples, 30 native lifecycle cycles and a

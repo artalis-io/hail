@@ -1,5 +1,119 @@
 # Audio architecture axis audit
 
+## 2026-11-19 standalone follow-up and full source pass
+
+Applied [axis-audit](../.claude/skills/axis-audit/SKILL.md) after the
+[16-case native-only campaign](wasapi-native-only-results.md), reviewing
+`83299c9` plus the focused sanitizer correction. Read architecture, API,
+backend-authoring, verification and roadmap contracts against public/private
+headers, all adapters, core/transport, relevant tests/fuzz, CMake and CI.
+**No new confirmed cross-axis defect was found.** Earlier passes below remain
+history. The [C audit](c-audit-2026-11-19.md) records one resolved test-build
+instrumentation defect, with no production or public contract change.
+
+### Responsibility and dependency map
+
+| Responsibility | Current source seam and ownership | Boundary judgment |
+| --- | --- | --- |
+| Representation/transport | `include/hail.h`, `queue.c`, `native.c`: bounded PCM frames, slots and metadata | No SDK buffer ownership or numerical DSP in portable transport |
+| Discovery/identity | `core.c` copied registry/selectors; adapter notifications publish bounded change mailboxes | Default changes do not migrate an open stream; identity is not permission or a promise of future access |
+| Negotiation/capabilities | Adapter probe/open returns application/device facts and conversion validity | No core resampler; capability bits do not grant permission or physical certainty |
+| Direction/flow | Separate capture/render/reference rings and native leg gates | Different rates/periods/domains permitted; render flush preserves capture |
+| Execution/platform | `hail_internal.h:hail_backend_ops`, `native.c`, four SDK adapters and `virtual.c` | Execution mode is declared independently of backend identity; no SDK types escape into public/portable interfaces |
+| Lifecycle/memory | Serialized control, application roles, native retirement, checked plans/quotas | Cancellation/gate closure cannot authorize freeing live SDK or application state |
+| Timing | Per-leg logical positions, native validity, epochs and uncertainty | Engine position after conversion is not application position; playback generation is not clock epoch |
+| Processing/application | External adapter consumes bounded PCM/time and writes generation-bound PCM | Speech, DSP, codecs, credentials, networking and service policy stay outside Hail |
+
+Mechanical searches of `core.c`, `queue.c`, `native.c`, `virtual.c`, the private
+header and public header found only the expected `_WIN32` ABI decoration in
+`hail.h`; no SDK include, native error constant, DSP or networking dependency.
+`tools/check_contracts.py` and the Windows static/shared contract checks were
+also reviewed/executed. These checks support the syntactic boundary; the traces
+below supply the semantic review.
+
+### Execution and lifetime traces
+
+1. **Capture:** `backend_coreaudio.c:ca_audio` acquires SDK PCM into bounded
+   adapter storage, validates frames/buffers/timing, enters capture ownership
+   and publishes through `hail_native_capture`. The callback retains native
+   storage only for its invocation. `backend_wasapi.c`'s COM owner validates a
+   `GetBuffer` lease, publishes the bounded copy and calls `ReleaseBuffer` on
+   that owner; it never hands a native pointer to the application. PipeWire's
+   `stream_process` similarly returns dequeued buffers after bounded transfer;
+   ALSA reads into worker-owned scratch. `virtual.c:ha_virtual_step` is driven
+   externally under its declared execution model and owns synthetic scratch.
+   Public capture reads consume copied slots partially with time interpolation.
+2. **Playback/reference:** a public write checks current playback generation
+   before bounded queue publication. `hail_native_render` consumes partial
+   slots under render ownership, fills unmet demand with silence and publishes
+   the optional selected-PCM reference. The adapter owns native submission and
+   returns each lease. Queue acceptance, native submission and audible output
+   remain distinct; reference PCM does not prove DAC output or physical timing.
+3. **Duplex interruption:** core revokes render write admission, increments
+   generation and records a consumer cutoff; the render owner discards through
+   it. The adapter provides the native reset/barrier and acknowledgement. In
+   WASAPI the same COM worker performs render Stop/Reset/Start while capture
+   continues. Capture gates, queues and clocks are independent. Superseded or
+   failed commands do not acknowledge successful flush.
+4. **Lifecycle:** partial open/start/stop/error paths retain ownership until
+   their actual native retirement proof. WASAPI distinguishes command handling,
+   retirement readiness and terminated-thread wait; ALSA checks worker join.
+   CoreAudio stop/uninitialize and callback accounting are separate from core
+   role gates. PipeWire removes the process hook before destroying storage:
+   official [PipeWire 1.0.5 stream.c](https://github.com/PipeWire/pipewire/blob/1.0.5/src/pipewire/stream.c)
+   confirms `hook_removed` synchronously invokes callback removal on the data
+   loop. This supports the adapter's documented mechanism for that version;
+   it is not fresh Linux execution. Application roles must also quiesce before
+   final reclamation. Failed-open allocations remain bounded/accounted;
+   pending/error cleanup may be retried and a cleared close slot is idempotent.
+5. **Discovery/permissions:** native notifications request authoritative
+   registry refresh instead of mutating live control state. Default selection
+   and pinned endpoint removal/replacement have different effects; runtime
+   incarnations prevent silent identity reuse. Probe/open checks permission;
+   asynchronous revocation/loss is a terminal native fact. Enumeration or a
+   previous grant does not guarantee the next open.
+6. **Timing:** capture and render retain independent application-frame
+   positions/domains and discontinuity epochs. Unknown gaps invalidate facts;
+   estimates remain estimates. WASAPI converted capture does not relabel
+   engine-frame positions as application frames. No synchronization, drift
+   correction or physical latency measurement is introduced by this pass.
+
+The ownership contract remains: serialized application control; one producer
+and consumer per admitted role; per-leg native ownership; copied PCM across
+the public boundary; no application code called from audio execution; native
+SDK retirement plus application quiescence before freeing storage. Adapter
+resource and scheduling mechanisms may share a translation unit without
+requiring a new public axis or arbitrary backend combinations.
+
+### Evidence and compatibility
+
+| Path/claim | Implemented | Compiled/exercised this pass | Qualification/limit |
+| --- | --- | --- | --- |
+| Portable/virtual contract, retirement, concurrency, backend axes | Yes | Windows static/shared Debug/Release; 13/9 device-free tests per configuration | Bounded test coverage; no fresh TSan/fuzz campaign |
+| WASAPI geometry and retirement seams | Yes | Windows device-free and SDK-diagnostic ASan, 13/13 | SDK seam coverage does not replace real paired numerical checks |
+| Hail real paired flush transparency | Yes, native path | Prior failed matrices retained; no rerun in this pass | Incomplete; two earlier fractional-ramp failures remain |
+| Independent native-only exact low-grid path | Separate test tool | 16/16 native cases and one separate ASan native profile | Reduced scheduling/priming model; does not qualify Hail |
+| CoreAudio callback and permission retirement | Yes | Source reviewed; no fresh macOS build/run | Historical evidence only |
+| PipeWire callbacks/data-loop barrier; ALSA worker join | Yes | Source reviewed; official PW barrier source checked | No fresh Linux build/run; POSIX handoff not executed here |
+| Physical presentation latency/synchronized clocks | No new implementation or measurement | None | Incomplete; reference and cable observations cannot establish it |
+| DSP/speech/service processing in core | Unsupported by design | Dependency boundary reviewed | External adapters remain responsible |
+
+The standalone target deliberately links only SDK/runtime dependencies. Explicit
+sanitizer configuration restores its memory-check instrumentation without
+introducing a Hail dependency. Source, imports and undefined symbols verify
+that build separation. Its single-owner render servicing cadence and native-only
+priming differ from Hail's queued/event-driven execution. A clean standalone
+result therefore cannot erase the prior SDK lease observation or identify a
+responsible Windows component.
+
+Validation also includes ten clean Clang analyzer invocations, exact export and
+installed C/C++ consumer checks, and unchanged default/physical input readbacks.
+See the C audit and raw evidence for commands, rejected analyzer CLI attempt
+and platform limits. No additional architecture refactor is justified by this
+pass. Further numerical investigation needs a concrete scheduling/occupancy
+hypothesis; service/DSP work can continue through the existing PCM, time,
+generation and terminal-error boundary.
+
 The [marker-stream SDK-boundary work](wasapi-marker-results.md) confirms that
 the native capture lease already contains the flush ramp before transport
 copying, with an exact submitted render grid. Diagnostic records belong to the
